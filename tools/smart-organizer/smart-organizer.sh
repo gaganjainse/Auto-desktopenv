@@ -166,6 +166,9 @@ OPTIONS:
     --organize         Run organization mode (sort files into folders)
     --folders          Run folder operations (merge, split, dedupe)
     --exempt PATH      Add path to exempt from organization
+    --recovery         List items in recovery directory
+    --restore NAME     Restore item from recovery directory
+    --purge-recovery   Permanently delete all items in recovery
     --all              Run all modes (default)
     --help             Show this help
 
@@ -189,6 +192,7 @@ main() {
     local mode="all"
     local targets=()
     local watch_mode=false
+    local RESTORE_NAME=""
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -224,6 +228,20 @@ main() {
             --exempt)
                 shift
                 add_exempt_path "$1"
+                shift
+                ;;
+            --recovery)
+                mode="recovery"
+                shift
+                ;;
+            --restore)
+                mode="restore"
+                shift
+                RESTORE_NAME="$1"
+                shift
+                ;;
+            --purge-recovery)
+                mode="purge-recovery"
                 shift
                 ;;
             --all)
@@ -283,6 +301,19 @@ main() {
             ;;
         dedupe-hardlink)
             dedupe_hardlink "${targets[@]}"
+            ;;
+        recovery)
+            list_recovery
+            ;;
+        restore)
+            if [[ -z "$RESTORE_NAME" ]]; then
+                log_error "Please specify the item to restore: --restore <name>"
+                exit 1
+            fi
+            restore_from_recovery "$RESTORE_NAME"
+            ;;
+        purge-recovery)
+            purge_recovery
             ;;
         all)
             run_cleanup "${targets[@]}"
