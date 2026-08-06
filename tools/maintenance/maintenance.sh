@@ -112,7 +112,6 @@ fi
 # 3. Remove orphans
 log_info "3. Removing orphan packages..."
 if command -v pacman >/dev/null 2>&1; then
-    local orphans
     orphans=$(pacman -Qtdq 2>/dev/null || true)
     if [[ -n "$orphans" ]]; then
         if $DRY_RUN; then
@@ -144,7 +143,6 @@ df -h /home | awk 'NR==1 {print} NR==2 {print "  Home: "$4" available"}'
 # 6. SMART health check
 log_info "6. Checking disk health..."
 if command -v smartctl >/dev/null 2>&1; then
-    local disk
     disk=$(df /home | awk 'NR==2 {print $1}' | sed 's/[0-9]//g')
     if [[ -n "$disk" ]]; then
         sudo smartctl -H "$disk" 2>/dev/null | grep -E "PASSED|FAILED|SMART" || log_warn "SMART check not available"
@@ -155,7 +153,7 @@ fi
 
 # 7. Service health check
 log_info "7. Checking critical services..."
-local services=(bluetooth NetworkManager systemd-timesyncd)
+services=(bluetooth NetworkManager systemd-timesyncd)
 for svc in "${services[@]}"; do
     if systemctl is-active --quiet "$svc" 2>/dev/null; then
         log_ok "$svc is running"

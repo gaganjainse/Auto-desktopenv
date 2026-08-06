@@ -33,7 +33,7 @@ import struct
 import subprocess
 import logging
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
@@ -101,13 +101,10 @@ class MSIMUXSwitcher:
             errors.append("efivarfs not mounted at /sys/firmware/efi/efivars")
 
         # Check ec_sys or msi-ec
-        ec_available = False
         if self.msi_ec_path.exists() and (self.msi_ec_path / "fw_version").exists():
             log.info("Found msi-ec kernel driver")
-            ec_available = True
         elif self.ec_path.exists():
             log.info("Found raw ec_sys interface at /sys/kernel/debug/ec/ec0/io")
-            ec_available = True
         else:
             errors.append(
                 "No EC interface found. Load with:\n"
@@ -219,7 +216,7 @@ class MSIMUXSwitcher:
             log.info("Triggering EC MUX switch sequence...")
 
             # Step 1: Write to EC switch register
-            log.debug(f"Writing 0xD1 to EC switch register")
+            log.debug("Writing 0xD1 to EC switch register")
             self._ec_write_byte(self.EC_SWITCH_ADDR, 0xD1)
 
             # Step 2: Read current MUX register value
@@ -338,7 +335,7 @@ class MSIMUXSwitcher:
 
         # Check UEFI variable
         var_path = self._get_mux_var_path()
-        log.info(f"\n--- UEFI Variable ---")
+        log.info("\n--- UEFI Variable ---")
         log.info(f"MsiDCVarData: {'✓ exists' if var_path.exists() else '✗ not found'}")
         if var_path.exists():
             data = self._read_uefi_var(var_path)
@@ -352,14 +349,14 @@ class MSIMUXSwitcher:
         if self.ec_path.exists():
             try:
                 mux_val = self._ec_read_byte(self.EC_MUX_ADDR)
-                log.info(f"\n--- EC Registers ---")
+                log.info("\n--- EC Registers ---")
                 log.info(f"EC MUX register (0x{self.EC_MUX_ADDR:02x}): 0x{mux_val:02x}")
                 log.info(f"MUX bit (0x{self.EC_MUX_MASK:02x}): {'set' if mux_val & self.EC_MUX_MASK else 'clear'}")
             except Exception as e:
                 log.error(f"Failed to read EC: {e}")
 
         # Check active GPU
-        log.info(f"\n--- Active GPU ---")
+        log.info("\n--- Active GPU ---")
         try:
             result = subprocess.run(
                 ["glxinfo", "|", "grep", "OpenGL renderer string"],
@@ -386,7 +383,7 @@ class MSIMUXSwitcher:
 
         # Overall mode
         current = self.get_current_mode()
-        log.info(f"\n--- Detected Mode ---")
+        log.info("\n--- Detected Mode ---")
         if current:
             log.info(f"Current mode: {current}")
         else:
