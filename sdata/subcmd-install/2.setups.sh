@@ -277,12 +277,13 @@ function setup_nvidia_mux(){
     fi
   fi
 
-  # Configure bootloader kernel parameters (Limine)
+  # Configure bootloader kernel parameters (Limine on CachyOS)
   printf "  Configuring boot parameters for NVIDIA...\n"
-  if [[ -f /boot/limine/limine.conf ]]; then
-    if ! grep -q "nvidia-drm.modeset=1" /boot/limine/limine.conf; then
-      v sudo sed -i 's|^\(kernel_cmdline=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' /boot/limine/limine.conf
+  if [[ -f /etc/default/limine ]]; then
+    if ! grep -q "nvidia-drm.modeset=1" /etc/default/limine; then
+      v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' /etc/default/limine
     fi
+    v sudo limine-mkinitcpio
   fi
 
   # Create udev rules for stable GPU device paths
