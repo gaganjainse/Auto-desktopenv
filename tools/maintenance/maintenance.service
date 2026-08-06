@@ -1,0 +1,7 @@
+[Unit]
+Description=Maintenance Script Oneshot
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/maintenance.sh --auto
