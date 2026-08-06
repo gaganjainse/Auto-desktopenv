@@ -7,12 +7,14 @@ on:
       - 'tools/**'
       - 'sdata/subcmd-smart-organizer/**'
       - 'tools/**/*.sh'
+      - '.github/workflows/**'
   pull_request:
     branches: [main]
     paths:
       - 'tools/**'
       - 'sdata/subcmd-smart-organizer/**'
       - 'tools/**/*.sh'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
