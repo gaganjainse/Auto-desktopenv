@@ -1,81 +1,44 @@
 # MUX Switcher
 
-MSI Laptop GPU MUX Switch Control tool.
+MSI Sword 16 HX B14VEKG GPU MUX Switch Controller.
 
 ## Supported Hardware
 
-- MSI Sword 16 HX B14VEKG (tested)
-- Other MSI laptops with hardware MUX switch
+- **MSI Sword 16 HX B14VEKG** (primary target)
+- Other MSI laptops with compatible EC/UEFI MUX interface may work
+
+## Modes
+
+| Mode | Description |
+|------|-------------|
+| `hybrid` | Intel UHD primary display, NVIDIA available via PRIME Offload |
+| `dgpu` | NVIDIA RTX 4050 direct via MUX, no PRIME overhead |
+| `igpu` | Intel UHD only, NVIDIA powered off where supported |
 
 ## Usage
 
 ```bash
-# Check current mode
-sudo mux-switcher status
-
-# Switch to hybrid mode (iGPU + dGPU)
-sudo mux-switcher hybrid
-
-# Switch to dGPU-only mode (maximum performance)
-sudo mux-switcher dgpu
-
-# Restart display manager after switching
-sudo mux-switcher restart
+sudo python3 tools/mux-switcher/msi-mux-switcher.py status
+sudo python3 tools/mux-switcher/msi-mux-switcher.py hybrid
+sudo python3 tools/mux-switcher/msi-mux-switcher.py dgpu
+sudo python3 tools/mux-switcher/msi-mux-switcher.py igpu
 ```
 
-## Modes
+### Options
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Preview changes without applying |
+| `--debug` | Enable debug logging |
 
-### Hybrid Mode
-- Uses both iGPU and dGPU
-- Better battery life
-- Suitable for browsing, office work, coding
+## Requirements
 
-### dGPU Mode
-- Uses only NVIDIA dGPU
-- Maximum performance
-- Higher power consumption
-- Suitable for gaming, AI/ML, video editing
+- Root privileges
+- `ec_sys` kernel module with `write_support=1`, or `msi-ec` driver
+- `efivarfs` mounted at `/sys/firmware/efi/efivars`
+- `debugfs` mounted at `/sys/kernel/debug`
 
-## Display Managers
+## Notes
 
-The `restart` command supports:
-- GDM (GNOME)
-- SDDM (KDE)
-- LightDM
-- Ly
-
-## Installation
-
-Automatically installed by `./setup install` on MSI laptops.
-
-Manual installation:
-```bash
-ln -sf /path/to/mux-switcher.sh ~/.local/bin/mux-switcher
-```
-
-## Detection
-
-The script automatically detects MSI laptops via DMI:
-```bash
-grep -qi "MSI" /sys/class/dmi/id/sys_vendor
-```
-
-## Troubleshooting
-
-### Mode not switching
-1. Ensure you're running as root (sudo)
-2. Check if `msi-gpu-switcher` is installed
-3. Verify `/sys/kernel/debug/vgaswitcheroo/switch` exists
-
-### Display manager not restarting
-Manually restart your display manager:
-```bash
-sudo systemctl restart gdm    # GNOME
-sudo systemctl restart sddm   # KDE
-sudo systemctl restart lightdm  # LightDM
-```
-
-### Black screen after switching
-1. Switch back to hybrid mode
-2. Restart display manager
-3. Check Hyprland logs: `journalctl --user -u hyprland`
+- Reboot is required after switching modes
+- This uses the existing `msi-mux-switcher` Python implementation with UEFI variable + EC register methods
+- Do not use this on non-MSI hardware
