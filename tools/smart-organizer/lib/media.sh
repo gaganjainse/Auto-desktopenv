@@ -36,7 +36,7 @@ organize_media() {
 organize_file() {
     local filepath="$1"
 
-    if is_protected "$filepath"; then
+    if is_protected "$filepath" || is_exempt "$filepath"; then
         return 0
     fi
 

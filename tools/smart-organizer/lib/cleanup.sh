@@ -324,7 +324,7 @@ cleanup_build_artifacts() {
         for pattern in "${artifact_patterns[@]}"; do
             find "$base_dir" -maxdepth 5 -type d -name "$pattern" -print0 2>/dev/null | \
             while IFS= read -r -d '' artifact_dir; do
-                if is_protected "$artifact_dir"; then
+                if is_protected "$artifact_dir" || is_exempt "$artifact_dir"; then
                     continue
                 fi
 
