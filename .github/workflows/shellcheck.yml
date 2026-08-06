@@ -1,0 +1,45 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.sh'
+      - 'tools/**'
+      - 'sdata/**'
+      - 'setup'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.sh'
+      - 'tools/**'
+      - 'sdata/**'
+      - 'setup'
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          shellcheck --version
+
+          # Find all bash scripts
+          scripts=$(find . -type f \( -name '*.sh' -o -path './setup' -o -path './diagnose' \) | grep -v '.git' | sort)
+
+          exit_code=0
+          for script in $scripts; do
+            echo "Checking: $script"
+            shellcheck -x "$script" || exit_code=1
+          done
+
+          if [[ $exit_code -eq 0 ]]; then
+            echo "All shell scripts passed ShellCheck"
+          else
+            echo "Some shell scripts failed ShellCheck"
+            exit 1
+          fi

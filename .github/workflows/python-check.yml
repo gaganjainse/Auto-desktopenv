@@ -1,0 +1,60 @@
+name: Python Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.py'
+      - 'tools/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.py'
+      - 'tools/**'
+  workflow_dispatch:
+
+jobs:
+  python-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check Python syntax
+        run: |
+          python_files=$(find . -type f -name '*.py' | grep -v '.git' | sort)
+
+          exit_code=0
+          for pyfile in $python_files; do
+            echo "Checking: $pyfile"
+            python3 -m py_compile "$pyfile" || exit_code=1
+          done
+
+          if [[ $exit_code -eq 0 ]]; then
+            echo "All Python files have valid syntax"
+          else
+            echo "Some Python files have syntax errors"
+            exit 1
+          fi
+      - name: Check Python style with flake8
+        run: |
+          pip install flake8
+          python_files=$(find . -type f -name '*.py' | grep -v '.git' | sort)
+
+          exit_code=0
+          for pyfile in $python_files; do
+            echo "Linting: $pyfile"
+            flake8 "$pyfile" --max-line-length=120 --ignore=E501,W503 || exit_code=1
+          done
+
+          if [[ $exit_code -eq 0 ]]; then
+            echo "All Python files passed flake8"
+          else
+            echo "Some Python files failed flake8"
+            exit 1
+          fi
