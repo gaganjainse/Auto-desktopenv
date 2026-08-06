@@ -283,7 +283,6 @@ function setup_nvidia_mux(){
     if ! grep -q "nvidia-drm.modeset=1" /etc/default/limine; then
       v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' /etc/default/limine
     fi
-    v sudo limine-mkinitcpio
   fi
 
   # Create udev rules for stable GPU device paths
