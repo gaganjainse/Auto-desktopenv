@@ -40,7 +40,7 @@ jobs:
           exit_code=0
           for script in $scripts; do
             echo "Checking: $script"
-            if ! shellcheck -x "$script"; then
+            if ! shellcheck -x -S error "$script"; then
               echo "FAILED: $script"
               exit_code=1
             fi

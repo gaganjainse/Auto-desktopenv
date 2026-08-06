@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034
 showhelp(){
   printf "Syntax: $0 smart-organizer [OPTIONS]...
   
