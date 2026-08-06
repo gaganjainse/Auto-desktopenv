@@ -1,4 +1,5 @@
 name: AI Moderator
+
 on:
   issues:
     types: [opened]
@@ -10,6 +11,10 @@ on:
 jobs:
   spam-detection:
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'issues' ||
+      github.event_name == 'issue_comment' ||
+      github.event_name == 'pull_request_review_comment'
     permissions:
       issues: write
       pull-requests: write
@@ -17,14 +22,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Check repository owner
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Event: ${{ github.event_name }}"
       - uses: github/ai-moderator@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           spam-label: 'spam'
           ai-label: 'ai-generated'
           minimize-detected-comments: true
-          # Built-in prompt configuration (all enabled by default)
           enable-spam-detection: true
           enable-link-spam-detection: true
           enable-ai-detection: true
-          # custom-prompt-path: '.github/prompts/my-custom.prompt.yml'  # Optional
