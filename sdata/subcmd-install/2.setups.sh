@@ -70,3 +70,77 @@ fi
 v gsettings set org.gnome.desktop.interface font-name 'Google Sans Flex Medium 11 @opsz=11,wght=500'
 v gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 v kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Darkly
+
+#####################################################################################
+# MSI MUX Switcher
+showfun setup_mux_switcher
+v setup_mux_switcher
+
+function setup_mux_switcher(){
+  local mux_dir="${REPO_ROOT}/tools/mux-switcher"
+  local mux_bin="${XDG_BIN_HOME}/mux-switcher"
+
+  if [[ ! -d "$mux_dir" ]]; then
+    printf "${STY_YELLOW}[$0]: mux-switcher not found at $mux_dir${STY_RST}\n"
+    return 0
+  fi
+
+  if [[ -f /sys/class/dmi/id/product_name ]] && \
+     grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+    printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
+    v mkdir -p "$XDG_BIN_HOME"
+    v ln -sf "${mux_dir}/mux-switcher.sh" "$mux_bin"
+    v chmod +x "$mux_bin"
+    printf "${STY_GREEN}[$0]: MUX switcher installed at $mux_bin${STY_RST}\n"
+    printf "  Run: sudo mux-switcher status\n"
+  else
+    printf "${STY_YELLOW}[$0]: Not an MSI laptop, skipping MUX switcher${STY_RST}\n"
+  fi
+}
+
+#####################################################################################
+# Smart Organizer
+if [[ ! "${SKIP_SMART_ORGANIZER:-}" == true ]]; then
+  showfun setup_smart_organizer
+  v setup_smart_organizer
+fi
+
+function setup_smart_organizer(){
+  local organizer_dir="${REPO_ROOT}/tools/smart-organizer"
+  local organizer_bin="${XDG_BIN_HOME}/smart-organizer"
+
+  if [[ ! -d "$organizer_dir" ]]; then
+    printf "${STY_YELLOW}[$0]: smart-organizer not found at $organizer_dir${STY_RST}\n"
+    return 0
+  fi
+
+  printf "${STY_CYAN}[$0]: Setting up Smart Organizer${STY_RST}\n"
+  v mkdir -p "$XDG_BIN_HOME"
+  v ln -sf "${organizer_dir}/smart-organizer.sh" "$organizer_bin"
+  v chmod +x "$organizer_bin"
+
+  # Install systemd user service for watch mode
+  v mkdir -p "${XDG_CONFIG_HOME}/systemd/user"
+  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.service' << EOFSERVICE
+[Unit]
+Description=Smart Organizer Watch Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/smart-organizer --watch
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
+EOFSERVICE"
+
+  v systemctl --user daemon-reload
+  v systemctl --user enable --now smart-organizer.service || true
+
+  printf "${STY_GREEN}[$0]: Smart Organizer installed successfully!${STY_RST}\n"
+  printf "  Run: smart-organizer --dry-run\n"
+  printf "  Run: smart-organizer --clean system\n"
+  printf "  Service: systemctl --user status smart-organizer\n"
+}
