@@ -128,9 +128,8 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 ```
 
 ### 4.3 Bootloader
-- Select **Systemd-boot** (the default in Calamares)
-- Systemd-boot integrates well with BTRFS snapshots
-- The installer will automatically add NVIDIA kernel parameters to the boot entry
+- Select **Limine Boot Manager** (visible in your Calamares screenshot)
+- Limine gives you the best BTRFS snapshot integration from the boot menu
 
 ### 4.4 User Setup
 - Username: **gagan**
@@ -211,7 +210,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/Auto-desktpenv/main/too
   MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)
   ```
 - Rebuilds initramfs: `mkinitcpio -P`
-- Adds bootloader kernel parameters (works with Limine, Systemd-boot, and Refind):
+- Adds bootloader kernel parameters:
   ```
   nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1
   ```
