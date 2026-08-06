@@ -30,6 +30,18 @@ declare -A EXT_CATEGORIES=(
     [yaml]="documents"
     [yml]="documents"
     [tex]="documents"
+    [pages]="documents"
+    [numbers]="documents"
+    [key]="documents"
+    [odp]="documents"
+    [ods]="documents"
+    [log]="documents"
+    [msg]="documents"
+    [rst]="documents"
+    [adoc]="documents"
+    [org]="documents"
+    [text]="documents"
+    [wiki]="documents"
 
     # Images
     [jpg]="images"
@@ -43,11 +55,34 @@ declare -A EXT_CATEGORIES=(
     [tiff]="images"
     [tif]="images"
     [heic]="images"
+    [heif]="images"
     [raw]="images"
     [arw]="images"
     [cr2]="images"
     [nef]="images"
     [dng]="images"
+    [orf]="images"
+    [raf]="images"
+    [rw2]="images"
+    [pef]="images"
+    [srw]="images"
+    [jxl]="images"
+    [qoi]="images"
+    [psd]="images"
+    [ai]="images"
+    [eps]="images"
+    [avif]="images"
+    [jfif]="images"
+    [pbm]="images"
+    [pgm]="images"
+    [ppm]="images"
+    [pnm]="images"
+    [xbm]="images"
+    [xpm]="images"
+    [tga]="images"
+    [exr]="images"
+    [hdr]="images"
+    [ico]="images"
 
     # Videos
     [mp4]="videos"
@@ -62,6 +97,20 @@ declare -A EXT_CATEGORIES=(
     [mpeg]="videos"
     [3gp]="videos"
     [vob]="videos"
+    [m2ts]="videos"
+    [mts]="videos"
+    [ts]="videos"
+    [mxf]="videos"
+    [ogv]="videos"
+    [ogm]="videos"
+    [divx]="videos"
+    [xvid]="videos"
+    [rm]="videos"
+    [rmvb]="videos"
+    [asf]="videos"
+    [f4v]="videos"
+    [swf]="videos"
+    [yuv]="videos"
 
     # Audio
     [mp3]="music"
@@ -74,8 +123,29 @@ declare -A EXT_CATEGORIES=(
     [opus]="music"
     [alac]="music"
     [aiff]="music"
+    [aif]="music"
     [mid]="music"
     [midi]="music"
+    [ape]="music"
+    [wv]="music"
+    [dsf]="music"
+    [dff]="music"
+    [mka]="music"
+    [mod]="music"
+    [it]="music"
+    [s3m]="music"
+    [xm]="music"
+    [spc]="music"
+    [nsf]="music"
+    [gym]="music"
+    [sid]="music"
+    [ay]="music"
+    [gbs]="music"
+    [hes]="music"
+    [kss]="music"
+    [sap]="music"
+    [vgm]="music"
+    [vgz]="music"
 
     # Archives
     [zip]="archives"
@@ -97,6 +167,27 @@ declare -A EXT_CATEGORIES=(
     [pkg]="archives"
     [deb]="archives"
     [rpm]="archives"
+    [arj]="archives"
+    [lzh]="archives"
+    [lha]="archives"
+    [zoo]="archives"
+    [ace]="archives"
+    [arc]="archives"
+    [pak]="archives"
+    [pk3]="archives"
+    [pk4]="archives"
+    [bz]="archives"
+    [tbz]="archives"
+    [cpio]="archives"
+    [shar]="archives"
+    [lbr]="archives"
+    [mar]="archives"
+    [sbx]="archives"
+    [sea]="archives"
+    [sit]="archives"
+    [sitx]="archives"
+    [zap]="archives"
+    [gz]="archives"
 
     # Code/Development
     [py]="code"
@@ -109,7 +200,8 @@ declare -A EXT_CATEGORIES=(
     [h]="code"
     [hpp]="code"
     [java]="code"
- [kt]="code"
+    [kt]="code"
+    [kts]="code"
     [rs]="code"
     [go]="code"
     [rb]="code"
@@ -135,7 +227,6 @@ declare -A EXT_CATEGORIES=(
     [ex]="code"
     [exs]="code"
     [hs]="code"
-    [ml]="code"
     [scala]="code"
     [clj]="code"
     [lisp]="code"
@@ -147,6 +238,38 @@ declare -A EXT_CATEGORIES=(
     [ini]="code"
     [cfg]="code"
     [conf]="code"
+    [zig]="code"
+    [nim]="code"
+    [cob]="code"
+    [cbl]="code"
+    [pas]="code"
+    [pp]="code"
+    [d]="code"
+    [erl]="code"
+    [hrl]="code"
+    [ex]="code"
+    [exs]="code"
+    [lhs]="code"
+    [cl]="code"
+    [elisp]="code"
+    [rkt]="code"
+    [ss]="code"
+    [scm]="code"
+    [tcl]="code"
+    [tk]="code"
+    [pl]="code"
+    [pm]="code"
+    [t]="code"
+    [pod]="code"
+    [bat]="code"
+    [cmd]="code"
+    [psm1]="code"
+    [psd1]="code"
+    [nix]="code"
+    [dhall]="code"
+    [jsonc]="code"
+    [hjson]="code"
+    [yuck]="code"
 
     # Executables/Installers
     [exe]="installers"
@@ -161,6 +284,13 @@ declare -A EXT_CATEGORIES=(
     [run]="installers"
     [bin]="installers"
     [app]="installers"
+    [apk]="installers"
+    [xap]="installers"
+    [appx]="installers"
+    [appxbundle]="installers"
+    [msix]="installers"
+    [msixbundle]="installers"
+    [nupkg]="installers"
 
     # Fonts
     [ttf]="fonts"
@@ -180,6 +310,28 @@ declare -A EXT_CATEGORIES=(
     [hdf5]="data"
     [npy]="data"
     [npz]="data"
+    [mat]="data"
+    [feather]="data"
+    [arrow]="data"
+    [avro]="data"
+    [orc]="data"
+    [dat]="data"
+    [bin]="data"
+    [pcap]="data"
+    [pcapng]="data"
+    [cap]="data"
+    [bloom]="data"
+    [idx]="data"
+    [dta]="data"
+    [sav]="data"
+    [zsav]="data"
+    [por]="data"
+    [sas7bdat]="data"
+    [xpt]="data"
+    [dbf]="data"
+    [mdb]="data"
+    [accdb]="data"
+    [sql]="data"
 )
 
 # Path-based classification rules (checked before extension)
@@ -209,6 +361,120 @@ declare -A PATH_RULES=(
     ["*/backup/*"]="backups"
     ["*/Backup/*"]="backups"
 )
+
+# =============================================================================
+# Project-based directory detection
+# =============================================================================
+
+detect_project_name() {
+    local filename="$1"
+    local name="${filename%.*}"
+
+    # Pattern: ProjectName_... or ProjectName-... or ProjectName....
+    if [[ "$name" =~ ^([A-Za-z][A-Za-z0-9_.-]+)[-_] ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    # Pattern: ..._ProjectName or ...-ProjectName
+    if [[ "$name" =~ [_\-]([A-Za-z][A-Za-z0-9_.-]+)$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    # Pattern: [ProjectName] ...
+    if [[ "$name" =~ \[([A-Za-z][A-Za-z0-9_.-]+)\] ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    return 1
+}
+
+get_project_dest() {
+    local filepath="$1"
+    local filename="$(basename "$filepath")"
+    local project_name
+
+    project_name=$(detect_project_name "$filename")
+    if [[ -n "$project_name" ]]; then
+        echo "${HOME}/Projects/${project_name}"
+        return 0
+    fi
+
+    return 1
+}
+
+detect_dynamic_dir() {
+    local filename="$1"
+    local name="${filename%.*}"
+
+    # Pattern: Prefix_... or Prefix-...
+    if [[ "$name" =~ ^([A-Za-z][A-Za-z0-9_-]+)[-_] ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    # Pattern: ..._Suffix or ...-Suffix
+    if [[ "$name" =~ [_\-]([A-Za-z][A-Za-z0-9_-]+)$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    # Pattern: [Category]...
+    if [[ "$name" =~ \[([A-Za-z][A-Za-z0-9_-]+)\] ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    return 1
+}
+
+get_dynamic_dest() {
+    local filepath="$1"
+    local dirname
+
+    dirname=$(detect_dynamic_dir "$(basename "$filepath")")
+    if [[ -n "$dirname" ]]; then
+        echo "${HOME}/${dirname}"
+        return 0
+    fi
+
+    return 1
+}
+
+get_file_destination() {
+    local filepath="$1"
+    local filename="$(basename "$filepath")"
+    local ext="${filename##*.}"
+    ext="${ext,,}"
+
+    # First, check if this looks like a project file
+    local project_dest
+    project_dest=$(get_project_dest "$filepath")
+    if [[ $? -eq 0 ]] && [[ -n "$project_dest" ]]; then
+        echo "$project_dest"
+        return 0
+    fi
+
+    # Then check for dynamic directory creation
+    local dynamic_dest
+    dynamic_dest=$(get_dynamic_dest "$filepath")
+    if [[ $? -eq 0 ]] && [[ -n "$dynamic_dest" ]]; then
+        echo "$dynamic_dest"
+        return 0
+    fi
+
+    # Otherwise, use category-based routing
+    local category
+    category=$(get_file_category "$filepath")
+    if [[ $? -eq 0 ]] && [[ -n "$category" ]]; then
+        get_category_dir "$category"
+        return $?
+    fi
+
+    return 1
+}
 
 # =============================================================================
 # Category to target directory mapping
