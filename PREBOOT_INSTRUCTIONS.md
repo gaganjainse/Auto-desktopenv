@@ -151,7 +151,7 @@ cd ~/Workspace
 - [ ] Bootstrap command: `bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)`
 - [ ] Username: `gagan`
 - [ ] Partition choice: Option A or B
-- [ ] Bootloader: Systemd-boot
+- [ ] Bootloader: Limine
 
 ---
 
@@ -215,7 +215,7 @@ sudo efibootmgr -v
 - [ ] Bootstrap command noted: `bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)`
 - [ ] Username: `gagan`
 - [ ] Partition choice decided: Option A (automatic) or Option B (manual with @models)
-- [ ] Bootloader choice: Systemd-boot
+- [ ] Bootloader choice: Limine
 - [ ] Current system fully updated and rebooted
 
 ---
@@ -274,7 +274,7 @@ PRE-BOOT CHECKLIST:
 □ Guide saved to phone
 □ Username: gagan
 □ Partition: Option A or B
-□ Bootloader: Systemd-boot
+□ Bootloader: Limine
 
 BIOS SETTINGS:
 □ Secure Boot: OFF

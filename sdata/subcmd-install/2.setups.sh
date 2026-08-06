@@ -277,15 +277,11 @@ function setup_nvidia_mux(){
     fi
   fi
 
-  # Configure bootloader kernel parameters (Systemd-boot)
+  # Configure bootloader kernel parameters (Limine)
   printf "  Configuring boot parameters for NVIDIA...\n"
-  if [[ -d /boot/loader/entries ]]; then
-    local entry_file
-    entry_file=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -n1)
-    if [[ -n "$entry_file" ]]; then
-      if ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
-        v sudo sed -i 's/options /options nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1 /' "$entry_file"
-      fi
+  if [[ -f /boot/limine/limine.conf ]]; then
+    if ! grep -q "nvidia-drm.modeset=1" /boot/limine/limine.conf; then
+      v sudo sed -i 's|^\(kernel_cmdline=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' /boot/limine/limine.conf
     fi
   fi
 
