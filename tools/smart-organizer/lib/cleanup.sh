@@ -435,11 +435,11 @@ cleanup_duplicates() {
         fi
 
         local duplicates
-        duplicates=$(find_duplicates "$dir")
+        duplicates=$(find_duplicates "$dir" "" false)
 
         if [[ -n "$duplicates" ]]; then
             log_info "Found duplicates in $dir"
-            echo "$duplicates" | while read -r hash filepath; do
+            echo "$duplicates" | while read -r filepath; do
                 safe_delete "$filepath" "duplicate file"
             done
         fi

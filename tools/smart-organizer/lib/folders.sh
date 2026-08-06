@@ -175,19 +175,63 @@ dedupe_folders() {
 
     log_info "Deduplicating folders in: $base_dir"
 
-    # Find duplicate files across the system
+    # Find duplicate files across the system (exclude first occurrence)
     local duplicates
-    duplicates=$(find_duplicates "$base_dir")
+    duplicates=$(find_duplicates "$base_dir" "" false)
 
     if [[ -n "$duplicates" ]]; then
         log_info "Found duplicates, cleaning up..."
-        echo "$duplicates" | while read -r hash filepath; do
+        echo "$duplicates" | while read -r filepath; do
             # Keep the first occurrence, delete duplicates
             safe_delete "$filepath" "duplicate file"
         done
     fi
 
     log_ok "Deduplication completed"
+}
+
+# =============================================================================
+# Hard-link deduplication
+# =============================================================================
+
+dedupe_hardlink() {
+    local base_dir="${1:-$HOME}"
+
+    log_info "Hard-link deduplication in: $base_dir"
+
+    # Find duplicate files (include first occurrence for linking)
+    local duplicates
+    duplicates=$(find_duplicates "$base_dir" "" true)
+
+    if [[ -z "$duplicates" ]]; then
+        log_info "No duplicates found"
+        return 0
+    fi
+
+    # Group by hash and hard-link duplicates to first file
+    local current_hash=""
+    local first_file=""
+
+    echo "$duplicates" | while read -r hash filepath; do
+        if [[ -z "$first_file" ]]; then
+            first_file="$filepath"
+            current_hash="$hash"
+        elif [[ "$hash" == "$current_hash" ]]; then
+            # Replace duplicate with hard link to first file
+            if is_dry_run; then
+                log_action_dry "Would hard-link: $filepath -> $first_file"
+            else
+                ln -f "$first_file" "$filepath" 2>/dev/null || true
+                log_action "Hard-linked: $filepath -> $first_file"
+            fi
+        else
+            # New group
+            first_file="$filepath"
+            current_hash="$hash"
+        fi
+    done
+
+    log_ok "Hard-link deduplication completed"
 }
 
 # =============================================================================
