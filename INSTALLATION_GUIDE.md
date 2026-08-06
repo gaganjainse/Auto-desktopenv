@@ -128,8 +128,10 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 ```
 
 ### 4.3 Bootloader
-- Select **Limine Boot Manager** (visible in your Calamares screenshot)
-- Limine gives you the best BTRFS snapshot integration from the boot menu
+- Select **Systemd-boot** (the default in your Calamares)
+- The installer will automatically add the required NVIDIA kernel parameters to the Systemd-boot entry
+- **Refind** also works if you prefer it
+- **GRUB** works too, but Systemd-boot is simpler for BTRFS setups
 
 ### 4.4 User Setup
 - Username: **gagan**
