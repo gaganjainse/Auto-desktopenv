@@ -128,10 +128,10 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 ```
 
 ### 4.3 Bootloader
-- Select **Systemd-boot** (the default in your Calamares)
-- The installer will automatically add the required NVIDIA kernel parameters to the Systemd-boot entry
+- Select **Limine** (the default in your Calamares)
+- The installer will automatically add the required NVIDIA kernel parameters to the Limine entry
 - **Refind** also works if you prefer it
-- **GRUB** works too, but Systemd-boot is simpler for BTRFS setups
+- **GRUB** works too, but Limine is simpler for BTRFS setups
 
 ### 4.4 User Setup
 - Username: **gagan**
@@ -477,7 +477,7 @@ sudo usermod -aG video,render $USER
 - **Reboot required** after MUX mode switch
 - First boot may take 2-3 minutes while rebuilding caches
 - Ollama models are stored in `~/.ollama/` by default
-- BTRFS snapshots are accessible from the boot menu (Limine/Systemd-boot/Refind)
+- BTRFS snapshots are accessible from the boot menu (Limine/Refind)
 - Smart Organizer runs automatically every 1 hour via systemd timer
 
 ---
