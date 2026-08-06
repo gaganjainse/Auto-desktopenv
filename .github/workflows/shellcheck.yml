@@ -6,14 +6,12 @@ on:
     paths:
       - 'tools/**'
       - 'sdata/subcmd-smart-organizer/**'
-      - 'tools/**/*.sh'
       - '.github/workflows/**'
   pull_request:
     branches: [main]
     paths:
       - 'tools/**'
       - 'sdata/subcmd-smart-organizer/**'
-      - 'tools/**/*.sh'
       - '.github/workflows/**'
   workflow_dispatch:
 
@@ -28,8 +26,12 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck --version
 
-          # Find our bash scripts only
           scripts=$(find tools sdata/subcmd-smart-organizer -type f \( -name '*.sh' -o -name 'bootstrap.sh' \) | grep -v '.git' | sort)
+
+          if [[ -z "$scripts" ]]; then
+            echo "No shell scripts found to check"
+            exit 0
+          fi
 
           exit_code=0
           for script in $scripts; do
