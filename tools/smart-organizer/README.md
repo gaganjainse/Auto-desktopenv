@@ -120,12 +120,29 @@ The following paths are never modified:
 - Finds duplicate files by SHA256 hash
 - Keeps first occurrence, removes duplicates
 
-## Systemd Service
+## Systemd Integration
 
-Watch mode can run as a systemd user service:
+### Watch Service
+Watch mode can run as a systemd user service for real-time organization:
 ```bash
 systemctl --user enable --now smart-organizer
 systemctl --user status smart-organizer
 ```
 
 Service file location: `~/.config/systemd/user/smart-organizer.service`
+
+### Timer
+Periodic runs can be scheduled with systemd timer:
+```bash
+systemctl --user enable --now smart-organizer.timer
+systemctl --user list-timers | grep smart-organizer
+```
+
+Timer configuration:
+- Starts 15 minutes after boot
+- Runs every 1 hour
+- Persistent: runs missed executions on boot
+
+Timer files:
+- `~/.config/systemd/user/smart-organizer.timer`
+- `~/.config/systemd/user/smart-organizer-timer.service`
