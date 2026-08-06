@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")/../.."
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 REPO_ROOT="$(pwd)"
 source ./sdata/lib/environment-variables.sh
 source ./sdata/lib/functions.sh
