@@ -56,26 +56,35 @@ organize_downloads() {
 
         # Determine destination
         local dest_dir
-        case "$category" in
-            images) dest_dir="$HOME/Pictures" ;;
-            videos) dest_dir="$HOME/Videos" ;;
-            music) dest_dir="$HOME/Music" ;;
-            documents) dest_dir="$HOME/Documents" ;;
-            archives) dest_dir="$HOME/Archives" ;;
-            installers) dest_dir="$HOME/Downloads/Installers" ;;
-            code) dest_dir="$HOME/Workspace/Snippets" ;;
-            *)
-                # Check for app-specific installers
-                case "$filename" in
-                    *installer*|*setup*|*install*)
-                        dest_dir="$HOME/Downloads/Installers"
-                        ;;
-                    *)
-                        dest_dir="$HOME/Downloads"
-                        ;;
-                esac
-                ;;
-        esac
+        
+        # First, check for dynamic directory based on filename
+        local dynamic_dir
+        dynamic_dir=$(detect_dynamic_dir "$filename")
+        if [[ -n "$dynamic_dir" ]]; then
+            dest_dir="$HOME/$dynamic_dir"
+        else
+            # Use category-based routing
+            case "$category" in
+                images) dest_dir="$HOME/Pictures" ;;
+                videos) dest_dir="$HOME/Videos" ;;
+                music) dest_dir="$HOME/Music" ;;
+                documents) dest_dir="$HOME/Documents" ;;
+                archives) dest_dir="$HOME/Archives" ;;
+                installers) dest_dir="$HOME/Downloads/Installers" ;;
+                code) dest_dir="$HOME/Workspace/Snippets" ;;
+                *)
+                    # Check for app-specific installers
+                    case "$filename" in
+                        *installer*|*setup*|*install*)
+                            dest_dir="$HOME/Downloads/Installers"
+                            ;;
+                        *)
+                            dest_dir="$HOME/Downloads"
+                            ;;
+                    esac
+                    ;;
+            esac
+        fi
 
         # Move file
         mkdir -p "$dest_dir"
@@ -163,7 +172,16 @@ organize_downloads_subs() {
                 music) dest_dir="$HOME/Music" ;;
                 documents) dest_dir="$HOME/Documents" ;;
                 archives) dest_dir="$HOME/Archives" ;;
-                *) dest_dir="" ;;
+                *) 
+                    # Check for dynamic directory based on dirname
+                    local dynamic_dir
+                    dynamic_dir=$(detect_dynamic_dir "$dirname")
+                    if [[ -n "$dynamic_dir" ]]; then
+                        dest_dir="$HOME/$dynamic_dir"
+                    else
+                        dest_dir=""
+                    fi
+                    ;;
             esac
 
             if [[ -n "$dest_dir" ]]; then
