@@ -6,11 +6,13 @@ on:
     paths:
       - 'tools/**'
       - 'sdata/subcmd-smart-organizer/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [main]
     paths:
       - 'tools/**'
       - 'sdata/subcmd-smart-organizer/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
