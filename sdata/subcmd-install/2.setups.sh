@@ -281,7 +281,7 @@ function setup_nvidia_mux(){
   printf "  Configuring boot parameters for NVIDIA...\n"
   if [[ -f /etc/default/limine ]]; then
     if ! grep -q "nvidia-drm.modeset=1" /etc/default/limine; then
-      v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' /etc/default/limine
+      v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/limine
       v sudo limine-mkinitcpio
     fi
   fi
