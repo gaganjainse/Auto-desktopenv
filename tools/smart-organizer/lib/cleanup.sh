@@ -261,6 +261,194 @@ cleanup_empty_dirs() {
 }
 
 # =============================================================================
+# Build artifact cleanup
+# =============================================================================
+
+cleanup_build_artifacts() {
+    log_info "Cleaning build artifacts..."
+
+    local artifact_dirs=(
+        "$HOME/Workspace"
+        "$HOME/Projects"
+        "$HOME/AI"
+    )
+
+    local artifact_patterns=(
+        "node_modules"
+        "__pycache__"
+        ".venv"
+        "venv"
+        "build"
+        "dist"
+        ".next"
+        ".nuxt"
+        "target"
+        "bin"
+        "obj"
+        ".gradle"
+        ".m2"
+        ".cargo/registry/cache"
+        ".cargo/git/checkouts"
+        ".npm"
+        ".yarn"
+        ".cache"
+        ".pytest_cache"
+        ".mypy_cache"
+        ".ruff_cache"
+        ".DS_Store"
+        "Thumbs.db"
+        "*.swp"
+        "*.swo"
+        "*~"
+        ".nvm"
+        ".pyenv"
+    )
+
+    for base_dir in "${artifact_dirs[@]}"; do
+        if [[ ! -d "$base_dir" ]]; then
+            continue
+        fi
+
+        log_info "Scanning for build artifacts in: $base_dir"
+
+        for pattern in "${artifact_patterns[@]}"; do
+            find "$base_dir" -maxdepth 5 -type d -name "$pattern" -print0 2>/dev/null | \
+            while IFS= read -r -d '' artifact_dir; do
+                if is_protected "$artifact_dir"; then
+                    continue
+                fi
+
+                if is_older_than "$artifact_dir" ${BUILD_ARTIFACT_MAX_AGE}; then
+                    safe_delete "$artifact_dir" "old build artifact"
+                fi
+            done
+        done
+    done
+
+    log_ok "Build artifact cleanup completed"
+}
+
+# =============================================================================
+# Old media cleanup
+# =============================================================================
+
+cleanup_old_media() {
+    log_info "Cleaning old media..."
+
+    local media_dirs=(
+        "$HOME/Pictures/Screenshots"
+        "$HOME/Pictures/Wallpapers"
+        "$HOME/Videos/Recordings"
+        "$HOME/Videos/Clips"
+        "$HOME/Music"
+    )
+
+    for dir in "${media_dirs[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            continue
+        fi
+
+        log_info "Scanning: $dir"
+
+        find "$dir" -maxdepth 2 -type f -atime +${OLD_MEDIA_AGE} -print0 2>/dev/null | \
+        while IFS= read -r -d '' file; do
+            if is_protected "$file"; then
+                continue
+            fi
+
+            local size_mb
+            size_mb=$(file_size_mb "$file")
+
+            # Only delete files that are small enough (safely)
+            if [[ "$size_mb" -lt 500 ]]; then
+                safe_delete "$file" "old media file"
+            fi
+        done
+    done
+
+    log_ok "Old media cleanup completed"
+}
+
+# =============================================================================
+# Large file report
+# =============================================================================
+
+report_large_files() {
+    log_info "Reporting large files (>${LARGE_FILE_THRESHOLD_MB}MB)..."
+
+    local search_dirs=(
+        "$HOME/Downloads"
+        "$HOME/Documents"
+        "$HOME/Pictures"
+        "$HOME/Videos"
+        "$HOME/Music"
+        "$HOME/Workspace"
+        "$HOME/Projects"
+        "$HOME/AI"
+        "$HOME/Models"
+        "$HOME/Datasets"
+        "$HOME/Archives"
+        "$HOME/Temp"
+    )
+
+    for dir in "${search_dirs[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            continue
+        fi
+
+        find "$dir" -type f -size +${LARGE_FILE_THRESHOLD_MB}M -print0 2>/dev/null | \
+        while IFS= read -r -d '' file; do
+            if is_protected "$file"; then
+                continue
+            fi
+
+            local size_mb
+            size_mb=$(file_size_mb "$file")
+            log_warn "Large file: $file (${size_mb}MB)"
+        done
+    done
+
+    log_ok "Large file report completed"
+}
+
+# =============================================================================
+# Systemwide duplicate detection
+# =============================================================================
+
+cleanup_duplicates() {
+    log_info "Cleaning duplicate files..."
+
+    local search_dirs=(
+        "$HOME/Downloads"
+        "$HOME/Documents"
+        "$HOME/Pictures"
+        "$HOME/Videos"
+        "$HOME/Music"
+        "$HOME/Workspace"
+        "$HOME/Projects"
+        "$HOME/Archives"
+    )
+
+    for dir in "${search_dirs[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            continue
+        fi
+
+        local duplicates
+        duplicates=$(find_duplicates "$dir")
+
+        if [[ -n "$duplicates" ]]; then
+            log_info "Found duplicates in $dir"
+            echo "$duplicates" | while read -r hash filepath; do
+                safe_delete "$filepath" "duplicate file"
+            done
+        fi
+    done
+
+    log_ok "Duplicate cleanup completed"
+}
+
+# =============================================================================
 # Main cleanup runner
 # =============================================================================
 
@@ -275,6 +463,10 @@ run_cleanup() {
             cleanup_cache
             cleanup_trash
             cleanup_bloat
+            cleanup_build_artifacts
+            cleanup_old_media
+            cleanup_duplicates
+            report_large_files
             return 0
         fi
     done
@@ -298,5 +490,22 @@ run_cleanup() {
 
         # Clean bloat
         cleanup_bloat
+
+        # Clean build artifacts if in a development directory
+        case "$target" in
+            *Workspace*|*Projects*|*AI*)
+                cleanup_build_artifacts
+                ;;
+        esac
+
+        # Clean old media if in a media directory
+        case "$target" in
+            *Pictures*|*Videos*|*Music*)
+                cleanup_old_media
+                ;;
+        esac
+
+        # Report large files
+        report_large_files
     done
 }

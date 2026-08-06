@@ -71,9 +71,12 @@ CACHE_MAX_AGE=30
 TRASH_MAX_AGE=30
 OLD_INSTALLER_MAX_AGE=90
 TEMP_MAX_AGE=7
+DOWNLOADS_PROMOTION_AGE=30
+OLD_MEDIA_AGE=180
+BUILD_ARTIFACT_MAX_AGE=30
 
 # File size thresholds (in MB)
-LARGE_FILE_THRESHOLD=100
+LARGE_FILE_THRESHOLD_MB=1024
 DUPLICATE_CHECK_SIZE=10
 
 # Protected patterns (never touch these)
@@ -253,6 +256,7 @@ main() {
             ;;
         organize)
             run_organize "${targets[@]}"
+            promote_downloads
             ;;
         folders)
             run_folder_ops "${targets[@]}"
@@ -260,6 +264,7 @@ main() {
         all)
             run_cleanup "${targets[@]}"
             run_organize "${targets[@]}"
+            promote_downloads
             run_folder_ops "${targets[@]}"
             ;;
     esac
