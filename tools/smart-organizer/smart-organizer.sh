@@ -274,7 +274,9 @@ main() {
             ;;
         organize)
             run_organize "${targets[@]}"
-            promote_downloads
+            if [[ ${#targets[@]} -eq 0 ]]; then
+                promote_downloads
+            fi
             ;;
         folders)
             run_folder_ops "${targets[@]}"
@@ -285,7 +287,9 @@ main() {
         all)
             run_cleanup "${targets[@]}"
             run_organize "${targets[@]}"
-            promote_downloads
+            if [[ ${#targets[@]} -eq 0 ]]; then
+                promote_downloads
+            fi
             run_folder_ops "${targets[@]}"
             dedupe_hardlink "${targets[@]}"
             ;;
