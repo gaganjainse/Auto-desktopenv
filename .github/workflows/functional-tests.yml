@@ -1,0 +1,29 @@
+name: Functional Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/**'
+      - 'sdata/**'
+      - 'test.sh'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/**'
+      - 'sdata/**'
+      - 'test.sh'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  functional-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run functional test suite
+        run: |
+          set -euo pipefail
+          echo "Running test suite..."
+          bash test.sh
