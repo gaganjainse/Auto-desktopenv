@@ -24,10 +24,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install dependencies
+      - name: Install flake8
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-flake8
+          python3 -m pip install --upgrade pip
+          python3 -m pip install flake8
+          flake8 --version
       - name: Check Python syntax
         run: |
           set -euo pipefail
