@@ -120,6 +120,66 @@ The following paths are never modified:
 - Finds duplicate files by SHA256 hash
 - Keeps first occurrence, removes duplicates
 
+## Configuration
+
+Smart Organizer can be configured via a user config file:
+`~/.config/smart-organizer/smart-organizer.conf`
+
+If the file doesn't exist, a default config is installed during setup.
+
+### Configuration Options
+
+```bash
+# Age thresholds (in days)
+CACHE_MAX_AGE=30
+TRASH_MAX_AGE=30
+OLD_INSTALLER_MAX_AGE=90
+TEMP_MAX_AGE=7
+DOWNLOADS_PROMOTION_AGE=30
+OLD_MEDIA_AGE=180
+BUILD_ARTIFACT_MAX_AGE=30
+
+# File size thresholds (in MB)
+LARGE_FILE_THRESHOLD_MB=1024
+DUPLICATE_CHECK_SIZE=10
+
+# Cleanup settings
+CLEAN_CACHE=true
+CLEAN_TRASH=true
+CLEAN_BLOAT=true
+CLEAN_BUILD_ARTIFACTS=true
+CLEAN_OLD_MEDIA=true
+CLEAN_DUPLICATES=true
+REPORT_LARGE_FILES=true
+
+# Organization settings
+ORGANIZE_DOWNLOADS=true
+ORGANIZE_DOCUMENTS=true
+ORGANIZE_PICTURES=true
+ORGANIZE_VIDEOS=true
+ORGANIZE_MUSIC=true
+PROMOTE_DOWNLOADS=true
+
+# Folder operations
+MERGE_FOLDERS=true
+SPLIT_FOLDERS=true
+DEDUPE_FOLDERS=true
+
+# Protected paths
+PROTECTED_PATHS=(
+    "$HOME/.ssh"
+    "$HOME/.gnupg"
+    # ... see smart-organizer.conf for full list
+)
+
+# Protected file patterns
+PROTECTED_PATTERNS=(
+    "*.key"
+    "*.pem"
+    # ... see smart-organizer.conf for full list
+)
+```
+
 ## Systemd Integration
 
 ### Watch Service

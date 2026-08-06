@@ -42,6 +42,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="${SCRIPT_DIR}/lib"
 
+# Load user configuration if it exists
+USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/smart-organizer/smart-organizer.conf"
+if [[ -f "$USER_CONFIG" ]]; then
+    source "$USER_CONFIG"
+fi
+
 # Default targets
 DEFAULT_TARGETS=(
     "$HOME/Downloads"

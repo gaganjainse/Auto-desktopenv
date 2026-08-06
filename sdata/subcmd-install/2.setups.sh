@@ -123,6 +123,13 @@ function setup_smart_organizer(){
   v ln -sf "${organizer_dir}/smart-organizer.sh" "$organizer_bin"
   v chmod +x "$organizer_bin"
 
+  # Install default configuration
+  v mkdir -p "${XDG_CONFIG_HOME}/smart-organizer"
+  if [[ ! -f "${XDG_CONFIG_HOME}/smart-organizer/smart-organizer.conf" ]]; then
+    v cp "${organizer_dir}/smart-organizer.conf" "${XDG_CONFIG_HOME}/smart-organizer/smart-organizer.conf"
+    printf "${STY_GREEN}[$0]: Default config installed to ${XDG_CONFIG_HOME}/smart-organizer/smart-organizer.conf${STY_RST}\n"
+  fi
+
   # Install systemd user service for watch mode
   v mkdir -p "${XDG_CONFIG_HOME}/systemd/user"
   v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.service' << 'EOFSERVICE'
