@@ -26,7 +26,7 @@ organize_downloads() {
     # Organize files
     find "$target" -maxdepth 1 -type f -mmin +60 -print0 2>/dev/null | \
     while IFS= read -r -d '' file; do
-        if is_protected "$file"; then
+        if is_protected "$file" || is_exempt "$file"; then
             continue
         fi
 

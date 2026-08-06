@@ -50,6 +50,10 @@ PROTECTED_FILE_PATTERNS=(
     "*credentials*"
 )
 
+# Exempt paths (user-specified paths to skip during organization)
+EXEMPT_PATHS=(
+)
+
 # =============================================================================
 # Safety check
 # =============================================================================
@@ -104,6 +108,24 @@ is_protected() {
     done
 
     return 1
+}
+
+is_exempt() {
+    local filepath="$1"
+
+    # Check exempt paths
+    for exempt in "${EXEMPT_PATHS[@]}"; do
+        if [[ "$filepath" == "$exempt"* ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+add_exempt_path() {
+    local path="$1"
+    EXEMPT_PATHS+=("$path")
 }
 
 is_hidden() {

@@ -165,6 +165,7 @@ OPTIONS:
     --clean            Run cleanup mode (cache, trash, bloat)
     --organize         Run organization mode (sort files into folders)
     --folders          Run folder operations (merge, split, dedupe)
+    --exempt PATH      Add path to exempt from organization
     --all              Run all modes (default)
     --help             Show this help
 
@@ -218,6 +219,11 @@ main() {
                 ;;
             --dedupe-hardlink)
                 mode="dedupe-hardlink"
+                shift
+                ;;
+            --exempt)
+                shift
+                add_exempt_path "$1"
                 shift
                 ;;
             --all)
