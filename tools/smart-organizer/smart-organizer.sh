@@ -215,6 +215,10 @@ main() {
                 mode="folders"
                 shift
                 ;;
+            --dedupe-hardlink)
+                mode="dedupe-hardlink"
+                shift
+                ;;
             --all)
                 mode="all"
                 shift
@@ -268,11 +272,15 @@ main() {
         folders)
             run_folder_ops "${targets[@]}"
             ;;
+        dedupe-hardlink)
+            dedupe_hardlink "${targets[@]}"
+            ;;
         all)
             run_cleanup "${targets[@]}"
             run_organize "${targets[@]}"
             promote_downloads
             run_folder_ops "${targets[@]}"
+            dedupe_hardlink "${targets[@]}"
             ;;
     esac
 

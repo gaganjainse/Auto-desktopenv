@@ -215,12 +215,15 @@ file_hash() {
 find_duplicates() {
     local dir="$1"
     local size_limit_mb="${2:-$DUPLICATE_CHECK_SIZE}"
+    local include_first="${3:-false}"
 
     if [[ ! -d "$dir" ]]; then
         return 0
     fi
 
-    # Find files larger than size limit
+    # Build hash list
+    local hash_file
+    hash_file=$(mktemp)
     find "$dir" -type f -size +${size_limit_mb}M -print0 2>/dev/null | \
     while IFS= read -r -d '' file; do
         local hash
@@ -228,5 +231,25 @@ find_duplicates() {
         if [[ -n "$hash" ]]; then
             echo "${hash} ${file}"
         fi
-    done | sort | uniq -d --check-chars=64
+    done > "$hash_file"
+
+    # Find duplicate hashes
+    local duplicate_hashes
+    duplicate_hashes=$(cut -d' ' -f1 "$hash_file" | sort | uniq -d)
+
+    if [[ -n "$duplicate_hashes" ]]; then
+        if [[ "$include_first" == "true" ]]; then
+            # Output all files with duplicate hashes (hash filepath format)
+            while read -r hash; do
+                grep -E "^${hash} " "$hash_file"
+            done <<< "$duplicate_hashes"
+        else
+            # Output only non-first duplicates (for deletion)
+            while read -r hash; do
+                grep -E "^${hash} " "$hash_file" | sed "s/^${hash} //" | tail -n +2
+            done <<< "$duplicate_hashes"
+        fi
+    fi
+
+    rm -f "$hash_file"
 }
