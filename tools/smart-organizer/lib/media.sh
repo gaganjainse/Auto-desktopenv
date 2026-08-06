@@ -52,7 +52,7 @@ organize_file() {
     category=$(get_file_category "$filepath")
 
     case "$category" in
-        images|videos|music|documents|code|archives|data)
+        images|videos|music|documents|code|archives|data|installers|fonts)
             local target_dir
             target_dir=$(get_category_dir "$category")
             if [[ -n "$target_dir" ]]; then
