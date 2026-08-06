@@ -257,6 +257,19 @@ get_file_category() {
     local ext="${filename##*.}"
     ext="${ext,,}" # lowercase
 
+    # Special case: files already in Downloads should be classified by extension,
+    # not locked to the "downloads" path category. This lets Downloads act as a
+    # sorting buffer whose contents can be routed to Downloads subfolders or
+    # promoted later by age-based rules.
+    if [[ "$filepath" == */Downloads/* ]]; then
+        if [[ -n "${EXT_CATEGORIES[$ext]+x}" ]]; then
+            echo "${EXT_CATEGORIES[$ext]}"
+            return 0
+        fi
+        echo "unknown"
+        return 1
+    fi
+
     # Check path-based rules first
     for pattern in "${!PATH_RULES[@]}"; do
         if [[ "$filepath" == $pattern ]]; then
