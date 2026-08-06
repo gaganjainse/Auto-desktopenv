@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 #
 # smart-organizer/lib/config.sh
-# Configuration, classification rules, and path mappings
+# Configuration, classification rules, path mappings, and file operations
 #
+
+# =============================================================================
+# Recovery directory
+# =============================================================================
+
+RECOVERY_DIR="${HOME}/.local/share/smart-organizer/recovery"
+RECOVERY_MANIFEST="${RECOVERY_DIR}/.manifest"
 
 # =============================================================================
 # File type classification rules
@@ -629,14 +636,29 @@ safe_delete() {
         return 0
     fi
 
-    # Move to trash instead of permanent delete
-    local trash_dir="${HOME}/.local/share/Trash/files"
-    mkdir -p "$trash_dir"
+    # Confirmation prompt for actual deletions
+    if [[ "${CONFIRM_DELETE:-true}" == "true" ]]; then
+        echo -n "Delete ${target}? (y/N): "
+        read -r confirm
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            log_info "Skipped deletion: $target"
+            return 0
+        fi
+    fi
 
-    local trash_name="$(date +%Y%m%d-%H%M%S)-$(basename "$target")"
+    # Move to recovery directory instead of permanent delete
+    local recovery_dir="${HOME}/.local/share/smart-organizer/recovery"
+    mkdir -p "$recovery_dir"
+
+    local recovery_name="$(date +%Y%m%d-%H%M%S)-$(basename "$target")"
     local size
     size=$(file_size_mb "$target")
-    mv "$target" "${trash_dir}/${trash_name}"
+    mv "$target" "${recovery_dir}/${recovery_name}"
+    
+    # Write to manifest for recovery tracking
+    local manifest_file="${recovery_dir}/.manifest"
+    echo "${recovery_name}:${target}" >> "$manifest_file"
+    
     increment_deleted "$((size * 1024 * 1024))"
-    log_action_dry "Trashed: $target -> ${trash_name} (reason: $reason)"
+    log_action_dry "Recovered: $target -> ${recovery_name} (reason: $reason)"
 }
