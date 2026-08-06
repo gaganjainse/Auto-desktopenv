@@ -128,9 +128,8 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 ```
 
 ### 4.3 Bootloader
-- If **Limine** is available, select it for better BTRFS snapshot integration from the boot menu
-- If Limine is NOT available, use **Systemd-boot** (the default) — it also integrates well with BTRFS snapshots
-- **Refind** is also fine if you prefer it
+- Select **Limine Boot Manager** (visible in your Calamares screenshot)
+- Limine gives you the best BTRFS snapshot integration from the boot menu
 
 ### 4.4 User Setup
 - Username: **gagan**
