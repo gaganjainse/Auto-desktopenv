@@ -85,7 +85,8 @@ lsblk
 - Reason: dots-hyprland handles its own dependencies
 
 **Additional Packages:**
-- ✅ Check ONLY: **Base-devel + Common packages**
+- ✅ Check: **Base-devel + Common packages**
+- ✅ Check: **CPU specific Microcode update packages** (Intel microcode for your i7-14700HX)
 - ❌ Uncheck EVERYTHING else
 
 ### 4.2 Partitioning
