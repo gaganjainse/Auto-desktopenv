@@ -277,8 +277,8 @@ function setup_nvidia_mux(){
     fi
   fi
 
-  # Configure Limine bootloader kernel parameters
-  printf "  Configuring Limine boot parameters for NVIDIA...\n"
+  # Configure bootloader kernel parameters (Limine/systemd-boot/Refind)
+  printf "  Configuring bootloader parameters for NVIDIA...\n"
   if [[ -d /boot/loader/entries ]]; then
     local entry_file
     entry_file=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -n1)
