@@ -125,7 +125,7 @@ function setup_smart_organizer(){
 
   # Install systemd user service for watch mode
   v mkdir -p "${XDG_CONFIG_HOME}/systemd/user"
-  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.service' << EOFSERVICE
+  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.service' << 'EOFSERVICE'
 [Unit]
 Description=Smart Organizer Watch Service
 After=network.target
@@ -140,11 +140,39 @@ RestartSec=10
 WantedBy=default.target
 EOFSERVICE"
 
+  # Install systemd user timer for periodic runs
+  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer-timer.service' << 'EOFSERVICE'
+[Unit]
+Description=Smart Organizer Oneshot
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/smart-organizer --once
+EOFSERVICE"
+
+  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.timer' << 'EOFSERVICE'
+[Unit]
+Description=Smart Organizer Timer
+Requires=smart-organizer-timer.service
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1h
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOFSERVICE"
+
   v systemctl --user daemon-reload
   v systemctl --user enable --now smart-organizer.service || true
+  v systemctl --user enable --now smart-organizer.timer || true
 
   printf "${STY_GREEN}[$0]: Smart Organizer installed successfully!${STY_RST}\n"
   printf "  Run: smart-organizer --dry-run\n"
   printf "  Run: smart-organizer --clean system\n"
-  printf "  Service: systemctl --user status smart-organizer\n"
+  printf "  Watch service: systemctl --user status smart-organizer\n"
+  printf "  Timer service: systemctl --user list-timers | grep smart-organizer\n"
 }
