@@ -190,7 +190,7 @@ is_large_file() {
     local file="$1"
     local size_mb
     size_mb=$(file_size_mb "$file")
-    [[ "$size_mb" -gt "${LARGE_FILE_THRESHOLD:-100}" ]]
+    [[ "$size_mb" -gt "${LARGE_FILE_THRESHOLD_MB:-1024}" ]]
 }
 
 # =============================================================================
