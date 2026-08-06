@@ -27,7 +27,7 @@ cleanup_cache() {
         # Find cache files older than threshold
         find "$dir" -type f -atime +${CACHE_MAX_AGE} -print0 2>/dev/null | \
         while IFS= read -r -d '' file; do
-            if is_protected "$file"; then
+            if is_protected "$file" || is_exempt "$file"; then
                 continue
             fi
 
@@ -74,7 +74,8 @@ cleanup_trash() {
 # =============================================================================
 
 cleanup_bloat() {
-    log_info "Cleaning bloat..."
+    local target="${1:-$HOME}"
+    log_info "Cleaning bloat in: $target"
 
     # 1. Old log files
     cleanup_old_logs
@@ -92,7 +93,7 @@ cleanup_bloat() {
     cleanup_browser_cache
 
     # 6. Empty directories
-    cleanup_empty_dirs
+    cleanup_empty_dirs "$target"
 
     log_ok "Bloat cleanup completed"
 }
@@ -113,7 +114,7 @@ cleanup_old_logs() {
 
         find "$dir" -type f \( -name "*.log" -o -name "*.old" \) -atime +30 -print0 2>/dev/null | \
         while IFS= read -r -d '' file; do
-            if is_protected "$file"; then
+            if is_protected "$file" || is_exempt "$file"; then
                 continue
             fi
             safe_delete "$file" "old log file"
@@ -233,31 +234,40 @@ cleanup_browser_cache() {
 }
 
 cleanup_empty_dirs() {
-    log_info "Cleaning empty directories..."
+    local target="${1:-$HOME}"
+    log_info "Cleaning empty directories in: $target"
 
-    local dirs=(
-        "$HOME/Downloads"
-        "$HOME/Documents"
-        "$HOME/Pictures"
-        "$HOME/Videos"
-        "$HOME/Music"
-        "$HOME/Desktop"
-        "$HOME/Temp"
-    )
-
-    for dir in "${dirs[@]}"; do
-        if [[ ! -d "$dir" ]]; then
-            continue
-        fi
-
-        find "$dir" -type d -empty -print0 2>/dev/null | \
+    if [[ "$target" == "system" ]]; then
+        local dirs=(
+            "$HOME/Downloads"
+            "$HOME/Documents"
+            "$HOME/Pictures"
+            "$HOME/Videos"
+            "$HOME/Music"
+            "$HOME/Desktop"
+            "$HOME/Temp"
+        )
+        for dir in "${dirs[@]}"; do
+            if [[ ! -d "$dir" ]]; then
+                continue
+            fi
+            find "$dir" -type d -empty -print0 2>/dev/null | \
+            while IFS= read -r -d '' empty_dir; do
+                if is_protected "$empty_dir" || is_exempt "$empty_dir"; then
+                    continue
+                fi
+                safe_delete "$empty_dir" "empty directory"
+            done
+        done
+    else
+        find "$target" -type d -empty -print0 2>/dev/null | \
         while IFS= read -r -d '' empty_dir; do
-            if is_protected "$empty_dir"; then
+            if is_protected "$empty_dir" || is_exempt "$empty_dir"; then
                 continue
             fi
             safe_delete "$empty_dir" "empty directory"
         done
-    done
+    fi
 }
 
 # =============================================================================
@@ -352,7 +362,7 @@ cleanup_old_media() {
 
         find "$dir" -maxdepth 2 -type f -atime +${OLD_MEDIA_AGE} -print0 2>/dev/null | \
         while IFS= read -r -d '' file; do
-            if is_protected "$file"; then
+            if is_protected "$file" || is_exempt "$file"; then
                 continue
             fi
 
@@ -398,7 +408,7 @@ report_large_files() {
 
         find "$dir" -type f -size +${LARGE_FILE_THRESHOLD_MB}M -print0 2>/dev/null | \
         while IFS= read -r -d '' file; do
-            if is_protected "$file"; then
+            if is_protected "$file" || is_exempt "$file"; then
                 continue
             fi
 
@@ -462,7 +472,7 @@ run_cleanup() {
         if [[ "$target" == "system" ]]; then
             cleanup_cache
             cleanup_trash
-            cleanup_bloat
+            cleanup_bloat "$HOME"
             cleanup_build_artifacts
             cleanup_old_media
             cleanup_duplicates
@@ -489,7 +499,7 @@ run_cleanup() {
         cleanup_trash
 
         # Clean bloat
-        cleanup_bloat
+        cleanup_bloat "$target"
 
         # Clean build artifacts if in a development directory
         case "$target" in

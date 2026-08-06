@@ -26,7 +26,7 @@ organize_media() {
     # Recursively process subdirectories (but not hidden or protected)
     find "$target" -mindepth 1 -maxdepth 3 -type d -print0 2>/dev/null | \
     while IFS= read -r -d '' dir; do
-        if is_protected "$dir" || is_hidden "$dir"; then
+        if is_protected "$dir" || is_exempt "$dir" || is_hidden "$dir"; then
             continue
         fi
         organize_media "$dir"
