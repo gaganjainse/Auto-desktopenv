@@ -78,10 +78,11 @@ v setup_mux_switcher
 
 function setup_mux_switcher(){
   local mux_dir="${REPO_ROOT}/tools/mux-switcher"
-  local mux_bin="${XDG_BIN_HOME}/mux-switcher"
+  local mux_bin="${XDG_BIN_HOME}/msi-mux-switcher"
+  local py_script="${mux_dir}/msi-mux-switcher.py"
 
-  if [[ ! -d "$mux_dir" ]]; then
-    printf "${STY_YELLOW}[$0]: mux-switcher not found at $mux_dir${STY_RST}\n"
+  if [[ ! -f "$py_script" ]]; then
+    printf "${STY_YELLOW}[$0]: msi-mux-switcher Python tool not found at $py_script${STY_RST}\n"
     return 0
   fi
 
@@ -89,10 +90,13 @@ function setup_mux_switcher(){
      grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null; then
     printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
     v mkdir -p "$XDG_BIN_HOME"
-    v ln -sf "${mux_dir}/mux-switcher.sh" "$mux_bin"
+    v ln -sf "${py_script}" "$mux_bin"
     v chmod +x "$mux_bin"
     printf "${STY_GREEN}[$0]: MUX switcher installed at $mux_bin${STY_RST}\n"
-    printf "  Run: sudo mux-switcher status\n"
+    printf "  Run: sudo msi-mux-switcher status\n"
+    printf "  Run: sudo msi-mux-switcher hybrid\n"
+    printf "  Run: sudo msi-mux-switcher dgpu\n"
+    printf "  Run: sudo msi-mux-switcher igpu\n"
   else
     printf "${STY_YELLOW}[$0]: Not an MSI laptop, skipping MUX switcher${STY_RST}\n"
   fi
