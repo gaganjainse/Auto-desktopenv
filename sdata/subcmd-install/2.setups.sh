@@ -273,7 +273,7 @@ function setup_nvidia_mux(){
   if [[ -f /etc/mkinitcpio.conf ]]; then
     if ! grep -q "^MODULES=(i915 nvidia" /etc/mkinitcpio.conf; then
       v sudo sed -i 's/^MODULES=(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-      v sudo mkinitcpio -P
+      v sudo limine-mkinitcpio
     fi
   fi
 
@@ -282,6 +282,7 @@ function setup_nvidia_mux(){
   if [[ -f /etc/default/limine ]]; then
     if ! grep -q "nvidia-drm.modeset=1" /etc/default/limine; then
       v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' /etc/default/limine
+      v sudo limine-mkinitcpio
     fi
   fi
 
