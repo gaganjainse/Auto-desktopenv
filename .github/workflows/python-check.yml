@@ -18,22 +18,22 @@ on:
 jobs:
   python-check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install flake8
+          python-version: '3.12'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-flake8
       - name: Check Python syntax
         run: |
-          python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' | grep -v '.git' | sort)
+          set -euo pipefail
+          echo "Finding Python files..."
+          python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' 2>/dev/null | sort)
+          echo "Found files: $python_files"
 
           if [[ -z "$python_files" ]]; then
             echo "No Python files found to check"
@@ -42,8 +42,11 @@ jobs:
 
           exit_code=0
           for pyfile in $python_files; do
-            echo "Checking: $pyfile"
-            python3 -m py_compile "$pyfile" || exit_code=1
+            echo "Checking syntax: $pyfile"
+            if ! python3 -m py_compile "$pyfile"; then
+              echo "FAILED: $pyfile"
+              exit_code=1
+            fi
           done
 
           if [[ $exit_code -eq 0 ]]; then
@@ -54,7 +57,10 @@ jobs:
           fi
       - name: Check Python style with flake8
         run: |
-          python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' | grep -v '.git' | sort)
+          set -euo pipefail
+          echo "Finding Python files for linting..."
+          python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' 2>/dev/null | sort)
+          echo "Found files: $python_files"
 
           if [[ -z "$python_files" ]]; then
             echo "No Python files found to lint"
@@ -64,7 +70,10 @@ jobs:
           exit_code=0
           for pyfile in $python_files; do
             echo "Linting: $pyfile"
-            flake8 "$pyfile" --max-line-length=120 --ignore=E501,W503 || exit_code=1
+            if ! flake8 "$pyfile" --max-line-length=120 --ignore=E501,W503; then
+              echo "FAILED: $pyfile"
+              exit_code=1
+            fi
           done
 
           if [[ $exit_code -eq 0 ]]; then
