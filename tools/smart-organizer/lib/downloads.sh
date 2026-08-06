@@ -57,10 +57,10 @@ organize_downloads() {
         # Determine destination
         local dest_dir
         case "$category" in
-            images) dest_dir="$HOME/Pictures/Downloads" ;;
-            videos) dest_dir="$HOME/Videos/Downloads" ;;
-            music) dest_dir="$HOME/Music/Downloads" ;;
-            documents) dest_dir="$HOME/Documents/Downloads" ;;
+            images) dest_dir="$HOME/Pictures" ;;
+            videos) dest_dir="$HOME/Videos" ;;
+            music) dest_dir="$HOME/Music" ;;
+            documents) dest_dir="$HOME/Documents" ;;
             archives) dest_dir="$HOME/Archives" ;;
             installers) dest_dir="$HOME/Downloads/Installers" ;;
             code) dest_dir="$HOME/Workspace/Snippets" ;;
@@ -82,11 +82,13 @@ organize_downloads() {
         safe_move "$file" "${dest_dir}/${filename}"
     done
 
-    # Clean up empty directories
-    find "$target" -mindepth 1 -maxdepth 1 -type d -empty -print0 2>/dev/null | \
-    while IFS= read -r -d '' dir; do
-        safe_delete "$dir" "empty downloads subdirectory"
-    done
+    # Clean up empty directories only within the Downloads folder
+    if [[ "$target" == "$HOME/Downloads" ]]; then
+        find "$target" -mindepth 1 -maxdepth 1 -type d -empty -print0 2>/dev/null | \
+        while IFS= read -r -d '' dir; do
+            safe_delete "$dir" "empty downloads subdirectory"
+        done
+    fi
 }
 
 # =============================================================================
@@ -156,10 +158,10 @@ organize_downloads_subs() {
         if [[ "$file_count" -gt 0 ]] && [[ $((max_count * 100 / file_count)) -gt 80 ]]; then
             local dest_dir
             case "$max_type" in
-                images) dest_dir="$HOME/Pictures/Downloads" ;;
-                videos) dest_dir="$HOME/Videos/Downloads" ;;
-                music) dest_dir="$HOME/Music/Downloads" ;;
-                documents) dest_dir="$HOME/Documents/Downloads" ;;
+                images) dest_dir="$HOME/Pictures" ;;
+                videos) dest_dir="$HOME/Videos" ;;
+                music) dest_dir="$HOME/Music" ;;
+                documents) dest_dir="$HOME/Documents" ;;
                 archives) dest_dir="$HOME/Archives" ;;
                 *) dest_dir="" ;;
             esac
