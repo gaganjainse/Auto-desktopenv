@@ -284,6 +284,16 @@ get_file_category() {
         return 0
     fi
 
+    # Try content-based classification as fallback
+    if [[ -f "$filepath" ]]; then
+        local content_category
+        content_category=$(classify_by_content "$filepath")
+        if [[ -n "$content_category" ]]; then
+            echo "$content_category"
+            return 0
+        fi
+    fi
+
     # No match
     echo "unknown"
     return 1

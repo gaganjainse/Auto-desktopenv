@@ -132,6 +132,7 @@ log_action_dry() {
 # Load libraries
 # =============================================================================
 source "${LIB_DIR}/config.sh"
+source "${LIB_DIR}/content.sh"
 source "${LIB_DIR}/safety.sh"
 source "${LIB_DIR}/heuristics.sh"
 source "${LIB_DIR}/cleanup.sh"
