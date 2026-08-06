@@ -93,7 +93,7 @@ decide_action() {
     size_mb=$(file_size_mb "$filepath")
 
     # Protected files are never touched
-    if is_protected "$filepath"; then
+    if is_protected "$filepath" || is_exempt "$filepath"; then
         echo "keep"
         return 0
     fi
