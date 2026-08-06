@@ -247,3 +247,179 @@ EOFSERVICE"
   printf "  Backup timer: systemctl --user list-timers | grep backup\n"
   printf "  Maintenance timer: systemctl --user list-timers | grep maintenance\n"
 }
+
+#####################################################################################
+# NVIDIA + MUX Setup for CachyOS
+showfun setup_nvidia_mux
+v setup_nvidia_mux
+
+function setup_nvidia_mux(){
+  if [[ "$OS_GROUP_ID" != "arch" ]] && [[ "$OS_GROUP_ID" != "cachyos" ]]; then
+    printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping NVIDIA setup${STY_RST}\n"
+    return 0
+  fi
+
+  if ! lspci | grep -qi "nvidia"; then
+    printf "${STY_YELLOW}[$0]: No NVIDIA GPU detected, skipping NVIDIA setup${STY_RST}\n"
+    return 0
+  fi
+
+  printf "${STY_CYAN}[$0]: Setting up NVIDIA drivers + MUX support${STY_RST}\n"
+
+  # Install NVIDIA DKMS drivers
+  printf "  Installing NVIDIA packages...\n"
+  v sudo pacman -S --noconfirm --needed \
+    nvidia-dkms linux-cachyos-headers nvidia-utils lib32-nvidia-utils \
+    nvidia-prime
+
+  # Configure mkinitcpio for hybrid graphics
+  printf "  Configuring mkinitcpio for Intel + NVIDIA hybrid...\n"
+  if [[ -f /etc/mkinitcpio.conf ]]; then
+    if ! grep -q "^MODULES=(i915 nvidia" /etc/mkinitcpio.conf; then
+      v sudo sed -i 's/^MODULES=(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
+      v sudo mkinitcpio -P
+    fi
+  fi
+
+  # Configure Limine bootloader kernel parameters
+  printf "  Configuring Limine boot parameters for NVIDIA...\n"
+  if [[ -d /boot/loader/entries ]]; then
+    local entry_file
+    entry_file=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -n1)
+    if [[ -n "$entry_file" ]]; then
+      if ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
+        v sudo sed -i 's/options /options nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1 /' "$entry_file"
+      fi
+    fi
+  fi
+
+  # Create udev rules for stable GPU device paths
+  printf "  Creating udev rules for stable GPU paths...\n"
+  local igpu_pci
+  local dgpu_pci
+  igpu_pci=$(lspci -d ::0300 | grep -i "intel" | head -n1 | awk '{print $1}')
+  dgpu_pci=$(lspci -d ::0300 | grep -i "nvidia" | head -n1 | awk '{print $1}')
+
+  if [[ -n "$igpu_pci" ]]; then
+    v sudo tee /etc/udev/rules.d/igpu-device-path.rules << 'EOF'
+KERNEL=="card*", KERNELS=="__IGPU_PCI__", SUBSYSTEM=="drm", SUBSYSTEMS=="pci", SYMLINK+="dri/igpu"
+EOF
+    v sudo sed -i "s|__IGPU_PCI__|${igpu_pci}|g" /etc/udev/rules.d/igpu-device-path.rules
+  fi
+
+  if [[ -n "$dgpu_pci" ]]; then
+    v sudo tee /etc/udev/rules.d/dgpu-device-path.rules << 'EOF'
+KERNEL=="card*", KERNELS=="__DGPU_PCI__", SUBSYSTEM=="drm", SUBSYSTEMS=="pci", SYMLINK+="dri/dgpu"
+EOF
+    v sudo sed -i "s|__DGPU_PCI__|${dgpu_pci}|g" /etc/udev/rules.d/dgpu-device-path.rules
+  fi
+
+  v sudo udevadm control --reload-rules
+  v sudo udevadm trigger
+
+  # Create Hyprland mode-specific configs
+  printf "  Creating Hyprland GPU mode configs...\n"
+  v mkdir -p "${HOME}/.config/hypr/config/modes"
+
+  v bash -c "cat > '${HOME}/.config/hypr/config/modes/hybrid.lua' << 'EOFCONFIG'
+-- Hybrid mode: Intel iGPU primary, NVIDIA offload
+env = AQ_DRM_DEVICES, /dev/dri/igpu:/dev/dri/dgpu
+env = LIBVA_DRIVER_NAME, nvidia
+env = __GLX_VENDOR_LIBRARY_NAME, nvidia
+EOFCONFIG"
+
+  v bash -c "cat > '${HOME}/.config/hypr/config/modes/dgpu.lua' << 'EOFCONFIG'
+-- dGPU mode: NVIDIA direct via MUX
+env = AQ_DRM_DEVICES, /dev/dri/dgpu
+env = LIBVA_DRIVER_NAME, nvidia
+env = __GLX_VENDOR_LIBRARY_NAME, nvidia
+env = GBM_BACKEND, nvidia-drm
+EOFCONFIG"
+
+  v bash -c "cat > '${HOME}/.config/hypr/config/modes/igpu.lua' << 'EOFCONFIG'
+-- iGPU mode: Intel only, NVIDIA powered off
+env = AQ_DRM_DEVICES, /dev/dri/igpu
+env = LIBVA_DRIVER_NAME, iHD
+env = __GLX_VENDOR_LIBRARY_NAME, mesa
+EOFCONFIG"
+
+  # Create nvidia-run wrapper script
+  printf "  Creating nvidia-run wrapper...\n"
+  v sudo tee /usr/local/bin/nvidia-run << 'EOFSCRIPT'
+#!/bin/bash
+export __NV_PRIME_RENDER_OFFLOAD=1
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+export __VK_LAYER_NV_optimus=NVIDIA_only
+export GBM_BACKEND=nvidia-drm
+export LIBVA_DRIVER_NAME=nvidia
+export WLR_NO_HARDWARE_CURSORS=1
+exec "$@"
+EOFSCRIPT
+  v sudo chmod +x /usr/local/bin/nvidia-run
+
+  printf "${STY_GREEN}[$0]: NVIDIA + MUX setup completed${STY_RST}\n"
+  printf "  Reboot required for changes to take effect\n"
+  printf "  Run: sudo msi-gpu-switcher status\n"
+}
+
+#####################################################################################
+# AI/ML Stack Setup
+showfun setup_ai_stack
+v setup_ai_stack
+
+function setup_ai_stack(){
+  if [[ "$OS_GROUP_ID" != "arch" ]] && [[ "$OS_GROUP_ID" != "cachyos" ]]; then
+    printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping AI stack setup${STY_RST}\n"
+    return 0
+  fi
+
+  printf "${STY_CYAN}[$0]: Setting up AI/ML stack${STY_RST}\n"
+
+  # Install CUDA + Ollama
+  printf "  Installing CUDA toolkit and Ollama...\n"
+  v sudo pacman -S --noconfirm --needed \
+    cuda cudnn ollama ollama-cuda python python-pip
+
+  # Enable Ollama service
+  printf "  Enabling Ollama service...\n"
+  v sudo systemctl enable --now ollama.service
+
+  # Add user to video/render groups
+  printf "  Adding user to video/render groups...\n"
+  v sudo usermod -aG video,render "$(whoami)"
+
+  # Install Python packages
+  printf "  Installing Python AI packages...\n"
+  v pip install --user torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 || true
+  v pip install --user transformers datasets accelerate huggingface-hub chromadb langchain || true
+
+  printf "${STY_GREEN}[$0]: AI/ML stack installed${STY_RST}\n"
+  printf "  Run: ollama pull qwen2.5:7b\n"
+  printf "  Run: python -c \"import torch; print(torch.cuda.is_available())\"\n"
+}
+
+#####################################################################################
+# Power Management Setup
+showfun setup_power_management
+v setup_power_management
+
+function setup_power_management(){
+  printf "${STY_CYAN}[$0]: Setting up power management${STY_RST}\n"
+
+  # Install power-profiles-daemon
+  v sudo pacman -S --noconfirm --needed power-profiles-daemon || true
+
+  # Enable service
+  v sudo systemctl enable --now power-profiles-daemon.service || true
+
+  # Set balanced profile by default
+  v powerprofilesctl set balanced || true
+
+  # ZRAM configuration for 16GB RAM
+  printf "  Configuring ZRAM for 16GB RAM...\n"
+  if [[ -f /etc/systemd/system/systemd-zram-setup@.service ]]; then
+    v sudo systemctl enable --now systemd-zram-setup@zram0.service || true
+  fi
+
+  printf "${STY_GREEN}[$0]: Power management configured${STY_RST}\n"
+}
