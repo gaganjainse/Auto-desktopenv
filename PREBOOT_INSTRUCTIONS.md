@@ -284,7 +284,7 @@ BIOS SETTINGS:
 □ CSM: OFF
 
 FIRST BOOT COMMAND:
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktpenv/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
 
 AFTER REBOOT:
 □ Select Hyprland session
