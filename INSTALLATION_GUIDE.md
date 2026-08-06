@@ -128,8 +128,9 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 ```
 
 ### 4.3 Bootloader
-- Select **Limine**
-- Shows `[+] Snapshots` in boot menu
+- If **Limine** is available, select it for better BTRFS snapshot integration from the boot menu
+- If Limine is NOT available, use **Systemd-boot** (the default) — it also integrates well with BTRFS snapshots
+- **Refind** is also fine if you prefer it
 
 ### 4.4 User Setup
 - Username: **gagan**
@@ -210,7 +211,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/Auto-desktpenv/main/too
   MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)
   ```
 - Rebuilds initramfs: `mkinitcpio -P`
-- Adds Limine kernel parameters:
+- Adds bootloader kernel parameters:
   ```
   nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1
   ```
@@ -475,7 +476,7 @@ sudo usermod -aG video,render $USER
 - **Reboot required** after MUX mode switch
 - First boot may take 2-3 minutes while rebuilding caches
 - Ollama models are stored in `~/.ollama/` by default
-- BTRFS snapshots are accessible from Limine boot menu
+- BTRFS snapshots are accessible from the boot menu (Limine/Systemd-boot/Refind)
 - Smart Organizer runs automatically every 1 hour via systemd timer
 
 ---
