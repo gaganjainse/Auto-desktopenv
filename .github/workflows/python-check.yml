@@ -30,10 +30,15 @@ jobs:
       - name: Install flake8
         run: |
           sudo apt-get update
-          sudo apt-get install -y flake8
+          sudo apt-get install -y python3-flake8
       - name: Check Python syntax
         run: |
           python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' | grep -v '.git' | sort)
+
+          if [[ -z "$python_files" ]]; then
+            echo "No Python files found to check"
+            exit 0
+          fi
 
           exit_code=0
           for pyfile in $python_files; do
@@ -50,6 +55,11 @@ jobs:
       - name: Check Python style with flake8
         run: |
           python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' | grep -v '.git' | sort)
+
+          if [[ -z "$python_files" ]]; then
+            echo "No Python files found to lint"
+            exit 0
+          fi
 
           exit_code=0
           for pyfile in $python_files; do
