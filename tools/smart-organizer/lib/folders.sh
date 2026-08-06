@@ -221,7 +221,10 @@ dedupe_hardlink() {
             if is_dry_run; then
                 log_action_dry "Would hard-link: $filepath -> $first_file"
             else
+                local size
+                size=$(file_size_mb "$filepath")
                 ln -f "$first_file" "$filepath" 2>/dev/null || true
+                increment_hardlinked "$((size * 1024 * 1024))"
                 log_action "Hard-linked: $filepath -> $first_file"
             fi
         else

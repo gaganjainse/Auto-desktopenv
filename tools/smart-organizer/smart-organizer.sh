@@ -137,6 +137,7 @@ log_action_dry() {
 # =============================================================================
 # Load libraries
 # =============================================================================
+source "${LIB_DIR}/report.sh"
 source "${LIB_DIR}/config.sh"
 source "${LIB_DIR}/content.sh"
 source "${LIB_DIR}/safety.sh"
@@ -287,6 +288,7 @@ main() {
     echo ""
     log_ok "Smart Organizer completed."
     log_info "Log saved to: ${LOG_FILE}"
+    print_report
     echo ""
 }
 

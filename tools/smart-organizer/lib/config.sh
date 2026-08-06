@@ -343,7 +343,10 @@ safe_move() {
         dest="${base}_${counter}.${ext}"
     fi
 
+    local size
+    size=$(file_size_mb "$src")
     mv "$src" "$dest"
+    increment_moved "$((size * 1024 * 1024))"
     log_action_dry "Moved: $(basename "$src") -> $dest"
 }
 
@@ -365,6 +368,9 @@ safe_delete() {
     mkdir -p "$trash_dir"
 
     local trash_name="$(date +%Y%m%d-%H%M%S)-$(basename "$target")"
+    local size
+    size=$(file_size_mb "$target")
     mv "$target" "${trash_dir}/${trash_name}"
+    increment_deleted "$((size * 1024 * 1024))"
     log_action_dry "Trashed: $target -> ${trash_name} (reason: $reason)"
 }
