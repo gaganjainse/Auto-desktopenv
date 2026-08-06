@@ -170,9 +170,73 @@ EOFSERVICE"
   v systemctl --user enable --now smart-organizer.service || true
   v systemctl --user enable --now smart-organizer.timer || true
 
+  # Install backup timer
+  local backup_dir="${REPO_ROOT}/tools/backup"
+  if [[ -d "$backup_dir" ]]; then
+    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/backup.service' << 'EOFSERVICE'
+[Unit]
+Description=Backup Script Oneshot
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/backup.sh --dry-run
+EOFSERVICE"
+
+    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/backup.timer' << 'EOFSERVICE'
+[Unit]
+Description=Backup Timer
+Requires=backup.service
+
+[Timer]
+OnCalendar=weekly
+AccuracySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOFSERVICE"
+
+    v systemctl --user daemon-reload
+    v systemctl --user enable --now backup.timer || true
+  fi
+
+  # Install maintenance timer
+  local maintenance_dir="${REPO_ROOT}/tools/maintenance"
+  if [[ -d "$maintenance_dir" ]]; then
+    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/maintenance.service' << 'EOFSERVICE'
+[Unit]
+Description=Maintenance Script Oneshot
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/maintenance.sh --auto
+EOFSERVICE"
+
+    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/maintenance.timer' << 'EOFSERVICE'
+[Unit]
+Description=Maintenance Timer
+Requires=maintenance.service
+
+[Timer]
+OnCalendar=weekly
+AccuracySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOFSERVICE"
+
+    v systemctl --user daemon-reload
+    v systemctl --user enable --now maintenance.timer || true
+  fi
+
   printf "${STY_GREEN}[$0]: Smart Organizer installed successfully!${STY_RST}\n"
   printf "  Run: smart-organizer --dry-run\n"
   printf "  Run: smart-organizer --clean system\n"
   printf "  Watch service: systemctl --user status smart-organizer\n"
   printf "  Timer service: systemctl --user list-timers | grep smart-organizer\n"
+  printf "  Backup timer: systemctl --user list-timers | grep backup\n"
+  printf "  Maintenance timer: systemctl --user list-timers | grep maintenance\n"
 }
