@@ -167,12 +167,12 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 **Run this command exactly:**
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktpenv/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
 ```
 
 **If curl fails, try:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/gaganjainse/Auto-desktpenv/main/tools/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh | bash
 ```
 
 ### What bootstrap does:
@@ -484,9 +484,9 @@ sudo usermod -aG video,render $USER
 
 ## SUPPORT
 
-- Repo: https://github.com/gaganjainse/Auto-desktpenv
+- Repo: https://github.com/gaganjainse/Auto-desktopenv
 - Guide: `/home/gagan/Downloads/CachyOS-Installation-Guide.md`
-- Issues: https://github.com/gaganjainse/Auto-desktpenv/issues
+- Issues: https://github.com/gaganjainse/Auto-desktopenv/issues
 
 ---
 
