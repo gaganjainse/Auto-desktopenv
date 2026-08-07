@@ -1,6 +1,11 @@
 # This script is meant to be sourced.
 # It's not for directly running.
 
+die() {
+  printf "${STY_RED}FATAL: %s${STY_RST}\n" "$*"
+  exit 1
+}
+
 command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
@@ -54,12 +59,12 @@ function prepare_systemd_user_service(){
 }
 
 function setup_user_group(){
-  if [[ -z $(getent group i2c) ]] && [[ "$OS_GROUP_ID" != "fedora" ]]; then
+  if [[ -z $(getent group i2c) ]] && [[ "${OS_GROUP_ID:-unknown}" != "fedora" ]]; then
     # On Fedora this is not needed. Tested with desktop computer with NVIDIA video card.
     x sudo groupadd i2c
   fi
 
-  if [[ "$OS_GROUP_ID" == "fedora" ]]; then
+  if [[ "${OS_GROUP_ID:-unknown}" == "fedora" ]]; then
     x sudo usermod -aG video,input "$(whoami)"
   else
     x sudo usermod -aG video,i2c,input "$(whoami)"
@@ -73,28 +78,28 @@ v install-python-packages
 showfun setup_user_group
 v setup_user_group
 
-if [[ ! -z $(systemctl --version) ]]; then
+if command_exists systemctl; then
   # For Fedora, uinput is required for the virtual keyboard to function, and udev rules enable input group users to utilize it.
-  if [[ "$OS_GROUP_ID" == "fedora" ]]; then
+  if [[ "${OS_GROUP_ID:-}" == "fedora" ]]; then
     v bash -c "echo uinput | sudo tee /etc/modules-load.d/uinput.conf"
     v bash -c 'echo SUBSYSTEM==\"misc\", KERNEL==\"uinput\", MODE=\"0660\", GROUP=\"input\" | sudo tee /etc/udev/rules.d/99-uinput.rules'
   else
     v bash -c "echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf"
   fi
   # TODO: find a proper way for enable Nix installed ydotool. When running `systemctl --user enable ydotool, it errors "Failed to enable unit: Unit ydotool.service does not exist".
-  if [[ ! "${INSTALL_VIA_NIX}" == true ]]; then
-    if [[ "$OS_GROUP_ID" == "fedora" ]]; then
+  if [[ ! "${INSTALL_VIA_NIX:-false}" == true ]]; then
+    if [[ "${OS_GROUP_ID:-}" == "fedora" ]]; then
       v prepare_systemd_user_service
     fi
-    # When $DBUS_SESSION_BUS_ADDRESS and $XDG_RUNTIME_DIR are empty, it commonly means that the current user has been logged in with `su - user` or `ssh user@hostname`. In such case `systemctl --user enable <service>` is not usable. It should be `sudo systemctl --machine=$(whoami)@.host --user enable <service>` instead.
-    if [[ ! -z "${DBUS_SESSION_BUS_ADDRESS}" ]]; then
+    # When ${DBUS_SESSION_BUS_ADDRESS:-} and $XDG_RUNTIME_DIR are empty, it commonly means that the current user has been logged in with `su - user` or `ssh user@hostname`. In such case `systemctl --user enable <service>` is not usable. It should be `sudo systemctl --machine=$(whoami)@.host --user enable <service>` instead.
+    if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
       v systemctl --user enable ydotool --now
     else
       v sudo systemctl --machine=$(whoami)@.host --user enable ydotool --now
     fi
   fi
   v sudo systemctl enable bluetooth --now
-elif [[ ! -z $(openrc --version) ]]; then
+elif command_exists openrc; then
   v bash -c "echo 'modules=i2c-dev' | sudo tee -a /etc/conf.d/modules"
   v sudo rc-update add modules boot
   v sudo rc-update add ydotool default
@@ -109,7 +114,7 @@ else
   pause
 fi
 
-if [[ "$OS_GROUP_ID" == "gentoo" ]]; then
+if [[ "${OS_GROUP_ID:-unknown}" == "gentoo" ]]; then
   v sudo chown -R $(whoami):$(whoami) ~/.local/
 fi
 
@@ -131,7 +136,7 @@ function setup_mux_switcher(){
   if [[ -f /sys/class/dmi/id/product_name ]] && \
      grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null; then
     printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
-    v mkdir -p "$XDG_BIN_HOME"
+    v mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}"
     v ln -sf "${py_script}" "$mux_bin"
     v chmod +x "$mux_bin"
     printf "${STY_GREEN}[$0]: MUX switcher installed at $mux_bin${STY_RST}\n"
@@ -161,9 +166,20 @@ function setup_smart_organizer(){
   fi
 
   printf "${STY_CYAN}[$0]: Setting up Smart Organizer${STY_RST}\n"
-  v mkdir -p "$XDG_BIN_HOME"
+  v mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}"
   v ln -sf "${organizer_dir}/smart-organizer.sh" "$organizer_bin"
   v chmod +x "$organizer_bin"
+
+  local backup_dir="${REPO_ROOT}/tools/backup"
+  local maintenance_dir="${REPO_ROOT}/tools/maintenance"
+  if [[ -f "${backup_dir}/backup.sh" ]]; then
+    v ln -sf "${backup_dir}/backup.sh" "${XDG_BIN_HOME}/backup.sh"
+    v chmod +x "${XDG_BIN_HOME}/backup.sh"
+  fi
+  if [[ -f "${maintenance_dir}/maintenance.sh" ]]; then
+    v ln -sf "${maintenance_dir}/maintenance.sh" "${XDG_BIN_HOME}/maintenance.sh"
+    v chmod +x "${XDG_BIN_HOME}/maintenance.sh"
+  fi
 
   # Install default configuration
   v mkdir -p "${XDG_CONFIG_HOME}/smart-organizer"
@@ -215,7 +231,7 @@ Persistent=true
 WantedBy=timers.target
 EOFSERVICE"
 
-  v systemctl --user daemon-reload
+   v systemctl --user daemon-reload
   v systemctl --user enable --now smart-organizer.service || true
   v systemctl --user enable --now smart-organizer.timer || true
 
@@ -246,8 +262,7 @@ Persistent=true
 WantedBy=timers.target
 EOFSERVICE"
 
-    v systemctl --user daemon-reload
-    v systemctl --user enable --now backup.timer || true
+  v systemctl --user enable --now backup.timer || true
   fi
 
   # Install maintenance timer
@@ -277,9 +292,10 @@ Persistent=true
 WantedBy=timers.target
 EOFSERVICE"
 
-    v systemctl --user daemon-reload
-    v systemctl --user enable --now maintenance.timer || true
+  v systemctl --user enable --now maintenance.timer || true
   fi
+
+  v systemctl --user daemon-reload
 
   printf "${STY_GREEN}[$0]: Smart Organizer installed successfully!${STY_RST}\n"
   printf "  Run: smart-organizer --dry-run\n"
@@ -296,7 +312,7 @@ showfun setup_nvidia_mux
 v setup_nvidia_mux
 
 function setup_nvidia_mux(){
-  if [[ "$OS_GROUP_ID" != "arch" ]] && [[ "$OS_GROUP_ID" != "cachyos" ]]; then
+  if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
     printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping NVIDIA setup${STY_RST}\n"
     return 0
   fi
@@ -310,8 +326,13 @@ function setup_nvidia_mux(){
 
   # Install NVIDIA DKMS drivers
   printf "  Installing NVIDIA packages...\n"
+  local kernel_headers_pkgs=()
+  while IFS= read -r pkg; do
+    [[ -n "$pkg" ]] && kernel_headers_pkgs+=("${pkg}-headers")
+  done < <(pacman -Q 2>/dev/null | awk '/^linux-/{print $1}' | grep -vE '-headers$' || true)
+
   v sudo pacman -S --noconfirm --needed \
-    nvidia-dkms linux-cachyos-headers nvidia-utils lib32-nvidia-utils \
+    nvidia-dkms "${kernel_headers_pkgs[@]}" nvidia-utils lib32-nvidia-utils \
     nvidia-prime
 
   # Configure mkinitcpio for hybrid graphics
@@ -326,22 +347,16 @@ function setup_nvidia_mux(){
 
   # Configure bootloader kernel parameters (detect bootloader first)
   printf "  Configuring boot parameters for NVIDIA...\n"
-  BOOTLOADER="unknown"
-  if [[ -d /boot/loader/entries ]]; then
-    BOOTLOADER="systemd-boot"
-  elif [[ -f /etc/default/limine ]] || [[ -f /boot/limine.conf ]] || [[ -f /boot/EFI/limine.conf ]]; then
-    BOOTLOADER="limine"
-  elif [[ -f /etc/default/grub ]] || command_exists grub-mkconfig; then
-    BOOTLOADER="grub"
-  fi
+  BOOTLOADER="$(detect_bootloader)"
 
   case "$BOOTLOADER" in
     systemd-boot)
       local entry_file
-      entry_file=$(find /boot/loader/entries -maxdepth 1 -name '*.conf' 2>/dev/null | head -n1)
-      if [[ -n "$entry_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
-        v sudo sed -i 's|^\(options .*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
-      fi
+      while IFS= read -r entry_file; do
+        if [[ -n "$entry_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
+          v sudo sed -i 's|^\(options .*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
+        fi
+      done < <(find /boot/loader/entries -maxdepth 1 -name '*.conf' 2>/dev/null)
       NEEDS_INITRAMFS_REBUILD=0
       ;;
     limine)
@@ -465,7 +480,7 @@ showfun setup_ai_stack
 v setup_ai_stack
 
 function setup_ai_stack(){
-  if [[ "$OS_GROUP_ID" != "arch" ]] && [[ "$OS_GROUP_ID" != "cachyos" ]]; then
+  if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
     printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping AI stack setup${STY_RST}\n"
     return 0
   fi
