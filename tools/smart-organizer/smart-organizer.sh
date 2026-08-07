@@ -192,6 +192,7 @@ main() {
     local mode="all"
     local targets=()
     local watch_mode=false
+    local ONCE_MODE=false
     local RESTORE_NAME=""
 
     # Parse arguments
@@ -325,6 +326,26 @@ main() {
             dedupe_hardlink "${targets[@]}"
             ;;
     esac
+
+    if [[ "$ONCE_MODE" == true ]]; then
+        echo ""
+        log_ok "Smart Organizer completed (once)."
+        log_info "Log saved to: ${LOG_FILE}"
+        print_report
+        echo ""
+        exit 0
+    fi
+
+    if [[ "$watch_mode" == true ]]; then
+        echo ""
+        log_info "Watching for new files... Press Ctrl+C to stop."
+        while true; do
+            run_cleanup "${targets[@]}"
+            run_organize "${targets[@]}"
+            run_folder_ops "${targets[@]}"
+            sleep 300
+        done
+    fi
 
     echo ""
     log_ok "Smart Organizer completed."
