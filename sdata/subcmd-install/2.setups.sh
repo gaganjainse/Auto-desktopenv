@@ -47,8 +47,6 @@ detect_limine_config() {
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
 
-require_cmd pacman sed grep awk lspci mkinitcpio
-
 function prepare_systemd_user_service(){
   if [[ ! -e "/usr/lib/systemd/user/ydotool.service" ]]; then
     x sudo ln -s /usr/lib/systemd/{system,user}/ydotool.service
