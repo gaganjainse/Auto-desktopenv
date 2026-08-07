@@ -40,7 +40,8 @@ set -euo pipefail
 # Configuration
 # =============================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIB_DIR="${SCRIPT_DIR}/lib"
+SCRIPT_REAL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+LIB_DIR="${SCRIPT_REAL_DIR}/lib"
 
 # Load user configuration if it exists
 USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/smart-organizer/smart-organizer.conf"
