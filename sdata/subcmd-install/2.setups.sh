@@ -326,7 +326,7 @@ function setup_nvidia_mux(){
   local kernel_headers_pkgs=()
   while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && kernel_headers_pkgs+=("${pkg}-headers")
-  done < <(pacman -Q 2>/dev/null | awk '/^linux-/{print $1}' | grep -vE '-headers$' || true)
+  done < <(pacman -Q 2>/dev/null | awk '/^linux-/{print $1}' | grep -vE '^(linux-firmware|linux-api-headers|linux-docs|linux-source|linux-tools|linux-headers)' | sed 's/-headers$//' || true)
 
   v sudo pacman -S --noconfirm --needed \
     nvidia-dkms "${kernel_headers_pkgs[@]}" nvidia-utils lib32-nvidia-utils \
@@ -354,7 +354,6 @@ function setup_nvidia_mux(){
           v sudo sed -i 's|^\(options .*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
         fi
       done < <(find /boot/loader/entries -maxdepth 1 -name '*.conf' 2>/dev/null)
-      NEEDS_INITRAMFS_REBUILD=0
       ;;
     limine)
       local limine_cfg=""
@@ -386,11 +385,9 @@ function setup_nvidia_mux(){
           v sudo grub-mkconfig -o /boot/efi/EFI/grub/grub.cfg
         fi
       fi
-      NEEDS_INITRAMFS_REBUILD=0
       ;;
     *)
       printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
-      NEEDS_INITRAMFS_REBUILD=0
       ;;
   esac
 
