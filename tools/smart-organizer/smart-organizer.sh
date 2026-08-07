@@ -199,6 +199,21 @@ main() {
     local ONCE_MODE=false
     local RESTORE_NAME=""
 
+    # Acquire lock immediately to prevent overlapping runs from timer/service/manual
+    if [[ -f "$LOCK_FILE" ]]; then
+        local lock_pid
+        lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || true)
+        if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2>/dev/null; then
+            log_warn "Another instance is already running (PID: $lock_pid). Exiting."
+            exit 0
+        else
+            log_warn "Stale lock file found. Removing."
+            rm -f "$LOCK_FILE"
+        fi
+    fi
+    echo $$ > "$LOCK_FILE"
+    trap 'rm -f "$LOCK_FILE"' EXIT INT TERM
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -343,21 +358,6 @@ main() {
     if [[ "$watch_mode" == true ]]; then
         echo ""
         log_info "Watching for new files... Press Ctrl+C to stop."
-        
-        # Create lock file to prevent overlapping runs
-        if [[ -f "$LOCK_FILE" ]]; then
-            local lock_pid
-            lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || true)
-            if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2>/dev/null; then
-                log_warn "Another instance is already running (PID: $lock_pid). Exiting."
-                exit 0
-            else
-                log_warn "Stale lock file found. Removing."
-                rm -f "$LOCK_FILE"
-            fi
-        fi
-        echo $$ > "$LOCK_FILE"
-        trap 'rm -f "$LOCK_FILE"' EXIT INT TERM
         
         while true; do
             run_cleanup "${targets[@]}"

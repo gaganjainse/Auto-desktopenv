@@ -79,6 +79,7 @@ After=network.target
 
 [Service]
 Type=oneshot
+ConditionPathExists=!%t/smart-organizer.lock
 ExecStart=${BIN_DIR}/smart-organizer --once
 EOFSERVICE
 
