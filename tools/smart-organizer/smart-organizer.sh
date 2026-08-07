@@ -86,7 +86,7 @@ BUILD_ARTIFACT_MAX_AGE=30
 LARGE_FILE_THRESHOLD_MB=1024
 DUPLICATE_CHECK_SIZE=10
 
-# Lock file for watch mode
+# Lock file for mutual exclusion (kernel-managed via flock)
 LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/smart-organizer.lock"
 
 # Protected patterns (never touch these)
@@ -199,20 +199,17 @@ main() {
     local ONCE_MODE=false
     local RESTORE_NAME=""
 
-    # Acquire lock immediately to prevent overlapping runs from timer/service/manual
-    if [[ -f "$LOCK_FILE" ]]; then
-        local lock_pid
-        lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || true)
-        if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2>/dev/null; then
-            log_warn "Another instance is already running (PID: $lock_pid). Exiting."
-            exit 0
-        else
-            log_warn "Stale lock file found. Removing."
-            rm -f "$LOCK_FILE"
-        fi
+    # Acquire kernel-managed lock to prevent overlapping runs from timer/service/manual.
+    # Unlike pidfiles, flock is automatically released by the kernel if this process
+    # crashes, is SIGKILL'd, or loses power — no stale lock can accumulate.
+    if ! exec 200>"$LOCK_FILE"; then
+        log_error "Cannot open lock file: $LOCK_FILE"
+        exit 1
     fi
-    echo $$ > "$LOCK_FILE"
-    trap 'rm -f "$LOCK_FILE"' EXIT INT TERM
+    if ! flock -n 200; then
+        log_warn "Another instance is already running. Exiting."
+        exit 0
+    fi
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
