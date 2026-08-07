@@ -185,14 +185,14 @@ function setup_smart_organizer(){
 
   # Install systemd user service for watch mode
   v mkdir -p "${CONFIG_DIR}/systemd/user"
-  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.service' << 'EOFSERVICE'
+  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.service' << EOFSERVICE
 [Unit]
 Description=Smart Organizer Watch Service
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/smart-organizer --watch
+ExecStart=${BIN_DIR}/smart-organizer --watch
 Restart=on-failure
 RestartSec=10
 
@@ -201,17 +201,17 @@ WantedBy=default.target
 EOFSERVICE"
 
   # Install systemd user timer for periodic runs
-  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer-timer.service' << 'EOFSERVICE'
+  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer-timer.service' << EOFSERVICE
 [Unit]
 Description=Smart Organizer Oneshot
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/smart-organizer --once
+ExecStart=${BIN_DIR}/smart-organizer --once
 EOFSERVICE"
 
-  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.timer' << 'EOFSERVICE'
+  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.timer' << EOFSERVICE
 [Unit]
 Description=Smart Organizer Timer
 Requires=smart-organizer-timer.service
@@ -232,17 +232,17 @@ EOFSERVICE"
 
   # Install backup timer
   if [[ -f "${BIN_DIR}/backup.sh" ]]; then
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.service' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.service' << EOFSERVICE
 [Unit]
 Description=Backup Script Oneshot
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/backup.sh --dry-run
+ExecStart=${BIN_DIR}/backup.sh --dry-run
 EOFSERVICE"
 
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.timer' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.timer' << EOFSERVICE
 [Unit]
 Description=Backup Timer
 Requires=backup.service
@@ -261,17 +261,17 @@ EOFSERVICE"
 
   # Install maintenance timer
   if [[ -f "${BIN_DIR}/maintenance.sh" ]]; then
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.service' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.service' << EOFSERVICE
 [Unit]
 Description=Maintenance Script Oneshot
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/maintenance.sh --auto
+ExecStart=${BIN_DIR}/maintenance.sh --auto
 EOFSERVICE"
 
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.timer' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.timer' << EOFSERVICE
 [Unit]
 Description=Maintenance Timer
 Requires=maintenance.service
