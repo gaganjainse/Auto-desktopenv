@@ -1,6 +1,52 @@
 # This script is meant to be sourced.
 # It's not for directly running.
 
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+require_cmd() {
+  local c
+  for c in "$@"; do
+    command_exists "$c" || die "Required command missing: $c"
+  done
+}
+
+safe_sudo() {
+  if [[ ${EUID:-0} -eq 0 ]]; then
+    "$@"
+  else
+    sudo "$@"
+  fi
+}
+
+detect_bootloader() {
+  if [[ -d /boot/loader/entries ]]; then
+    printf 'systemd-boot'
+    return 0
+  fi
+
+  if [[ -f /etc/default/limine ]] || [[ -f /boot/limine.conf ]] || [[ -f /boot/EFI/limine.conf ]]; then
+    printf 'limine'
+    return 0
+  fi
+
+  if [[ -f /etc/default/grub ]] || command_exists grub-mkconfig; then
+    printf 'grub'
+    return 0
+  fi
+
+  printf 'unknown'
+}
+
+detect_limine_config() {
+  local c
+  for c in /etc/default/limine /boot/limine.conf /boot/EFI/limine.conf; do
+    [[ -f "$c" ]] && { printf '%s' "$c"; return 0; }
+  done
+  return 1
+}
+
 function prepare_systemd_user_service(){
   if [[ ! -e "/usr/lib/systemd/user/ydotool.service" ]]; then
     x sudo ln -s /usr/lib/systemd/{system,user}/ydotool.service
@@ -283,46 +329,61 @@ function setup_nvidia_mux(){
   BOOTLOADER="unknown"
   if [[ -d /boot/loader/entries ]]; then
     BOOTLOADER="systemd-boot"
-  elif [[ -f /etc/default/limine ]] || [[ -f /boot/limine.conf ]]; then
+  elif [[ -f /etc/default/limine ]] || [[ -f /boot/limine.conf ]] || [[ -f /boot/EFI/limine.conf ]]; then
     BOOTLOADER="limine"
+  elif [[ -f /etc/default/grub ]] || command_exists grub-mkconfig; then
+    BOOTLOADER="grub"
   fi
 
   case "$BOOTLOADER" in
     systemd-boot)
       local entry_file
-      entry_file=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -n1)
+      entry_file=$(find /boot/loader/entries -maxdepth 1 -name '*.conf' 2>/dev/null | head -n1)
       if [[ -n "$entry_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
         v sudo sed -i 's|^\(options .*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
       fi
+      NEEDS_INITRAMFS_REBUILD=0
       ;;
     limine)
-      local limine_cmdline_file=""
-      if [[ -f /etc/default/limine ]]; then
-        limine_cmdline_file="/etc/default/limine"
-      elif [[ -f /boot/limine.conf ]]; then
-        limine_cmdline_file="/boot/limine.conf"
-      fi
+      local limine_cfg=""
+      limine_cfg="$(detect_limine_config)" || true
 
-      if [[ -n "$limine_cmdline_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$limine_cmdline_file"; then
-        if [[ "$limine_cmdline_file" == "/etc/default/limine" ]]; then
-          if grep -q '^KERNEL_CMDLINE\[default\]=.*"' "$limine_cmdline_file"; then
-            v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cmdline_file"
-            NEEDS_INITRAMFS_REBUILD=1
-          else
-            printf "  WARNING: /etc/default/limine does not contain KERNEL_CMDLINE[default]=, skipping\n"
-          fi
+      if [[ -n "$limine_cfg" ]] && ! grep -q "nvidia-drm.modeset=1" "$limine_cfg"; then
+        if grep -Eq '^KERNEL_CMDLINE\[default\]=' "$limine_cfg"; then
+          v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cfg"
+          NEEDS_INITRAMFS_REBUILD=1
+        elif grep -Eq '^kernel_cmdline[[:space:]]*=' "$limine_cfg"; then
+          v sudo sed -i 's|^\(kernel_cmdline[[:space:]]*=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cfg"
         else
-          v sudo sed -i 's|^\([[:space:]]*cmdline:.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cmdline_file"
+          printf "  WARNING: Could not recognize Limine cmdline format in $limine_cfg\n"
         fi
       fi
       ;;
+    grub)
+      if [[ -f /etc/default/grub ]] && ! grep -q "nvidia-drm.modeset=1" /etc/default/grub; then
+        if grep -Eq '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
+          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
+        elif grep -Eq '^GRUB_CMDLINE_LINUX=' /etc/default/grub; then
+          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
+        fi
+      fi
+      if command_exists grub-mkconfig; then
+        if [[ -d /boot/grub ]]; then
+          v sudo grub-mkconfig -o /boot/grub/grub.cfg
+        elif [[ -d /boot/efi/EFI/grub ]]; then
+          v sudo grub-mkconfig -o /boot/efi/EFI/grub/grub.cfg
+        fi
+      fi
+      NEEDS_INITRAMFS_REBUILD=0
+      ;;
     *)
       printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
+      NEEDS_INITRAMFS_REBUILD=0
       ;;
   esac
 
   if [[ "$NEEDS_INITRAMFS_REBUILD" -eq 1 ]]; then
-    if command -v limine-mkinitcpio >/dev/null 2>&1; then
+    if command_exists limine-mkinitcpio; then
       v sudo limine-mkinitcpio
     else
       v sudo mkinitcpio -P
@@ -333,8 +394,8 @@ function setup_nvidia_mux(){
   printf "  Creating udev rules for stable GPU paths...\n"
   local igpu_pci
   local dgpu_pci
-  igpu_pci=$(lspci -d ::0300 | grep -i "intel" | head -n1 | awk '{print $1}')
-  dgpu_pci=$(lspci -d ::0300 | grep -i "nvidia" | head -n1 | awk '{print $1}')
+  igpu_pci=$(lspci -D -d ::0300 | grep -i "intel" | head -n1 | awk '{print $1}' || true)
+  dgpu_pci=$(lspci -D -d ::0300 | grep -i "nvidia" | head -n1 | awk '{print $1}' || true)
 
   if [[ -n "$igpu_pci" ]]; then
     v sudo tee /etc/udev/rules.d/igpu-device-path.rules << 'EOF'
