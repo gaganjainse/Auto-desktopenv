@@ -273,18 +273,50 @@ function setup_nvidia_mux(){
   if [[ -f /etc/mkinitcpio.conf ]]; then
     if ! grep -q "^MODULES=(i915 nvidia" /etc/mkinitcpio.conf; then
       v sudo sed -i 's/^MODULES=(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-      v sudo limine-mkinitcpio
+      v sudo mkinitcpio -P
     fi
   fi
 
-  # Configure bootloader kernel parameters (Limine on CachyOS)
+  # Configure bootloader kernel parameters (detect bootloader first)
   printf "  Configuring boot parameters for NVIDIA...\n"
-  if [[ -f /etc/default/limine ]]; then
-    if ! grep -q "nvidia-drm.modeset=1" /etc/default/limine; then
-      v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/limine
-      v sudo limine-mkinitcpio
-    fi
+  BOOTLOADER="unknown"
+  if [[ -d /boot/loader/entries ]]; then
+    BOOTLOADER="systemd-boot"
+  elif [[ -f /etc/default/limine ]] || [[ -f /boot/limine.conf ]]; then
+    BOOTLOADER="limine"
   fi
+
+  case "$BOOTLOADER" in
+    systemd-boot)
+      local entry_file
+      entry_file=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -n1)
+      if [[ -n "$entry_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
+        v sudo sed -i 's|^\(options .*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
+      fi
+      ;;
+    limine)
+      local limine_cmdline_file=""
+      if [[ -f /etc/default/limine ]]; then
+        limine_cmdline_file="/etc/default/limine"
+      elif [[ -f /boot/limine.conf ]]; then
+        limine_cmdline_file="/boot/limine.conf"
+      fi
+
+      if [[ -n "$limine_cmdline_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$limine_cmdline_file"; then
+        if [[ "$limine_cmdline_file" == "/etc/default/limine" ]]; then
+          v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cmdline_file"
+          if command -v limine-mkinitcpio >/dev/null 2>&1; then
+            v sudo limine-mkinitcpio
+          fi
+        else
+          v sudo sed -i 's|^\([[:space:]]*cmdline:.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cmdline_file"
+        fi
+      fi
+      ;;
+    *)
+      printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
+      ;;
+  esac
 
   # Create udev rules for stable GPU device paths
   printf "  Creating udev rules for stable GPU paths...\n"
