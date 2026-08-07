@@ -231,8 +231,7 @@ EOFSERVICE"
   v systemctl --user enable --now smart-organizer.timer || true
 
   # Install backup timer
-  local backup_dir="${REPO_ROOT}/tools/backup"
-  if [[ -d "$backup_dir" ]]; then
+  if [[ -f "${BIN_DIR}/backup.sh" ]]; then
     v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.service' << 'EOFSERVICE'
 [Unit]
 Description=Backup Script Oneshot
@@ -261,8 +260,7 @@ EOFSERVICE"
   fi
 
   # Install maintenance timer
-  local maintenance_dir="${REPO_ROOT}/tools/maintenance"
-  if [[ -d "$maintenance_dir" ]]; then
+  if [[ -f "${BIN_DIR}/maintenance.sh" ]]; then
     v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.service' << 'EOFSERVICE'
 [Unit]
 Description=Maintenance Script Oneshot
