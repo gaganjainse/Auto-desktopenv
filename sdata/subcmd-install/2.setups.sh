@@ -270,10 +270,11 @@ function setup_nvidia_mux(){
 
   # Configure mkinitcpio for hybrid graphics
   printf "  Configuring mkinitcpio for Intel + NVIDIA hybrid...\n"
+  NEEDS_INITRAMFS_REBUILD=0
   if [[ -f /etc/mkinitcpio.conf ]]; then
     if ! grep -q "^MODULES=(i915 nvidia" /etc/mkinitcpio.conf; then
       v sudo sed -i 's/^MODULES=(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-      v sudo mkinitcpio -P
+      NEEDS_INITRAMFS_REBUILD=1
     fi
   fi
 
@@ -304,9 +305,11 @@ function setup_nvidia_mux(){
 
       if [[ -n "$limine_cmdline_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$limine_cmdline_file"; then
         if [[ "$limine_cmdline_file" == "/etc/default/limine" ]]; then
-          v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cmdline_file"
-          if command -v limine-mkinitcpio >/dev/null 2>&1; then
-            v sudo limine-mkinitcpio
+          if grep -q '^KERNEL_CMDLINE\[default\]=.*"' "$limine_cmdline_file"; then
+            v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cmdline_file"
+            NEEDS_INITRAMFS_REBUILD=1
+          else
+            printf "  WARNING: /etc/default/limine does not contain KERNEL_CMDLINE[default]=, skipping\n"
           fi
         else
           v sudo sed -i 's|^\([[:space:]]*cmdline:.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cmdline_file"
@@ -317,6 +320,14 @@ function setup_nvidia_mux(){
       printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
       ;;
   esac
+
+  if [[ "$NEEDS_INITRAMFS_REBUILD" -eq 1 ]]; then
+    if command -v limine-mkinitcpio >/dev/null 2>&1; then
+      v sudo limine-mkinitcpio
+    else
+      v sudo mkinitcpio -P
+    fi
+  fi
 
   # Create udev rules for stable GPU device paths
   printf "  Creating udev rules for stable GPU paths...\n"
