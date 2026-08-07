@@ -17,14 +17,6 @@ require_cmd() {
   done
 }
 
-safe_sudo() {
-  if [[ ${EUID:-0} -eq 0 ]]; then
-    "$@"
-  else
-    sudo "$@"
-  fi
-}
-
 detect_bootloader() {
   if [[ -d /boot/loader/entries ]]; then
     printf 'systemd-boot'
@@ -51,6 +43,9 @@ detect_limine_config() {
   done
   return 1
 }
+
+BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 function prepare_systemd_user_service(){
   if [[ ! -e "/usr/lib/systemd/user/ydotool.service" ]]; then
@@ -125,7 +120,7 @@ v setup_mux_switcher
 
 function setup_mux_switcher(){
   local mux_dir="${REPO_ROOT}/tools/mux-switcher"
-  local mux_bin="${XDG_BIN_HOME}/msi-mux-switcher"
+  local mux_bin="${BIN_DIR}/msi-mux-switcher"
   local py_script="${mux_dir}/msi-mux-switcher.py"
 
   if [[ ! -f "$py_script" ]]; then
@@ -136,7 +131,7 @@ function setup_mux_switcher(){
   if [[ -f /sys/class/dmi/id/product_name ]] && \
      grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null; then
     printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
-    v mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}"
+    v mkdir -p "${BIN_DIR}"
     v ln -sf "${py_script}" "$mux_bin"
     v chmod +x "$mux_bin"
     printf "${STY_GREEN}[$0]: MUX switcher installed at $mux_bin${STY_RST}\n"
@@ -158,7 +153,7 @@ fi
 
 function setup_smart_organizer(){
   local organizer_dir="${REPO_ROOT}/tools/smart-organizer"
-  local organizer_bin="${XDG_BIN_HOME}/smart-organizer"
+  local organizer_bin="${BIN_DIR}/smart-organizer"
 
   if [[ ! -d "$organizer_dir" ]]; then
     printf "${STY_YELLOW}[$0]: smart-organizer not found at $organizer_dir${STY_RST}\n"
@@ -166,31 +161,31 @@ function setup_smart_organizer(){
   fi
 
   printf "${STY_CYAN}[$0]: Setting up Smart Organizer${STY_RST}\n"
-  v mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}"
+  v mkdir -p "${BIN_DIR}"
   v ln -sf "${organizer_dir}/smart-organizer.sh" "$organizer_bin"
   v chmod +x "$organizer_bin"
 
   local backup_dir="${REPO_ROOT}/tools/backup"
   local maintenance_dir="${REPO_ROOT}/tools/maintenance"
   if [[ -f "${backup_dir}/backup.sh" ]]; then
-    v ln -sf "${backup_dir}/backup.sh" "${XDG_BIN_HOME}/backup.sh"
-    v chmod +x "${XDG_BIN_HOME}/backup.sh"
+    v ln -sf "${backup_dir}/backup.sh" "${BIN_DIR}/backup.sh"
+    v chmod +x "${BIN_DIR}/backup.sh"
   fi
   if [[ -f "${maintenance_dir}/maintenance.sh" ]]; then
-    v ln -sf "${maintenance_dir}/maintenance.sh" "${XDG_BIN_HOME}/maintenance.sh"
-    v chmod +x "${XDG_BIN_HOME}/maintenance.sh"
+    v ln -sf "${maintenance_dir}/maintenance.sh" "${BIN_DIR}/maintenance.sh"
+    v chmod +x "${BIN_DIR}/maintenance.sh"
   fi
 
   # Install default configuration
-  v mkdir -p "${XDG_CONFIG_HOME}/smart-organizer"
-  if [[ ! -f "${XDG_CONFIG_HOME}/smart-organizer/smart-organizer.conf" ]]; then
-    v cp "${organizer_dir}/smart-organizer.conf" "${XDG_CONFIG_HOME}/smart-organizer/smart-organizer.conf"
-    printf "${STY_GREEN}[$0]: Default config installed to ${XDG_CONFIG_HOME}/smart-organizer/smart-organizer.conf${STY_RST}\n"
+  v mkdir -p "${CONFIG_DIR}/smart-organizer"
+  if [[ ! -f "${CONFIG_DIR}/smart-organizer/smart-organizer.conf" ]]; then
+    v cp "${organizer_dir}/smart-organizer.conf" "${CONFIG_DIR}/smart-organizer/smart-organizer.conf"
+    printf "${STY_GREEN}[$0]: Default config installed to ${CONFIG_DIR}/smart-organizer/smart-organizer.conf${STY_RST}\n"
   fi
 
   # Install systemd user service for watch mode
-  v mkdir -p "${XDG_CONFIG_HOME}/systemd/user"
-  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.service' << 'EOFSERVICE'
+  v mkdir -p "${CONFIG_DIR}/systemd/user"
+  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.service' << 'EOFSERVICE'
 [Unit]
 Description=Smart Organizer Watch Service
 After=network.target
@@ -206,7 +201,7 @@ WantedBy=default.target
 EOFSERVICE"
 
   # Install systemd user timer for periodic runs
-  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer-timer.service' << 'EOFSERVICE'
+  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer-timer.service' << 'EOFSERVICE'
 [Unit]
 Description=Smart Organizer Oneshot
 After=network.target
@@ -216,7 +211,7 @@ Type=oneshot
 ExecStart=%h/.local/bin/smart-organizer --once
 EOFSERVICE"
 
-  v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/smart-organizer.timer' << 'EOFSERVICE'
+  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.timer' << 'EOFSERVICE'
 [Unit]
 Description=Smart Organizer Timer
 Requires=smart-organizer-timer.service
@@ -238,7 +233,7 @@ EOFSERVICE"
   # Install backup timer
   local backup_dir="${REPO_ROOT}/tools/backup"
   if [[ -d "$backup_dir" ]]; then
-    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/backup.service' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.service' << 'EOFSERVICE'
 [Unit]
 Description=Backup Script Oneshot
 After=network.target
@@ -248,7 +243,7 @@ Type=oneshot
 ExecStart=%h/.local/bin/backup.sh --dry-run
 EOFSERVICE"
 
-    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/backup.timer' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.timer' << 'EOFSERVICE'
 [Unit]
 Description=Backup Timer
 Requires=backup.service
@@ -268,7 +263,7 @@ EOFSERVICE"
   # Install maintenance timer
   local maintenance_dir="${REPO_ROOT}/tools/maintenance"
   if [[ -d "$maintenance_dir" ]]; then
-    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/maintenance.service' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.service' << 'EOFSERVICE'
 [Unit]
 Description=Maintenance Script Oneshot
 After=network.target
@@ -278,7 +273,7 @@ Type=oneshot
 ExecStart=%h/.local/bin/maintenance.sh --auto
 EOFSERVICE"
 
-    v bash -c "cat > '${XDG_CONFIG_HOME}/systemd/user/maintenance.timer' << 'EOFSERVICE'
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.timer' << 'EOFSERVICE'
 [Unit]
 Description=Maintenance Timer
 Requires=maintenance.service
