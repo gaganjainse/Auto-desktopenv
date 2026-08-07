@@ -86,6 +86,9 @@ BUILD_ARTIFACT_MAX_AGE=30
 LARGE_FILE_THRESHOLD_MB=1024
 DUPLICATE_CHECK_SIZE=10
 
+# Lock file for watch mode
+LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/smart-organizer.lock"
+
 # Protected patterns (never touch these)
 PROTECTED_PATTERNS=(
     "*.ssh"
@@ -340,6 +343,22 @@ main() {
     if [[ "$watch_mode" == true ]]; then
         echo ""
         log_info "Watching for new files... Press Ctrl+C to stop."
+        
+        # Create lock file to prevent overlapping runs
+        if [[ -f "$LOCK_FILE" ]]; then
+            local lock_pid
+            lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || true)
+            if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2>/dev/null; then
+                log_warn "Another instance is already running (PID: $lock_pid). Exiting."
+                exit 0
+            else
+                log_warn "Stale lock file found. Removing."
+                rm -f "$LOCK_FILE"
+            fi
+        fi
+        echo $$ > "$LOCK_FILE"
+        trap 'rm -f "$LOCK_FILE"' EXIT INT TERM
+        
         while true; do
             run_cleanup "${targets[@]}"
             run_organize "${targets[@]}"
