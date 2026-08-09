@@ -148,7 +148,7 @@ cd ~/Workspace
 
 **Print/save critical info:**
 - [ ] BIOS settings (see below)
-- [ ] Bootstrap command: `bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)`
+- [ ] Bootstrap command: `bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)`
 - [ ] Username: `gagan`
 - [ ] Partition choice: Option A or B
 - [ ] Bootloader: Limine
@@ -212,7 +212,7 @@ sudo efibootmgr -v
   - Fast Boot: Disabled
   - CSM: Disabled
 - [ ] Installation guide saved to phone
-- [ ] Bootstrap command noted: `bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)`
+- [ ] Bootstrap command noted: `bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)`
 - [ ] Username: `gagan`
 - [ ] Partition choice decided: Option A (automatic) or Option B (manual with @models)
 - [ ] Bootloader choice: Limine
@@ -259,7 +259,7 @@ sudo efibootmgr -v
 **If something goes wrong:**
 - BTRFS + Snapper allows rollback from boot menu
 - Keep the USB drive handy for reinstallation if needed
-- All installer steps are logged to `~/Workspace/Auto-desktopenv/`
+- All installer steps are logged to `~/Workspace/shesha-desktop/`
 
 ---
 
@@ -284,7 +284,7 @@ BIOS SETTINGS:
 □ CSM: OFF
 
 FIRST BOOT COMMAND:
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)
 
 AFTER REBOOT:
 □ Select Hyprland session

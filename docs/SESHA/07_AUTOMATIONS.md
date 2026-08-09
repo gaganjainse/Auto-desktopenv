@@ -1,6 +1,6 @@
 # 07 — Automations Catalog
 
-> Every set-and-forget job in the Sesha ecosystem. The rule: **if it can be done safely on a timer
+> Every set-and-forget job in the Shesha ecosystem. The rule: **if it can be done safely on a timer
 > or event, it is automated; if it's destructive, it asks first; every action is logged.** All units
 > are canonical files under `tools/<tool>/units/`, installed (not here-doc-generated) by setup.
 
@@ -25,21 +25,21 @@
 | hyprlock auto-lock | 5 min idle | `hypridle` | n/a |
 | Clipboard history | always | cliphist + wl-paste (upstream) | n/a |
 | Font cache after font install | pacman hook | package hook | n/a |
-| Sesha morning briefing | 08:00 | Newelle scheduled task / cron skill | no |
+| Shesha morning briefing | 08:00 | Newelle scheduled task / cron skill | no |
 
 ---
 
 ## 2. Power profile auto-switch (AC/battery)
 
-`/etc/udev/rules.d/99-sesha-power.rules`:
+`/etc/udev/rules.d/99-shesha-power.rules`:
 ```udev
 # On AC plug/unplug, delegate to a transient systemd unit (never run long scripts in udev)
 SUBSYSTEM=="power_supply", ATTR{online}=="1", \
-  RUN+="/usr/bin/systemd-run --no-block --unit=sesha-on-ac /usr/local/bin/sesha-power.sh ac"
+  RUN+="/usr/bin/systemd-run --no-block --unit=shesha-on-ac /usr/local/bin/shesha-power.sh ac"
 SUBSYSTEM=="power_supply", ATTR{online}=="0", \
-  RUN+="/usr/bin/systemd-run --no-block --unit=sesha-on-bat /usr/local/bin/sesha-power.sh battery"
+  RUN+="/usr/bin/systemd-run --no-block --unit=shesha-on-bat /usr/local/bin/shesha-power.sh battery"
 ```
-`/usr/local/bin/sesha-power.sh`:
+`/usr/local/bin/shesha-power.sh`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -49,21 +49,21 @@ case "$state" in
     powerprofilesctl set performance
     hyprctl --keyword decoration:blur:passes 3 >/dev/null
     hyprctl --keyword decoration:shadow:enabled 1 >/dev/null
-    notify-send -a Sesha "Power" "AC connected — performance mode" -i battery-full-charging
+    notify-send -a Shesha "Power" "AC connected — performance mode" -i battery-full-charging
     ;;
   battery)
     powerprofilesctl set power-saver
     hyprctl --keyword decoration:blur:passes 1 >/dev/null
     hyprctl --keyword decoration:shadow:enabled 0 >/dev/null
-    notify-send -a Sesha "Power" "On battery — power saver" -i battery-caution
+    notify-send -a Shesha "Power" "On battery — power saver" -i battery-caution
     ;;
 esac
 # log to audit
 echo "{\"ts\":\"$(date -Iseconds)\",\"event\":\"power\",\"state\":\"$state\"}" \
-  >> "${XDG_DATA_HOME:-$HOME/.local/share}/sesha/audit/events.jsonl"
+  >> "${XDG_DATA_HOME:-$HOME/.local/share}/shesha/audit/events.jsonl"
 ```
 ```bash
-sudo install -m755 sesha-power.sh /usr/local/bin/sesha-power.sh
+sudo install -m755 shesha-power.sh /usr/local/bin/shesha-power.sh
 sudo udevadm control --reload-rules
 ```
 > Note: dGPU MUX switching needs a reboot; don't try it on udev. The script only changes the power
@@ -75,21 +75,21 @@ sudo udevadm control --reload-rules
 
 Arch/CachyOS is rolling; blind `pacman -Syu` on a timer can break NVIDIA/Hyprland. So we only **notify**:
 
-`~/.local/bin/sesha-update-check`:
+`~/.local/bin/shesha-update-check`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 checkupdates 2>/dev/null | wc -l | read -r n
 if (( n > 0 )); then
-  notify-send -a Sesha -u normal "Updates available" "$n packages. Run: pacman -Syu (review first)"
+  notify-send -a Shesha -u normal "Updates available" "$n packages. Run: pacman -Syu (review first)"
 fi
 # Also check AUR if paru/yay present
 for h in paru yay; do command -v "$h" >/dev/null && "$h" -Qua 2>/dev/null | wc -l | read -r an; done
 ```
-`units/sesha-update-check.timer`:
+`units/shesha-update-check.timer`:
 ```ini
 [Unit]
-Description=Sesha update check (notify only)
+Description=Shesha update check (notify only)
 [Timer]
 OnCalendar=daily
 Persistent=true
@@ -110,16 +110,16 @@ Use **restic** to an external/NAS repo (`~/Backups/external` mounted). Fix BUG-0
 ```ini
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/sesha-backup
+ExecStart=%h/.local/bin/shesha-backup
 ```
-`~/.local/bin/sesha-backup`:
+`~/.local/bin/shesha-backup`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 REPO="${BACKUP_REPO:-$HOME/Backups/external}"
-[ -d "$REPO" ] || { notify-send -a Sesha "Backup skipped" "$REPO not mounted"; exit 0; }
+[ -d "$REPO" ] || { notify-send -a Shesha "Backup skipped" "$REPO not mounted"; exit 0; }
 restic -r "$REPO" backup "$HOME/Documents" "$HOME/Notes" "$HOME/Projects/personal" \
-  --exclude-file="$HOME/.config/sesha/restic-excludes" \
+  --exclude-file="$HOME/.config/shesha/restic-excludes" \
   --one-file-system
 restic -r "$REPO" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
 restic -r "$REPO" check --read-data-subset=5%   # verify a slice each run
@@ -138,7 +138,7 @@ restic -r "$REPO" check --read-data-subset=5%   # verify a slice each run
 - `uv cache prune`
 - clear `Downloads/*` older than 30d (trash, not rm)
 - `fc-cache` only if fonts changed
-- append a maintenance event to the Sesha audit log
+- append a maintenance event to the Shesha audit log
 
 Guard every destructive action with a 7-day "new install" dry-run window (config flag).
 
@@ -146,7 +146,7 @@ Guard every destructive action with a 7-day "new install" dry-run window (config
 
 ## 6. Disk, health, and battery reports
 
-- **Disk alert:** `df -h` → if `$HOME` >80%, critical notification; at 90%, Sesha verbally warns.
+- **Disk alert:** `df -h` → if `$HOME` >80%, critical notification; at 90%, Shesha verbally warns.
 - **SMART:** monthly `smartctl -H` on NVMe; `nvme smart-log` for Gen4 drive.
 - **Battery:** `upower -i` / `/sys/class/power_supply/BAT0/cycle_count` + `capacity`; alert when
   design capacity drops below 80% (battery wear).
@@ -167,7 +167,7 @@ Guard every destructive action with a 7-day "new install" dry-run window (config
 ## 8. Session & window automations (Hyprland)
 
 - **Workspace per activity** via window rules: code→ws1, browser→ws2, chat→ws3, media→ws4, etc.
-- **Pinned floating:** Newelle (floating, top-right), Sesha overlay, screenshots UI.
+- **Pinned floating:** Newelle (floating, top-right), Shesha overlay, screenshots UI.
 - **Auto-start:** `quickshell`, `swww-daemon`, `hypridle`, `easyeffects`, `udiskie`, `nm-applet`
   (or the Quickshell equivalents already shipped by end-4).
 - **Idle lock:** 5 min → `hyprlock`; 10 min → screen off; 30 min on battery → suspend.
@@ -181,6 +181,6 @@ Guard every destructive action with a 7-day "new install" dry-run window (config
 2. Installed via `install -Dm644`, never generated with here-docs.
 3. `TimeoutStartSec=15`, `TimeoutStopSec=10` (CachyOS 260628 user-service defaults).
 4. `IOSchedulingClass=idle` and `CPUQuota` for background jobs so the desktop stays smooth at 144 Hz.
-5. Every job appends one JSON line to `~/.local/share/sesha/audit/events.jsonl`.
+5. Every job appends one JSON line to `~/.local/share/shesha/audit/events.jsonl`.
 6. Destructive actions default to **notify/ask** for the first 7 days and after any failure.
 7. No network calls except explicit, local-only services (Ollama, restic repo).

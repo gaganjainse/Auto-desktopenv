@@ -1,7 +1,7 @@
 # 02 — Roadmap & Execution Plan
 
 > A dependency-ordered plan to take the fork from "partially-fixed, partially-broken" to a
-> production-grade Sesha ecosystem. Each phase ends in a **shippable, tested state** so you can stop
+> production-grade Shesha ecosystem. Each phase ends in a **shippable, tested state** so you can stop
 > after any phase and have a working system. Effort estimates assume you + an AI pair-programmer.
 
 Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing on real hardware
@@ -20,7 +20,7 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 | 0.3 | Fix MSI DMI detection to test *content* with OR; tighten to `Sword 16 HX` for device features | BUG-05, N- | ☐ |
 | 0.4 | Rewrite `setup_power_management`: detect RAM (`/proc/meminfo`), write `/etc/systemd/zram-generator.conf` (RAM/2, zstd, cap 16G), enable service; install `power-profiles-daemon` only on Arch | HIGH-05 | ☐ |
 | 0.5 | Run `bash -n` on every script in `sdata/` and `tools/`; fix syntax (esp. NVIDIA heredoc/case) | N-09 | ☐ |
-| 0.6 | MCP install: iterate `tools/sesha/mcp_servers/*.py` that actually exist; don't enable units for missing files; **or** add the 2 missing servers now | N-04 | ☐ |
+| 0.6 | MCP install: iterate `tools/shesha/mcp_servers/*.py` that actually exist; don't enable units for missing files; **or** add the 2 missing servers now | N-04 | ☐ |
 | 0.7 | Idempotent mkinitcpio MODULES edit (read list, dedupe, prepend nvidia+i915) | BUG-06 | ☐ |
 | 0.8 | Fix NVIDIA tail message `msi-mux-switcher` | N-07 | ☐ |
 | 0.9 | License: README → GPL-3.0 badge/text; fill `licenses/MIT.txt` (2024–2026, gaganjainse) or delete it | MED-16 | ☐ |
@@ -69,12 +69,12 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 - 2.4 Implement `subcmd-uninstall/2.undo-setups.sh` for real:
   - undo mkinitcpio MODULES (remove nvidia/i915 added by us — behind a marker comment),
   - remove `/etc/udev/rules.d/{igpu,dgpu}-device-path.rules`, `/usr/local/bin/nvidia-run`,
-  - disable+remove `smart-organizer.*`, `backup.*`, `maintenance.*`, `sesha-*-mcp.*` units,
+  - disable+remove `smart-organizer.*`, `backup.*`, `maintenance.*`, `shesha-*-mcp.*` units,
   - disable `ollama.service` (do **not** `pacman -R` without asking),
   - remove zram-generator.conf only if we created it (marker),
   - print bold warnings about bootloader params that need manual removal.
 - 2.5 Consolidate `.updateignore` to one XDG path with a one-time migration; remove the TODO.
-- 2.6 Add `CONTRIBUTING.md` at root pointing to `docs/SESHA/` + checklist.
+- 2.6 Add `CONTRIBUTING.md` at root pointing to `docs/SHESHA/` + checklist.
 - 2.7 Prune (behind a flag, don't delete upstream sync ability): keep `dist-arch`; for your personal
   install set `--device msi-sword-cachyos` which skips fedora/gentoo/nix branches. **Do not** delete
   them from the repo (they aid upstream merges) — just don't execute them.
@@ -124,7 +124,7 @@ Spec in `05_SMART_ORGANIZER_V2.md`. Build order:
   `~/.local/share/smart-organizer/{history.db,undo/}`.
 - 4.4 Safety: centralized protected patterns (deduped), trash-not-rm (`gio trash`), always
   `--dry-run`-capable, low-confidence → `notify-send` with action buttons.
-- 4.5 Wire into MCP so Sesha can say "organize downloads" / "undo last move".
+- 4.5 Wire into MCP so Shesha can say "organize downloads" / "undo last move".
 - 4.6 Quickshell indicator widget (last N moves, pause/resume, open undo).
 
 **Exit criteria:** drop 20 mixed files into Downloads → they land in the right folders within a minute;
@@ -146,39 +146,39 @@ Catalog in `07_AUTOMATIONS.md`. Implement as canonical units:
 - Session restore + window rules per activity.
 
 **Exit criteria:** a single `systemctl --user list-timers` shows the whole automation surface; every job
-logs to the journal and to the Sesha audit log.
+logs to the journal and to the Shesha audit log.
 
 ---
 
-## Phase 6 — Sesha agent (Sesha/Sesha)
+## Phase 6 — Shesha agent (Shesha/Shesha)
 
 **Goal:** voice-first, local, private, auditable desktop agent.
 **Effort:** 3–5 sessions · **Risk:** medium (voice/MCP integration)
 
-Architecture in `06_SESHA_AGENT.md`. Build order:
+Architecture in `06_SHESHA_AGENT.md`. Build order:
 - 6.1 Install Newelle **1.4.5 native** (AUR, not Flatpak) + Ollama ≥0.32; pull the 6 GB-safe models.
 - 6.2 Provide the 3 MCP servers (system-control, smart-organizer, hyprland-control) over **stdio**.
-- 6.3 Configure Newelle: Ollama `phi4-mini`, STT faster-whisper `base.en`, TTS Piper, wake "Hey Sesha".
+- 6.3 Configure Newelle: Ollama `phi4-mini`, STT faster-whisper `base.en`, TTS Piper, wake "Hey Shesha".
 - 6.4 Quickshell overlay (listening/thinking/speaking states) driven by Newelle's
   interface/API (1.4.0+ OpenAI-compatible endpoint) or a small bridge.
-- 6.5 `sesha-audit`: append every tool call/result to a local SQLite/JSONL event log
-  (NexusAOS-style), with a `sesha undo` and a policy file that requires confirmation for destructive
+- 6.5 `shesha-audit`: append every tool call/result to a local SQLite/JSONL event log
+  (SheshaAOS-style), with a `shesha undo` and a policy file that requires confirmation for destructive
   actions (`rm`, `pacman -R`, writes outside allowed dirs).
 - 6.6 Daily 08:00 briefing skill: weather, calendar, battery health, updates, last night's backups.
 - 6.7 (Optional, later) Android phone harness over ADB for your Realme Narzo 90x (see
   `08_ECOSYSTEM_TOOLS.md`).
 
-**Exit criteria:** "Hey Sesha, organize my downloads and switch to performance mode" → done by voice,
+**Exit criteria:** "Hey Shesha, organize my downloads and switch to performance mode" → done by voice,
 visible in the overlay, recorded in the audit log, undoable.
 
 ---
 
-## Phase 7 — NexusAOS / SeshaOS convergence (the long game)
+## Phase 7 — SheshaAOS / SheshaOS convergence (the long game)
 
 **Effort:** ongoing · No deadlines. This is your research vision.
-- 7.1 Expose the Sesha audit log through the same append-only event-store API NexusAOS uses.
+- 7.1 Expose the Shesha audit log through the same append-only event-store API SheshaAOS uses.
 - 7.2 Run your RAG service locally over `~/Documents`, `~/Projects`, and the dotfiles for memory.
-- 7.3 eBPF observability: feed scheduler/power/GPU telemetry to Sesha for hints (start with
+- 7.3 eBPF observability: feed scheduler/power/GPU telemetry to Shesha for hints (start with
   `bcc`/`bpftrace` scripts; do **not** fork the kernel yet).
 - 7.4 Treat the AI-first kernel as a multi-year research track; the practical near-term win is
   AI-assisted tuning of an already-excellent CachyOS kernel, not a from-scratch microkernel.
@@ -195,7 +195,7 @@ visible in the overlay, recorded in the audit log, undoable.
 | 3 Device tuning | 1 + on-device | ✅ fast/pretty |
 | 4 Organizer v2 | 2–3 | ✅ clutter gone |
 | 5 Automations | 1–2 | ✅ hands-off |
-| 6 Sesha agent | 3–5 | ✅ voice AI |
+| 6 Shesha agent | 3–5 | ✅ voice AI |
 | 7 OS convergence | ongoing | 🔭 research |
 
 Realistically: **Phases 0–3 in the first week**, **4–5 in week two**, **6 across weeks 3–4**, with 7

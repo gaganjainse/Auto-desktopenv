@@ -8,7 +8,7 @@ For a clean, production-grade workspace, adopt the following structure:
 │   ├── Projects/
 │   └── Documents/
 ├── Personal/           # Personal projects, side-hustles, learning
-│   ├── Auto-desktopenv/
+│   ├── shesha-desktop/
 │   ├── AI_Experiments/
 │   └── Notes/
 ├── Media/              # Photos, videos, music

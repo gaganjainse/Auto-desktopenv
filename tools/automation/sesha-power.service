@@ -1,11 +1,11 @@
 [Unit]
-Description=Sesha power profile auto-switch (AC/battery)
-Documentation=https://github.com/gaganjainse/Auto-desktopenv
+Description=Shesha power profile auto-switch (AC/battery)
+Documentation=https://github.com/gaganjainse/shesha-desktop
 After=graphical-session.target
 
 [Service]
 Type=oneshot
 # Triggered by udev rules via systemd-run; also usable manually:
-#   systemctl --user start sesha-power.service
-ExecStart=%h/.local/bin/sesha-power ac
+#   systemctl --user start shesha-power.service
+ExecStart=%h/.local/bin/shesha-power ac
 RemainAfterExit=no

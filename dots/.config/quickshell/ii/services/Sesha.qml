@@ -5,7 +5,7 @@ import Quickshell
 import qs.modules.common
 
 /**
- * Sesha — applies the user's settings (Config.options.sesha) to the system.
+ * Shesha — applies the user's settings (Config.options.sesha) to the system.
  *
  * Toggles translate to `systemctl --user` unit state and hyprctl visual state.
  * All effects are idempotent and safe to re-run; the service only acts when a
@@ -19,7 +19,7 @@ Singleton {
     }
 
     function applyPowerVisuals() {
-        if (!Config.options.sesha.lowPowerVisuals) {
+        if (!Config.options.shesha.lowPowerVisuals) {
             Quickshell.execDetached(["hyprctl", "--keyword", "decoration:blur:passes", "3"]);
             Quickshell.execDetached(["hyprctl", "--keyword", "decoration:shadow:enabled", "1"]);
             return;
@@ -35,19 +35,19 @@ Singleton {
     }
 
     function applyAll() {
-        const on = Config.options.sesha.enabled;
-        systemctl(on ? "enable --now" : "disable --now", "sesha-mcp.target");
-        systemctl(Config.options.sesha.realtimeOrganizer && on ? "enable --now" : "disable --now",
+        const on = Config.options.shesha.enabled;
+        systemctl(on ? "enable --now" : "disable --now", "shesha-mcp.target");
+        systemctl(Config.options.shesha.realtimeOrganizer && on ? "enable --now" : "disable --now",
                   "smart-organizer-watch.service");
-        systemctl(Config.options.sesha.autoBackup && on ? "enable --now" : "disable --now",
+        systemctl(Config.options.shesha.autoBackup && on ? "enable --now" : "disable --now",
                   "backup.timer");
-        systemctl(Config.options.sesha.autoPowerProfile && on ? "enable --now" : "disable --now",
-                  "sesha-power.service");
+        systemctl(Config.options.shesha.autoPowerProfile && on ? "enable --now" : "disable --now",
+                  "shesha-power.service");
         applyPowerVisuals();
     }
 
-    // React to every option under sesha.*
-    property var _opts: Config.options.sesha
+    // React to every option under shesha.*
+    property var _opts: Config.options.shesha
     onOpts_changed: applyAll()
 
     Component.onCompleted: {

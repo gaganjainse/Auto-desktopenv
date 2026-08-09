@@ -20,7 +20,7 @@ from .policy import Context
 class Offer:
     title: str          # one line shown in the overlay
     detail: str         # optional second line
-    action: str         # a sesha command / MCP tool call
+    action: str         # a shesha command / MCP tool call
     priority: int = 50  # higher = more eager to show
 
 

@@ -161,12 +161,12 @@ Singleton {
                 property string volumeMixer: `~/.config/hypr/hyprland/scripts/launch_first_available.sh "pavucontrol-qt" "pavucontrol"`
             }
 
-            // ── Sesha: the local AI body (Brain + Mind + Soma) ──────────────
+            // ── Shesha: the local AI body (Brain + Mind + Soma) ──────────────
             // These options drive the MCP servers, automations, and voice agent
-            // without editing code. Managed by the Sesha settings page.
+            // without editing code. Managed by the Shesha settings page.
             property JsonObject sesha: JsonObject {
-                property bool enabled: true               // master switch for Sesha automations
-                property bool voiceWakeWord: true         // "Hey Sesha" via Newelle
+                property bool enabled: true               // master switch for Shesha automations
+                property bool voiceWakeWord: true         // "Hey Shesha" via Newelle
                 property bool realtimeOrganizer: true     // sm-watcher + classifier
                 property bool autoPowerProfile: true      // switch profile on AC/battery
                 property bool autoBackup: false           // restic backup timer (opt-in)

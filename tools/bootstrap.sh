@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Auto-desktopenv Online Bootstrap
+# shesha-desktop Online Bootstrap
 # One-command installer for MSI Sword 16 HX B14VEKG
 #
 # Usage:
-#   bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
+#   bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)
 #
 # Or manually:
-#   curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh | bash
+#   curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh | bash
 #
 set -euo pipefail
 
@@ -26,7 +26,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
 preflight() {
     echo ""
     log_info "========================================"
-    log_info " Auto-desktopenv Online Bootstrap"
+    log_info " shesha-desktop Online Bootstrap"
     log_info " MSI Sword 16 HX B14VEKG"
     log_info "========================================"
     echo ""
@@ -83,8 +83,8 @@ install_prerequisites() {
 clone_repo() {
     log_info "=== Cloning Repository ==="
 
-    local repo_url="https://github.com/gaganjainse/Auto-desktopenv.git"
-    local install_dir="${HOME}/Workspace/Auto-desktopenv"
+    local repo_url="https://github.com/gaganjainse/shesha-desktop.git"
+    local install_dir="${HOME}/Workspace/shesha-desktop"
 
     mkdir -p "${HOME}/Workspace"
 
@@ -103,7 +103,7 @@ clone_repo() {
 run_installer() {
     log_info "=== Running Main Installer ==="
 
-    local install_dir="${HOME}/Workspace/Auto-desktopenv"
+    local install_dir="${HOME}/Workspace/shesha-desktop"
 
     if [[ ! -f "${install_dir}/setup" ]]; then
         log_error "Installer not found at ${install_dir}/setup"

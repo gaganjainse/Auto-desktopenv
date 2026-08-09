@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Auto-desktopenv Maintenance Script
+# shesha-desktop Maintenance Script
 # Daily/weekly system maintenance automation
 #
 # Features:

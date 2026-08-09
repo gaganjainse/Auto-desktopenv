@@ -3,8 +3,8 @@
 # (idle/AC/not-fullscreen) before doing anything, and exits early if busy.
 # We avoid fixed wall-clock hours so jobs don't all pile up when you unlock.
 [Unit]
-Description=Sesha ambient — polite catch-up + proactivity
-Documentation=https://github.com/gaganjainse/Auto-desktopenv
+Description=Shesha ambient — polite catch-up + proactivity
+Documentation=https://github.com/gaganjainse/shesha-desktop
 
 [Timer]
 # First run shortly after the session starts (not at boot — wait for the desktop)
@@ -15,7 +15,7 @@ OnUnitActiveSec=4h
 Persistent=true
 # Spread load so all jobs don't fire together
 RandomizedDelaySec=3min
-Unit=sesha-ambient.service
+Unit=shesha-ambient.service
 
 [Install]
 WantedBy=graphical-session.target

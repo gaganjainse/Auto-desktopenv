@@ -7,7 +7,7 @@
 //!   {"path":"/home/gagan/Downloads/foo.pdf","size":12345}
 //!
 //! The Python classifier reads these lines and decides a destination.
-//! License: GPL-3.0   See docs/SESHA/05_SMART_ORGANIZER_V2.md
+//! License: GPL-3.0   See docs/SHESHA/05_SMART_ORGANIZER_V2.md
 
 use notify::{Event, EventKind, RecursiveMode, Watcher};
 use serde::Serialize;

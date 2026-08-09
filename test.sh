@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Comprehensive test suite for Auto-desktopenv
+# Comprehensive test suite for shesha-desktop
 # Tests syntax, help output, dry-run behavior, and functional correctness
 #
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Sesha MCP server — system control for the MSI Sword 16 HX on CachyOS.
+"""Shesha MCP server — system control for the MSI Sword 16 HX on CachyOS.
 
 Exposes power/GPU/battery/backup tools to Newelle (and any MCP client) over stdio.
 All subprocess calls are in thin wrappers so tests can monkeypatch them without
 touching real hardware.
 
-License: GPL-3.0   See docs/SESHA/06_SESHA_AGENT.md
+License: GPL-3.0   See docs/SHESHA/06_SHESHA_AGENT.md
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("sesha-system")
+mcp = FastMCP("shesha-system")
 
 # Canonical power profile map.
 POWER_PROFILES = {
@@ -141,10 +141,10 @@ def get_system_status() -> dict:
 
 @mcp.tool()
 def run_backup(dry_run: bool = False) -> str:
-    """Trigger the Sesha/restic backup. dry_run=true previews without changes."""
-    script = Path.home() / ".local" / "bin" / "sesha-backup"
+    """Trigger the Shesha/restic backup. dry_run=true previews without changes."""
+    script = Path.home() / ".local" / "bin" / "shesha-backup"
     if not script.exists():
-        return "Backup script not installed (~/.local/bin/sesha-backup)."
+        return "Backup script not installed (~/.local/bin/shesha-backup)."
     env = dict(os.environ, DRY_RUN="1" if dry_run else "0")
     r = subprocess.run([str(script)], capture_output=True, text=True, env=env, timeout=1800)
     return (r.stdout + r.stderr).strip()[-4000:] or "backup complete"
