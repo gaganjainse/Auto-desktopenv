@@ -178,15 +178,10 @@ function install_google_sans_flex(){
   local target_dir="${XDG_DATA_HOME}/fonts/illogical-impulse-$src_name"
   if fc-list | grep -qi "$font_name"; then return; fi
   x mkdir -p $src_dir
-  x cd $src_dir
-  try git init -b main
-  try git remote add origin $src_url
-  x git pull origin main 
-  x git submodule update --init --recursive
+  (cd "$src_dir" && try git init -b main && try git remote add origin $src_url && x git pull origin main && x git submodule update --init --recursive)
   warning_overwrite
   rsync_dir "$src_dir" "$target_dir" 
   x fc-cache -fv
-  x cd $REPO_ROOT
   x mkdir -p "$(dirname ${INSTALLED_LISTFILE})"
   realpath -se "$target_dir" >> "${INSTALLED_LISTFILE}"
 }

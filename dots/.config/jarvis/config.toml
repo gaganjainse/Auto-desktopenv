@@ -1,0 +1,17 @@
+[llm]
+provider = "ollama"
+# Pin minimum version in setup script check:
+# ollama --version | grep -E "0\.(3[2-9]|[4-9][0-9])" || die "Ollama >=0.32 required"
+min_version = "0.32.0"
+model = "phi4-mini"
+ollama_url = "http://localhost:11434"
+num_gpu = 99                  # all layers on RTX 4050 GPU
+
+[llm.flash_attention]
+# Explicitly enable — v0.31.2+ enables it, but make it explicit
+enabled = true
+
+[llm.iGPU_offload]
+# v0.31.2: vision models can offload to Intel Arc iGPU when RTX VRAM full
+enabled = true
+vision_model_offload = "moondream2"
