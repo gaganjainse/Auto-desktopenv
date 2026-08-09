@@ -1,0 +1,21 @@
+# This timer fires ~3 min after login/boot, then every 4 hours, and catches up
+# if the machine was off — BUT the service itself checks the courtesy policy
+# (idle/AC/not-fullscreen) before doing anything, and exits early if busy.
+# We avoid fixed wall-clock hours so jobs don't all pile up when you unlock.
+[Unit]
+Description=Sesha ambient — polite catch-up + proactivity
+Documentation=https://github.com/gaganjainse/Auto-desktopenv
+
+[Timer]
+# First run shortly after the session starts (not at boot — wait for the desktop)
+OnStartupSec=3min
+# Then periodically
+OnUnitActiveSec=4h
+# Catch up missed runs (laptop was asleep/off)
+Persistent=true
+# Spread load so all jobs don't fire together
+RandomizedDelaySec=3min
+Unit=sesha-ambient.service
+
+[Install]
+WantedBy=graphical-session.target
