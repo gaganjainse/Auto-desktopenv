@@ -1,0 +1,3 @@
+# mkinitcpio MODULES fragment for MSI Sword 16 HX B14VEKG (Intel iGPU + NVIDIA RTX 4050).
+# The installer merges this idempotently into /etc/mkinitcpio.conf (see 04_DEVICE_PROFILE.md).
+MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)

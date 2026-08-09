@@ -1,0 +1,11 @@
+[Unit]
+Description=Smart Organizer weekly deep sweep
+Documentation=https://github.com/gaganjainse/Auto-desktopenv
+
+[Timer]
+OnCalendar=Sun 03:00
+Persistent=true
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target
