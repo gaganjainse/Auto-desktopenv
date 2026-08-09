@@ -8,6 +8,7 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("System Control — MSI Sword 16 HX")
 
+
 @mcp.tool()
 def switch_gpu_mode(mode: str) -> str:
     """
@@ -28,10 +29,11 @@ def switch_gpu_mode(mode: str) -> str:
     subprocess.run(["powerprofilesctl", "set", profiles[mode]], check=True)
     return f"Switched to {mode} mode (profile: {profiles[mode]})"
 
+
 @mcp.tool()
 def get_system_status() -> dict:
     """Get current CPU temp, GPU usage, RAM usage, battery level"""
-    import subprocess, json
+    import subprocess
 
     # GPU info via nvidia-smi
     try:
@@ -60,16 +62,19 @@ def get_system_status() -> dict:
         "gpu": gpu_info,
     }
 
+
 @mcp.tool()
 def trigger_smart_organizer(directory: str = "~/Downloads") -> str:
     """Run smart-organizer on a directory. Sesha delegates clutter cleanup here."""
-    import subprocess, os
+    import subprocess
+    import os
     expanded = os.path.expanduser(directory)
     result = subprocess.run(
         ["smart-organizer", "--once", "--dir", expanded],
         capture_output=True, text=True
     )
     return result.stdout or result.stderr
+
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")   # Newelle connects via stdio MCP transport
