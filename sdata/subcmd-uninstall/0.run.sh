@@ -132,6 +132,8 @@ v sudo rm /etc/modules-load.d/i2c-dev.conf
 
 ##############################################################################################################################
 
+source sdata/subcmd-uninstall/2.undo-setups.sh
+
 printf "${STY_CYAN}Undo install step 1...\n${STY_RST}"
 
 if test -f sdata/dist-$OS_GROUP_ID/uninstall-deps.sh; then

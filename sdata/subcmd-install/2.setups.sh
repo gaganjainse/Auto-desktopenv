@@ -472,35 +472,126 @@ v setup_nvidia_mux
 
 #####################################################################################
 # AI/ML Stack Setup
-function setup_ai_stack(){
-  if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
-    printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping AI stack setup${STY_RST}\n"
+function setup_ai_stack() {
+  [[ "${OS_GROUP_ID}" != "arch" ]] && {
+    log_warning "AI stack setup is CachyOS/Arch only — skipping"
     return 0
+  }
+
+  command_exists nvidia-smi || {
+    log_warning "No NVIDIA GPU detected — skipping AI stack"
+    return 0
+  }
+
+  # ── 1. Check CUDA version (faster-whisper requires CUDA 12+) ──────────────
+  local cuda_ver
+  cuda_ver=$(nvcc --version 2>/dev/null | grep -oP 'release \K[0-9]+' || echo "0")
+  if (( cuda_ver < 12 )); then
+    log_warning "CUDA < 12 detected. Installing cuda + cudnn..."
+    v sudo pacman -S --noconfirm --needed cuda cudnn
   fi
 
-  printf "${STY_CYAN}[$0]: Setting up AI/ML stack${STY_RST}\n"
+  # ── 2. Install Ollama (target: v0.32.6+) ──────────────────────────────────
+  if ! command_exists ollama; then
+    v sudo pacman -S --noconfirm --needed ollama
+  fi
 
-  # Install CUDA + Ollama
-  printf "  Installing CUDA toolkit and Ollama...\n"
-  v sudo pacman -S --noconfirm --needed \
-    cuda cudnn ollama ollama-cuda python python-pip
-
-  # Enable Ollama service
-  printf "  Enabling Ollama service...\n"
+  local ollama_ver
+  ollama_ver=$(ollama --version 2>/dev/null | grep -oP '[0-9]+\.[0-9]+' || echo "0.0")
+  if [[ "$(echo "$ollama_ver >= 0.32" | bc -l)" != "1" ]]; then
+    log_warning "Ollama < 0.32 detected (have $ollama_ver) — agent mode not available"
+    log_warning "Update via: sudo pacman -Syu ollama"
+  fi
   v sudo systemctl enable --now ollama.service
 
-  # Add user to video/render groups
-  printf "  Adding user to video/render groups...\n"
-  v sudo usermod -aG video,render "$(whoami)"
+  # ── 3. Install Newelle 1.4.5 (native, NOT Flatpak) ────────────────────────
+  # Flatpak Newelle is sandbox-limited; native install is required for:
+  # - MCP server connections to localhost
+  # - Wake word access to microphone
+  # - File permission system access outside ~/.var/
+  if ! command_exists newelle; then
+    v "$AUR_HELPER" -S --noconfirm --needed newelle
+  else
+    log_info "Newelle already installed — verify it is >=1.4.5"
+    log_info "Check: newelle --version"
+  fi
 
-  # Install Python packages
-  printf "  Installing Python AI packages...\n"
-  v pip install --user torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 || true
-  v pip install --user transformers datasets accelerate huggingface-hub chromadb langchain || true
+  # ── 4. Python venv for MCP servers + STT + TTS ────────────────────────────
+  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/jarvis/.venv"
+  v uv venv "$venv"
 
-  printf "${STY_GREEN}[$0]: AI/ML stack installed${STY_RST}\n"
-  printf "  Run: ollama pull qwen2.5:7b\n"
-  printf "  Run: python -c \"import torch; print(torch.cuda.is_available())\"\n"
+  # Install all pinned dependencies
+  v uv pip install --python "$venv/bin/python" \
+    "faster-whisper>=1.2.0"  \
+    "piper-tts"              \
+    "chromadb>=1.5.9"        \
+    "mcp[cli]>=1.0"          \
+    "fastmcp>=0.1"           \
+    "tomli-w>=1.0"           \
+    "pydantic>=2.0"          \
+    "httpx>=0.27"
+
+  # ── 5. Build Rust sm-watcher binary ───────────────────────────────────────
+  if command_exists cargo; then
+    local watcher_dir="${REPO_ROOT}/tools/smart-organizer/watcher-rs"
+    if [[ -d "$watcher_dir" ]]; then
+      log_info "Building Rust smart-organizer watcher..."
+      (cd "$watcher_dir" && cargo build --release) && \
+        v install -Dm755 "${watcher_dir}/target/release/sm-watcher" "${BIN_DIR}/sm-watcher"
+      log_success "sm-watcher binary installed to ${BIN_DIR}/sm-watcher"
+    fi
+  else
+    log_warning "cargo not found — sm-watcher will use Python watchfiles fallback"
+    v uv pip install --python "$venv/bin/python" "watchfiles>=0.24"
+  fi
+
+  # ── 6. Pull ONLY 6GB VRAM-safe Ollama models ─────────────────────────────
+  log_header "Pulling Ollama models (RTX 4050, 6GB VRAM)"
+  log_info "Primary brain:    phi4-mini    (~3.2GB Q4)"
+  log_info "Code assistant:   qwen2.5-coder:3b (~2.8GB Q4)"
+  log_info "Embeddings/RAG:   nomic-embed-text (<0.5GB)"
+  log_info "Vision/screenshots: moondream2  (~2.5GB)"
+  log_warning "NOT pulling: qwen3:14b, llava:13b, mistral:7b — overflow 6GB VRAM"
+
+  v ollama pull phi4-mini
+  v ollama pull qwen2.5-coder:3b
+  v ollama pull nomic-embed-text
+  v ollama pull moondream2
+
+  # ── 7. Install MCP servers ────────────────────────────────────────────────
+  local mcp_dir="${REPO_ROOT}/tools/jarvis/mcp_servers"
+  for server in system_control smart_organizer hyprland_control; do
+    if [[ -f "${mcp_dir}/${server}.py" ]]; then
+      v install -Dm755 "${mcp_dir}/${server}.py" "${BIN_DIR}/jarvis-${server//_/-}-mcp"
+    fi
+  done
+
+  # ── 8. Install MCP server systemd user services ───────────────────────────
+  local unit_dest="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+  for server in system_control smart_organizer hyprland_control; do
+    cat > "${unit_dest}/jarvis-${server//_/-}-mcp.service" << EOF
+[Unit]
+Description=Jarvis MCP Server: ${server}
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=${venv}/bin/python ${BIN_DIR}/jarvis-${server//_/-}-mcp
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=15
+TimeoutStopSec=10
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+    v systemctl --user enable --now "jarvis-${server//_/-}-mcp.service"
+  done
+
+  v systemctl --user daemon-reload
+  log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + MCP servers) installed"
+  log_info   "Launch Newelle → Settings → Models → Add Ollama → phi4-mini"
+  log_info   "Settings → MCP → Add server → path: jarvis-system-control-mcp"
 }
 
 showfun setup_ai_stack

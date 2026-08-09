@@ -1,0 +1,25 @@
+# Jarvis/Sesha AI Stack — RTX 4050 6GB VRAM
+# Last verified: 2026-08-09
+# Target: CachyOS + Hyprland 0.55+ + Ollama v0.32.6
+
+# Core AI
+faster-whisper>=1.2.0        # STT — CUDA 12 + cuDNN 9 required
+piper-tts                    # TTS — local, no version constraint needed
+
+# Memory / RAG
+chromadb>=1.5.9              # vector store — Apache 2.0
+
+# MCP framework (for Newelle 1.4.5 tool integration)
+mcp[cli]>=1.0                # Model Context Protocol SDK
+fastmcp>=0.1                 # FastMCP decorator framework
+
+# File watching (Python fallback — prefer Rust sm-watcher binary)
+watchfiles>=0.24             # only used if Rust binary not built
+
+# Data / serialization
+tomli-w>=1.0                 # TOML writing for rules.py (Python <3.11 needs tomli for reading)
+pydantic>=2.0                # data validation
+httpx>=0.27                  # async HTTP for Ollama client
+
+# Optional: wake word (only if NOT using Newelle's built-in wake word)
+# openWakeWord              # skip if using Newelle 1.4.5 (has built-in wake word)
