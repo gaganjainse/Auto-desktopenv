@@ -1,7 +1,7 @@
 [project]
-name = "sesha-ambient"
+name = "shesha-ambient"
 version = "0.1.0"
-description = "Sesha: catch-up scheduler, do-not-disturb policy, and warm proactivity for a laptop"
+description = "Shesha: catch-up scheduler, do-not-disturb policy, and warm proactivity for a laptop"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "GPL-3.0-or-later" }
@@ -9,7 +9,7 @@ authors = [{ name = "Gagan Jain" }]
 dependencies = []
 
 [project.scripts]
-sesha-ambient = "sesha_ambient.cli:main"
+shesha-ambient = "shesha_ambient.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.6"]

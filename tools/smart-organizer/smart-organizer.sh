@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # smart-organizer - Systemwide intelligent file organizer
-# Part of Auto-desktopenv / dots-hyprland fork
+# Part of shesha-desktop / dots-hyprland fork
 #
 # Features:
 #   - Systemwide file classification and organization

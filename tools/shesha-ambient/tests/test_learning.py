@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from sesha_ambient.learning import (  # noqa: E402
+from shesha_ambient.learning import (  # noqa: E402
     LearningConfig,
     record_focus,
     record_offer_outcome,

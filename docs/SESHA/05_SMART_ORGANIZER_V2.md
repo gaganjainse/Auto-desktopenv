@@ -3,7 +3,7 @@
 > Goal: a **hands-off** file organizer that reacts within a minute of a file landing in
 > Downloads/Desktop/Inbox, classifies it with deterministic rules first and a small local LLM for
 > ambiguous cases, **never deletes anything you didn't approve**, and can undo every move. It is the
-> first tool Sesha can drive by voice.
+> first tool Shesha can drive by voice.
 
 ---
 
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 4. Records the move in `~/.local/share/smart-organizer/undo/YYYYMMDD.jsonl`:
    `{"ts":..,"from":..,"to":..,"method":..}` and inserts a row in `history.db`.
 5. Uses **`gio trash`** for any deletes/cleanups (never `rm` on user files).
-6. Emits a Quickshell notification (`notify-send -a SmartOrganizer ...`) and a signal Sesha can read.
+6. Emits a Quickshell notification (`notify-send -a SmartOrganizer ...`) and a signal Shesha can read.
 
 Canonical, deduplicated safety patterns (`tools/smart-organizer/lib/safety.sh`):
 ```bash
@@ -278,7 +278,7 @@ notifications append new rules here.
 ```ini
 [Unit]
 Description=Smart Organizer real-time watcher
-Documentation=https://github.com/gaganjainse/Auto-desktopenv
+Documentation=https://github.com/gaganjainse/shesha-desktop
 After=graphical-session.target ollama.service
 PartOf=graphical-session.target
 
@@ -302,15 +302,15 @@ conflicting variants currently in the repo.
 
 ---
 
-## 7. MCP surface for Sesha
+## 7. MCP surface for Shesha
 
-`tools/sesha/mcp_servers/smart_organizer.py` (FastMCP stdio) exposes:
+`tools/shesha/mcp_servers/smart_organizer.py` (FastMCP stdio) exposes:
 - `organize(path="~/Downloads", dry_run=False)` — trigger a sweep.
 - `last_moves(n=10)` — recent activity from `history.db`.
 - `undo_last()` — reverse the most recent batch (reads undo JSONL, moves files back).
 - `pause(minutes=60)` / `resume()` — stop the watcher (e.g., while downloading a big torrent).
 
-This makes "Hey Sesha, organize my downloads and undo the last thing" work by voice.
+This makes "Hey Shesha, organize my downloads and undo the last thing" work by voice.
 
 ---
 

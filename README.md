@@ -1,4 +1,4 @@
-# Auto-desktopenv
+# shesha-desktop
 
 **Forked from [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)**
 
@@ -28,21 +28,21 @@ GPU MUX switch control for MSI laptops:
 ### 🚀 Online Bootstrap
 One-command fresh install:
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)
 ```
 
 ## Quick Start
 
 ### Fresh Install (CachyOS/Arch)
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)
 ```
 
 ### Manual Install
 ```bash
 # Clone repo
-git clone https://github.com/gaganjainse/Auto-desktopenv.git
-cd Auto-desktopenv
+git clone https://github.com/gaganjainse/shesha-desktop.git
+cd shesha-desktop
 
 # Run installer
 ./setup install
@@ -90,7 +90,7 @@ Other MSI laptops with MUX switch should work. Check `sudo mux-switcher status`.
 ## Directory Structure
 
 ```
-Auto-desktopenv/
+shesha-desktop/
 ├── setup                    # Main installer entry point
 ├── diagnose                 # Diagnostic tool
 ├── dots/                    # Core dotfiles
@@ -123,7 +123,7 @@ Auto-desktopenv/
 
 GPL-3.0 — same as upstream [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland).
 See [`LICENSE`](LICENSE). Third-party components retain their own licenses; see
-[`docs/SESHA/10_LICENSES_AND_SOURCES.md`](docs/SESHA/10_LICENSES_AND_SOURCES.md).
+[`docs/SHESHA/10_LICENSES_AND_SOURCES.md`](docs/SHESHA/10_LICENSES_AND_SOURCES.md).
 
 ## Acknowledgments
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Auto-desktopenv SSH Setup
+# shesha-desktop SSH Setup
 # Automated SSH key generation and configuration
 #
 # Features:

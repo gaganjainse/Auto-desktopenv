@@ -11,7 +11,7 @@
 Your repo root is **GPL-3.0** (matches upstream `end-4/dots-hyprland`). The README must say GPL-3.0
 (the current "MIT" claim is wrong — see MED-16). All the components below are GPL-3-compatible:
 
-| Component | License | GPL-3 compatible? | Use in Sesha |
+| Component | License | GPL-3 compatible? | Use in Shesha |
 |---|---|---|---|
 | end-4/dots-hyprland (base) | GPL-3.0 | ✅ same | core dotfiles |
 | Newelle 1.4.5 | GPL-3.0 | ✅ same | agent frontend |
@@ -84,7 +84,7 @@ crossbeam-channel = "0.5"
 # future: hyprland = "0.3" (verify latest on crates.io)
 ```
 
-### Python (Sesha MCP servers / memory)
+### Python (Shesha MCP servers / memory)
 ```
 mcp[cli]>=1.0
 fastmcp>=0.1
@@ -101,8 +101,8 @@ watchfiles>=0.24   # only if not using the Rust watcher
 
 | Link | What it is | Verdict / use |
 |---|---|---|
-| github.com/gaganjainse | your profile | AI/LLM engineer; NexusAOS, SeshaOS, Vyākṛti, RAG, eval harness |
-| github.com/gaganjainse/Auto-desktopenv | this repo | fork of end-4; subject of this work |
+| github.com/gaganjainse | your profile | AI/LLM engineer; SheshaAOS, SheshaOS, Vyākṛti, RAG, eval harness |
+| github.com/gaganjainse/shesha-desktop | this repo | fork of end-4; subject of this work |
 | youtube.com/shorts/emfFxq_yXvA | Jarvis-like voice demo | inspiration = wake word + STT + TTS + desktop control (Newelle + MCP) |
 | youtube.com/shorts/WSBwga31gE0 | voice assistant demo | same pattern |
 | youtube.com/shorts/kwpEDhGQ3sU | voice assistant demo | same pattern |
@@ -115,7 +115,7 @@ watchfiles>=0.24   # only if not using the Rust watcher
 | avifenesh/computer-use-linux | Linux desktop-control MCP | future: AT-SPI + Wayland control (evaluate maturity) |
 | github.com/PrimeIntellect-ai/prime-agent | RLM harness | steal "Continual Harness" prompt-refinement idea |
 | github.com/ShawnPana/phone-harness | macOS iPhone harness | port concept to Android ADB (your Realme) |
-| github.com/codecrafters-io/build-your-own-x | 537k★ tutorials | learning track for nexus-kernel/shell/DB |
+| github.com/codecrafters-io/build-your-own-x | 537k★ tutorials | learning track for shesha-kernel/shell/DB |
 | star-history.com | star-growth charts | used to size projects; no action |
 | trendshift.io | trending repos | monitoring; no action |
 
@@ -126,17 +126,17 @@ Note: one URL in your message was concatenated incorrectly
 
 ## 4. Your own repos to connect (from your profile)
 
-| Repo | Role in the Sesha vision |
+| Repo | Role in the Shesha vision |
 |---|---|
-| **NexusAOS** | Governance/event-sourcing layer → Sesha audit log & policy (the bridge) |
-| **SeshaOS** | Local-first specialist-model OS concept → informs model routing |
-| **nexus-kernel** | Alpha microkernel track → long-term research, not daily driver |
-| **rag-service** | Run locally as `sesha-memory` (RAG over notes/docs/projects) |
+| **SheshaAOS** | Governance/event-sourcing layer → Shesha audit log & policy (the bridge) |
+| **SheshaOS** | Local-first specialist-model OS concept → informs model routing |
+| **shesha-kernel** | Alpha microkernel track → long-term research, not daily driver |
+| **rag-service** | Run locally as `shesha-memory` (RAG over notes/docs/projects) |
 | **llm-eval-harness** | Use to evaluate phi4-mini/qwen2.5-coder on your own tool-use tasks |
 | **Vyākṛti** | Personal project; keep under `Projects/personal`, exclude from AI scope |
 | AIM/FWRS/portfolio/etc. | Job/personal; keep the work/personal boundary in `03_DISK_STRUCTURE.md` |
 
-The single highest-leverage connection is **NexusAOS ↔ Sesha audit log**: it makes your desktop agent
+The single highest-leverage connection is **SheshaAOS ↔ Shesha audit log**: it makes your desktop agent
 the first client of the governance system you already built, and gives you a real, daily testbed for
 the event-sourced AI-kernel thesis.
 

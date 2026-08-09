@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Sesha MCP server — Hyprland control via hyprctl.
+"""Shesha MCP server — Hyprland control via hyprctl.
 
 Exposes workspace, window, focus and visual-effect controls to Newelle (stdio MCP).
-License: GPL-3.0   See docs/SESHA/06_SESHA_AGENT.md
+License: GPL-3.0   See docs/SHESHA/06_SHESHA_AGENT.md
 """
 from __future__ import annotations
 

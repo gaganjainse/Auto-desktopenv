@@ -1,6 +1,6 @@
 # 01 — Independent Audit (verified against the live repo, 2026-08-09)
 
-> **Method:** I cloned `gaganjainse/Auto-desktopenv` at `36481e1` and read every installer script,
+> **Method:** I cloned `gaganjainse/shesha-desktop` at `36481e1` and read every installer script,
 > systemd unit, tool, and CI workflow directly. Prior AIs produced two audits (40 issues) and a
 > 63-page master plan, then **partially applied fixes to the repo**. This audit is the *current
 > truth*: it marks which old issues are fixed, which remain, and — critically — which **new bugs the
@@ -65,16 +65,16 @@ remove the block until it exists. Do not ship references to absent code.
 
 ### N-04 🟠 MCP server loop references `hyprland_control.py` and `smart_organizer.py` that don't exist
 **File:** `2.setups.sh` installs MCP servers by iterating
-`system_control smart_organizer hyprland_control`, but only `tools/sesha/mcp_servers/system_control.py`
+`system_control smart_organizer hyprland_control`, but only `tools/shesha/mcp_servers/system_control.py`
 exists. The `[[ -f ]]` guard means the missing two are silently skipped, yet the unit-enable loop
 **still generates and enables `.service` files for all three names**, producing
-`sesha-smart-organizer-mcp.service` and `sesha-hyprland-control-mcp.service` that point at
+`shesha-smart-organizer-mcp.service` and `shesha-hyprland-control-mcp.service` that point at
 non-existent executables → failed/dead units after boot.
 **Fix:** iterate over *present* files (`for f in "$mcp_dir"/*.py`) and derive names from disk, or
-create the two missing servers (provided in `06_SESHA_AGENT.md`).
+create the two missing servers (provided in `06_SHESHA_AGENT.md`).
 
-### N-05 🟠 `tools/sesha/core/memory.py` is a two-line assertion stub
-The only content is a ChromaDB version assert. There is no `SeshaMemory` class, no store/search,
+### N-05 🟠 `tools/shesha/core/memory.py` is a two-line assertion stub
+The only content is a ChromaDB version assert. There is no `SheshaMemory` class, no store/search,
 despite the roadmap and `agent.py` pseudocode referencing it. `Cargo.toml` declares a Rust binary
 with no `src/main.rs`. `config/statusbar.json` is `{"pattern":"ml4w-2.14.1"}` with no explanatory
 schema. These are scaffolding placeholders that look finished.
@@ -96,7 +96,7 @@ message tells the user to run `msi-gpu-switcher`, which does not exist.
 shipped. Newelle will fail to connect to all three. Either run the MCP servers as stdio (Newelle
 1.4.5 supports STDIO on native installs) and configure them as `command:` entries, or ship a tiny
 stdio↔HTTP bridge.
-**Fix:** use stdio MCP config in Newelle (see `06_SESHA_AGENT.md`); remove the bogus http URLs.
+**Fix:** use stdio MCP config in Newelle (see `06_SHESHA_AGENT.md`); remove the bogus http URLs.
 
 ### N-09 🟡 Bootloader/NVIDIA code has unclosed heredoc/branch in the truncated region
 The visible portion of `setup_nvidia_mux` in the live file is malformed around the systemd-boot
@@ -104,7 +104,7 @@ branch (`ue` / `NEEDS_INITRAMFS_REBUILD` appears mid-function without the enclos
 Run `bash -n sdata/subcmd-install/2.setups.sh` and fix every syntax error before relying on it.
 **Action:** `bash -n` must pass cleanly; this is the first CI gate (see `02_ROADMAP.md`).
 
-### N-10 🟡 `dots/.config/sesha/config.toml` references "RTX 4050 GPU" correctly, but claims iGPU offload
+### N-10 🟡 `dots/.config/shesha/config.toml` references "RTX 4050 GPU" correctly, but claims iGPU offload
 for `moondream2` via "v0.31.2" — Ollama's iGPU offload for vision is Intel-ARC-specific and your
 14700HX iGPU is Arc (Xe-LPG) class, so it may work, but this is unverified; treat as experimental
 and don't make it a hard dependency of the install.
@@ -166,12 +166,12 @@ Your actual SKU (`B14VEKG-210IN`) is **1920×1200 FHD+ @ 144 Hz** with **RTX 405
 as the single source of these values and source it everywhere; never hardcode resolution/VRAM.
 
 ### NEW-B 🟠 No `hyprland_control` / `smart_organizer` MCP servers (also N-04) — agent can't actually control the desktop
-The headline "Sesha controls Hyprland" feature has no implementation. `06_SESHA_AGENT.md` provides
+The headline "Shesha controls Hyprland" feature has no implementation. `06_SHESHA_AGENT.md` provides
 both servers (hyprctl wrapper + organizer trigger).
 
 ### NEW-C 🟠 No wake-word/voice service unit
 Newelle is installed but there's no user service ensuring it (or its voice backend) starts on login,
-and no documented `uwsm`/graphical-session ordering. The "Hey Sesha" experience won't survive reboot.
+and no documented `uwsm`/graphical-session ordering. The "Hey Shesha" experience won't survive reboot.
 
 ### NEW-D 🟡 Smart-organizer `--watch` is a polling loop, not inotify
 `smart-organizer.sh` advertises `--watch` but the lib has no event watcher; it likely re-scans on a
@@ -197,7 +197,7 @@ Verify they mention the **Lua** config (Hyprland ≥0.55) and CachyOS `chwd` dri
 update any stale `hyprland.conf` references.
 
 ### NEW-I 🔵 No `CONTRIBUTING.md` at root; PR template exists but no dev setup doc
-Add a short `CONTRIBUTING.md` pointing at `docs/SESHA/` and the checklist, so future AI/you don't
+Add a short `CONTRIBUTING.md` pointing at `docs/SHESHA/` and the checklist, so future AI/you don't
 reintroduce drift.
 
 ### NEW-J 🔵 Repo ships both `tools/backup/backup.service` (static) AND generates one via here-doc
@@ -216,7 +216,7 @@ Two sources of truth for the same unit. Delete the static one or make setup inst
 | Idempotent installer | ✅ | ✅ | ✅ | ✅ | n/a | 🔴 NVIDIA/mkinitcpio |
 | Device/driver setup | **explicitly none** ("not a system setup script") | some | some | some | ✅ chwd | ✅ your differentiator — make it bulletproof |
 | File/automation tooling | none | none | some (theme) | welcome app | none | ✅ smart-organizer (your edge) |
-| Local AI agent | sidebar (Ollama/Gemini) | none | none | none | none | ✅ Sesha (your edge) |
+| Local AI agent | sidebar (Ollama/Gemini) | none | none | none | none | ✅ Shesha (your edge) |
 | Visual polish | 🏆 best-in-class | good | good (70+ themes) | very good | clean | **must not regress** |
 | Uninstall reverses changes | n/a | partial | partial | partial | n/a | 🔴 stub |
 

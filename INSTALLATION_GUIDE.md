@@ -1,4 +1,4 @@
-# CachyOS + Auto-desktopenv Installation Guide
+# CachyOS + shesha-desktop Installation Guide
 ## MSI Sword 16 HX B14VEKG — Offline Reference
 
 **Copy this file to your phone before starting.**
@@ -167,12 +167,12 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 **Run this command exactly:**
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)
 ```
 
 **If curl fails, try:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/tools/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh | bash
 ```
 
 ### What bootstrap does:
@@ -182,7 +182,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/Auto-desktopenv/main/to
 4. Confirms OS is CachyOS/Arch
 5. Runs `sudo pacman -Syu` (full system update)
 6. Installs: git, curl, wget, base-devel, yay, inotify-tools, python, python-pip, go, rustup
-7. Clones repo to `~/Workspace/Auto-desktopenv`
+7. Clones repo to `~/Workspace/shesha-desktop`
 8. Runs `./setup install`
 
 **You will be prompted for sudo password multiple times.**
@@ -423,7 +423,7 @@ sudo usermod -aG video,render $USER
 | `~/.local/bin/msi-gpu-switcher` | MUX switcher |
 | `/usr/local/bin/nvidia-run` | NVIDIA wrapper script |
 | `/.snapshots/` | BTRFS snapshots |
-| `~/Workspace/Auto-desktopenv/` | This repo |
+| `~/Workspace/shesha-desktop/` | This repo |
 
 ---
 
@@ -432,10 +432,10 @@ sudo usermod -aG video,render $USER
 ```
 /home/gagan/
 ├── Workspace/          # Git repos
-│   ├── Auto-desktopenv/
-│   ├── nexus-kernel/
-│   ├── NexusAOS/
-│   └── SeshaOS/
+│   ├── shesha-desktop/
+│   ├── shesha-kernel/
+│   ├── SheshaAOS/
+│   └── SheshaOS/
 ├── Projects/           # Non-Git projects
 ├── Models/             # AI models
 │   ├── ollama/         # Symlink
@@ -484,9 +484,9 @@ sudo usermod -aG video,render $USER
 
 ## SUPPORT
 
-- Repo: https://github.com/gaganjainse/Auto-desktopenv
+- Repo: https://github.com/gaganjainse/shesha-desktop
 - Guide: `/home/gagan/Downloads/CachyOS-Installation-Guide.md`
-- Issues: https://github.com/gaganjainse/Auto-desktopenv/issues
+- Issues: https://github.com/gaganjainse/shesha-desktop/issues
 
 ---
 

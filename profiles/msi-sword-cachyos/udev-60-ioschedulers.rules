@@ -1,4 +1,4 @@
 # /etc/udev/rules.d/60-ioschedulers.rules
 # CachyOS 260628 defaults NVMe to kyber; enforce it persistently.
-# See docs/SESHA/04_DEVICE_PROFILE.md
+# See docs/SHESHA/04_DEVICE_PROFILE.md
 ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="kyber"

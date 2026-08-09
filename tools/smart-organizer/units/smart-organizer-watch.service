@@ -1,6 +1,6 @@
 [Unit]
 Description=Smart Organizer real-time watcher (sm-watcher -> classifier -> apply)
-Documentation=https://github.com/gaganjainse/Auto-desktopenv
+Documentation=https://github.com/gaganjainse/shesha-desktop
 After=graphical-session.target ollama.service
 PartOf=graphical-session.target
 

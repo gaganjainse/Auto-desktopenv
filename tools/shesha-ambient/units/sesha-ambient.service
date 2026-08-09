@@ -1,11 +1,11 @@
 [Unit]
-Description=Sesha ambient scheduler and proactivity
-Documentation=https://github.com/gaganjainse/Auto-desktopenv
+Description=Shesha ambient scheduler and proactivity
+Documentation=https://github.com/gaganjainse/shesha-desktop
 After=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/sesha-ambient tick
+ExecStart=%h/.local/bin/shesha-ambient tick
 # Don't run if on low battery (the script also checks, but this is a hard guard)
 ConditionPathExists=!/sys/class/power_supply/BAT0/status_low
 TimeoutStartSec=120

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""sesha-ambient CLI.
+"""shesha-ambient CLI.
 
 Commands:
   tick       run one catch-up pass (called by the timer)
@@ -22,13 +22,13 @@ from .policy import Context
 from .proactivity import ProactivityState, mark_offered, pick_offer, should_offer
 from .scheduler import Job, SchedulerState, jittered_delays, plan
 
-STATE_DIR = Path.home() / ".local/state/sesha/ambient"
+STATE_DIR = Path.home() / ".local/state/shesha/ambient"
 JOBS: list[Job] = [
-    Job("smart-organizer", 24 * 3600, ["sesha-files", "--once"], heavy=True, jitter_s=120),
-    Job("backup", 24 * 3600, ["sesha-backup"], needs_network=True, heavy=True),
-    Job("maintenance", 7 * 24 * 3600, ["sesha-maintenance"], heavy=True),
-    Job("update-check", 12 * 3600, ["sesha-update-check"]),
-    Job("health", 6 * 3600, ["sesha-health"]),
+    Job("smart-organizer", 24 * 3600, ["shesha-files", "--once"], heavy=True, jitter_s=120),
+    Job("backup", 24 * 3600, ["shesha-backup"], needs_network=True, heavy=True),
+    Job("maintenance", 7 * 24 * 3600, ["shesha-maintenance"], heavy=True),
+    Job("update-check", 12 * 3600, ["shesha-update-check"]),
+    Job("health", 6 * 3600, ["shesha-health"]),
 ]
 
 
@@ -144,7 +144,7 @@ def offer(_args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Sesha ambient scheduler/proactivity")
+    ap = argparse.ArgumentParser(description="Shesha ambient scheduler/proactivity")
     ap.add_argument("--dry-run", action="store_true")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("tick")

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Sesha MCP server — Smart Organizer control.
+"""Shesha MCP server — Smart Organizer control.
 
-Lets Newelle/Sesha trigger organization, inspect recent moves, undo the last
+Lets Newelle/Shesha trigger organization, inspect recent moves, undo the last
 batch, and pause/resume the watcher — all by voice.
-License: GPL-3.0   See docs/SESHA/05_SMART_ORGANIZER_V2.md
+License: GPL-3.0   See docs/SHESHA/05_SMART_ORGANIZER_V2.md
 """
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ def pause(minutes: int = 60) -> str:
     when = (datetime.now(UTC) + timedelta(minutes=minutes)).strftime("%H:%M")
     subprocess.run(
         ["systemd-run", "--user", "--on-calendar", when,
-         "--unit=sesha-org-resume", "systemctl", "--user", "start",
+         "--unit=shesha-org-resume", "systemctl", "--user", "start",
          "smart-organizer-watch.service"],
         capture_output=True, text=True,
     )

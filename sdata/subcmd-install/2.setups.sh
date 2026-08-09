@@ -549,7 +549,7 @@ function setup_ai_stack() {
   fi
 
   # ── 4. Python venv for MCP servers + STT + TTS ────────────────────────────
-  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/sesha/.venv"
+  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/shesha/.venv"
   v uv venv "$venv"
 
   # Install all pinned dependencies
@@ -591,21 +591,21 @@ function setup_ai_stack() {
   v ollama pull moondream2
 
   # ── 7 & 8. Install MCP servers that ACTUALLY EXIST (no dead units) ────────
-  local mcp_dir="${REPO_ROOT}/tools/sesha/mcp_servers"
+  local mcp_dir="${REPO_ROOT}/tools/shesha/mcp_servers"
   local unit_dest="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
   local mcp_server installed=()
   shopt -s nullglob
   for mcp_file in "${mcp_dir}"/*.py; do
     mcp_server="$(basename "${mcp_file}" .py)"
-    v install -Dm755 "${mcp_file}" "${BIN_DIR}/sesha-${mcp_server//_/-}-mcp"
-    cat > "${unit_dest}/sesha-${mcp_server//_/-}-mcp.service" << EOF
+    v install -Dm755 "${mcp_file}" "${BIN_DIR}/shesha-${mcp_server//_/-}-mcp"
+    cat > "${unit_dest}/shesha-${mcp_server//_/-}-mcp.service" << EOF
 [Unit]
-Description=Sesha MCP Server: ${mcp_server}
+Description=Shesha MCP Server: ${mcp_server}
 After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=${venv}/bin/python ${BIN_DIR}/sesha-${mcp_server//_/-}-mcp
+ExecStart=${venv}/bin/python ${BIN_DIR}/shesha-${mcp_server//_/-}-mcp
 Restart=on-failure
 RestartSec=5s
 TimeoutStartSec=15
@@ -623,11 +623,11 @@ EOF
 
   v systemctl --user daemon-reload
   for mcp_server in "${installed[@]}"; do
-    v systemctl --user enable --now "sesha-${mcp_server//_/-}-mcp.service"
+    v systemctl --user enable --now "shesha-${mcp_server//_/-}-mcp.service"
   done
   log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + MCP servers: ${installed[*]}) installed"
   log_info   "Launch Newelle → Settings → Models → Add Ollama → phi4-mini"
-  log_info   "Settings → MCP → Add server → path: sesha-system-control-mcp"
+  log_info   "Settings → MCP → Add server → path: shesha-system-control-mcp"
 }
 
 showfun setup_ai_stack

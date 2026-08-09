@@ -1,4 +1,4 @@
-# Sesha — Implementation Checklist
+# Shesha — Implementation Checklist
 
 Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 
@@ -24,7 +24,7 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 ## Phase 1 — CI gates
 - [ ] ShellCheck lints ALL scripts (not just tools/)
 - [ ] Arch container CI (`archlinux:latest`)
-- [ ] Python `py_compile` + ruff for tools/sesha
+- [ ] Python `py_compile` + ruff for tools/shesha
 - [ ] `cargo check` for watcher-rs
 - [ ] `justfile`/Makefile: lint/test/dry-install
 - [ ] Branch protection on main
@@ -64,17 +64,17 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 - [ ] disk/SMART/battery health report
 - [ ] wallpaper/swww + matugen (optional)
 
-## Phase 6 — Sesha agent
+## Phase 6 — Shesha agent
 - [ ] Newelle 1.4.5 native + Ollama models
 - [ ] 3 MCP servers (✅ system/smart-organizer/hyprland added; test in Newelle)
 - [ ] config.toml uses stdio (✅ fixed)
-- [ ] sesha audit log + policy.toml + `sesha` CLI
+- [ ] shesha audit log + policy.toml + `sesha` CLI
 - [ ] Quickshell overlay
 - [ ] Newelle starts on login (user service)
 - [ ] voice acceptance test in 06 §10 passes offline
 
 ## Phase 7 — Convergence
-- [ ] sesha-memory = local rag-service over Notes/Docs/Projects
-- [ ] NexusAOS event-store bridge for audit log
-- [ ] eBPF telemetry into sesha-health
+- [ ] shesha-memory = local rag-service over Notes/Docs/Projects
+- [ ] SheshaAOS event-store bridge for audit log
+- [ ] eBPF telemetry into shesha-health
 - [ ] Android ADB phone harness for Realme Narzo 90x
