@@ -53,6 +53,12 @@ function prepare_systemd_user_service(){
   fi
 }
 
+
+#####################################################################################
+# These python packages are installed using uv into the venv (virtual environment). Once the folder of the venv gets deleted, they are all gone cleanly. So it's considered as setups, not dependencies.
+showfun install-python-packages
+v install-python-packages
+
 function setup_user_group(){
   if [[ -z $(getent group i2c) ]] && [[ "${OS_GROUP_ID:-unknown}" != "fedora" ]]; then
     # On Fedora this is not needed. Tested with desktop computer with NVIDIA video card.
@@ -65,10 +71,6 @@ function setup_user_group(){
     x sudo usermod -aG video,i2c,input "$(whoami)"
   fi
 }
-#####################################################################################
-# These python packages are installed using uv into the venv (virtual environment). Once the folder of the venv gets deleted, they are all gone cleanly. So it's considered as setups, not dependencies.
-showfun install-python-packages
-v install-python-packages
 
 showfun setup_user_group
 v setup_user_group
@@ -115,9 +117,6 @@ fi
 
 #####################################################################################
 # MSI MUX Switcher
-showfun setup_mux_switcher
-v setup_mux_switcher
-
 function setup_mux_switcher(){
   local mux_dir="${REPO_ROOT}/tools/mux-switcher"
   local mux_bin="${BIN_DIR}/msi-mux-switcher"
@@ -128,7 +127,7 @@ function setup_mux_switcher(){
     return 0
   fi
 
-  if [[ -f /sys/class/dmi/id/product_name ]] && \
+  if [[ -f /sys/class/dmi/id/product_name ]] || \
      grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null; then
     printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
     v mkdir -p "${BIN_DIR}"
@@ -144,14 +143,15 @@ function setup_mux_switcher(){
   fi
 }
 
+showfun setup_mux_switcher
+v setup_mux_switcher
+
+
+
 #####################################################################################
 # Smart Organizer
 if [[ ! "${SKIP_SMART_ORGANIZER:-}" == true ]]; then
-  showfun setup_smart_organizer
-  v setup_smart_organizer
-fi
-
-function setup_smart_organizer(){
+  function setup_smart_organizer(){
   local organizer_dir="${REPO_ROOT}/tools/smart-organizer"
   local organizer_bin="${BIN_DIR}/smart-organizer"
 
@@ -239,7 +239,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=${BIN_DIR}/backup.sh --dry-run
+ExecStart=${BIN_DIR}/backup.sh
 EOFSERVICE"
 
     v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.timer' << EOFSERVICE
@@ -299,11 +299,14 @@ EOFSERVICE"
   printf "  Maintenance timer: systemctl --user list-timers | grep maintenance\n"
 }
 
+showfun setup_smart_organizer
+  v setup_smart_organizer
+fi
+
+
+
 #####################################################################################
 # NVIDIA + MUX Setup for CachyOS
-showfun setup_nvidia_mux
-v setup_nvidia_mux
-
 function setup_nvidia_mux(){
   if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
     printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping NVIDIA setup${STY_RST}\n"
@@ -332,10 +335,8 @@ function setup_nvidia_mux(){
   printf "  Configuring mkinitcpio for Intel + NVIDIA hybrid...\n"
   NEEDS_INITRAMFS_REBUILD=0
   if [[ -f /etc/mkinitcpio.conf ]]; then
-    if ! grep -q "^MODULES=(i915 nvidia" /etc/mkinitcpio.conf; then
-      v sudo sed -i 's/^MODULES=(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-      NEEDS_INITRAMFS_REBUILD=1
-    fi
+    v sudo sed -i -E 's/\b(i915|nvidia|nvidia_modeset|nvidia_uvm|nvidia_drm)\b//g; s/^MODULES=\(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
+    NEEDS_INITRAMFS_REBUILD=1
   fi
 
   # Configure bootloader kernel parameters (detect bootloader first)
@@ -464,11 +465,13 @@ EOFSCRIPT
   printf "  Run: sudo msi-gpu-switcher status\n"
 }
 
+showfun setup_nvidia_mux
+v setup_nvidia_mux
+
+
+
 #####################################################################################
 # AI/ML Stack Setup
-showfun setup_ai_stack
-v setup_ai_stack
-
 function setup_ai_stack(){
   if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
     printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping AI stack setup${STY_RST}\n"
@@ -500,11 +503,13 @@ function setup_ai_stack(){
   printf "  Run: python -c \"import torch; print(torch.cuda.is_available())\"\n"
 }
 
+showfun setup_ai_stack
+v setup_ai_stack
+
+
+
 #####################################################################################
 # Power Management Setup
-showfun setup_power_management
-v setup_power_management
-
 function setup_power_management(){
   printf "${STY_CYAN}[$0]: Setting up power management${STY_RST}\n"
 
@@ -525,3 +530,6 @@ function setup_power_management(){
 
   printf "${STY_GREEN}[$0]: Power management configured${STY_RST}\n"
 }
+
+showfun setup_power_management
+v setup_power_management
