@@ -1,0 +1,25 @@
+[model]
+provider = "ollama"
+model = "phi4-mini"           # RTX 4050 6GB safe
+ollama_url = "http://localhost:11434"
+
+[voice]
+enabled = true
+# Newelle 1.4.5 has built-in wake word — no separate openWakeWord daemon needed
+wake_word = "hey sesha"
+stt_backend = "faster_whisper"
+stt_model = "base.en"        # fast, English, ~145MB
+tts_backend = "piper"
+tts_voice = "en_US-ryan-high"
+
+[mcp_servers]
+# Your custom skills exposed as MCP endpoints
+smart_organizer = "http://localhost:8765/mcp"
+system_control  = "http://localhost:8766/mcp"
+hyprland_control = "http://localhost:8767/mcp"
+
+[permissions]
+# Newelle 1.3.5+ file permissions system
+allow_read  = ["~/Documents", "~/Downloads", "~/Projects"]
+allow_write = ["~/Documents", "~/Downloads"]
+ask_before  = ["~/"]          # ask before writing to home root
