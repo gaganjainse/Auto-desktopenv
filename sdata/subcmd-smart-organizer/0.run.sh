@@ -106,7 +106,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=${BIN_DIR}/backup.sh --dry-run
+ExecStart=${BIN_DIR}/backup.sh
 EOFSERVICE
 
   cat > "${CONFIG_DIR}/systemd/user/backup.timer" << EOFSERVICE
