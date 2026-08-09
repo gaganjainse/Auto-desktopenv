@@ -1,0 +1,19 @@
+[Unit]
+Description=Smart Organizer real-time watcher (sm-watcher -> classifier -> apply)
+Documentation=https://github.com/gaganjainse/Auto-desktopenv
+After=graphical-session.target ollama.service
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c '%h/.local/bin/sm-watcher | %h/.local/bin/smart-organizer apply'
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=15
+TimeoutStopSec=10
+CPUQuota=8%
+MemoryMax=384M
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=graphical-session.target

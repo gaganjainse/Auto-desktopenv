@@ -1,0 +1,7 @@
+# udev rule: switch power profile on AC plug/unplug.
+# Install to /etc/udev/rules.d/ then `sudo udevadm control --reload-rules`.
+# Long scripts must not run directly in udev; use systemd-run.
+SUBSYSTEM=="power_supply", ATTR{online}=="1", \
+  RUN+="/usr/bin/systemd-run --no-block --unit=sesha-on-ac /usr/local/bin/sesha-power.sh ac"
+SUBSYSTEM=="power_supply", ATTR{online}=="0", \
+  RUN+="/usr/bin/systemd-run --no-block --unit=sesha-on-bat /usr/local/bin/sesha-power.sh battery"

@@ -121,7 +121,9 @@ Auto-desktopenv/
 
 ## License
 
-MIT - Same as upstream end-4/dots-hyprland
+GPL-3.0 — same as upstream [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland).
+See [`LICENSE`](LICENSE). Third-party components retain their own licenses; see
+[`docs/SESHA/10_LICENSES_AND_SOURCES.md`](docs/SESHA/10_LICENSES_AND_SOURCES.md).
 
 ## Acknowledgments
 

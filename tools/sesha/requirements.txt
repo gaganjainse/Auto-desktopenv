@@ -1,4 +1,4 @@
-# Jarvis/Sesha AI Stack — RTX 4050 6GB VRAM
+# Sesha AI Stack — RTX 4050 6GB VRAM
 # Last verified: 2026-08-09
 # Target: CachyOS + Hyprland 0.55+ + Ollama v0.32.6
 

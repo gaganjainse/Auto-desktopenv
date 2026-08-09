@@ -17,6 +17,37 @@ require_cmd() {
   done
 }
 
+# Detect an AUR helper. CachyOS 260628 ships Shelly; paru is preferred for
+# scripting (stable pacman-compatible flags) and is installed if missing.
+# Caches result in AUR_HELPER; never expands empty into a command call.
+detect_aur_helper() {
+  local h
+  for h in paru shelly yay; do
+    if command_exists "$h"; then printf '%s' "$h"; return 0; fi
+  done
+  printf ''
+}
+
+if [[ -z "${AUR_HELPER:-}" ]]; then
+  AUR_HELPER="$(detect_aur_helper)"
+  if [[ -z "$AUR_HELPER" ]] && command_exists pacman; then
+    log_info "No AUR helper found; installing paru for scripting stability"
+    v sudo pacman -S --noconfirm --needed paru && AUR_HELPER=paru
+  fi
+fi
+readonly AUR_HELPER="${AUR_HELPER:-}"
+if [[ -z "$AUR_HELPER" ]]; then
+  log_warning "No AUR helper available; AUR package installs will be skipped"
+fi
+
+aur_install() {
+  if [[ -z "$AUR_HELPER" ]]; then
+    log_warning "Skipping AUR install (no helper): $*"
+    return 0
+  fi
+  v "$AUR_HELPER" -S --noconfirm --needed "$@"
+}
+
 detect_bootloader() {
   if [[ -d /boot/loader/entries ]]; then
     printf 'systemd-boot'
@@ -127,8 +158,8 @@ function setup_mux_switcher(){
     return 0
   fi
 
-  if [[ -f /sys/class/dmi/id/product_name ]] || \
-     grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+  if grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null || \
+     grep -qi "MSI" /sys/class/dmi/id/product_name 2>/dev/null; then
     printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
     v mkdir -p "${BIN_DIR}"
     v ln -sf "${py_script}" "$mux_bin"
@@ -462,7 +493,7 @@ EOFSCRIPT
 
   printf "${STY_GREEN}[$0]: NVIDIA + MUX setup completed${STY_RST}\n"
   printf "  Reboot required for changes to take effect\n"
-  printf "  Run: sudo msi-gpu-switcher status\n"
+  printf "  Run: sudo msi-mux-switcher status\n"
 }
 
 showfun setup_nvidia_mux
@@ -496,9 +527,10 @@ function setup_ai_stack() {
     v sudo pacman -S --noconfirm --needed ollama
   fi
 
-  local ollama_ver
-  ollama_ver=$(ollama --version 2>/dev/null | grep -oP '[0-9]+\.[0-9]+' || echo "0.0")
-  if [[ "$(echo "$ollama_ver >= 0.32" | bc -l)" != "1" ]]; then
+  local ollama_ver ollama_maj ollama_min
+  ollama_ver=$(ollama --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -n1 || echo "0.0")
+  IFS=. read -r ollama_maj ollama_min <<<"$ollama_ver"
+  if (( ollama_maj < 0 || (ollama_maj == 0 && ollama_min < 32) )); then
     log_warning "Ollama < 0.32 detected (have $ollama_ver) — agent mode not available"
     log_warning "Update via: sudo pacman -Syu ollama"
   fi
@@ -510,14 +542,14 @@ function setup_ai_stack() {
   # - Wake word access to microphone
   # - File permission system access outside ~/.var/
   if ! command_exists newelle; then
-    v "$AUR_HELPER" -S --noconfirm --needed newelle
+    aur_install newelle
   else
     log_info "Newelle already installed — verify it is >=1.4.5"
     log_info "Check: newelle --version"
   fi
 
   # ── 4. Python venv for MCP servers + STT + TTS ────────────────────────────
-  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/jarvis/.venv"
+  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/sesha/.venv"
   v uv venv "$venv"
 
   # Install all pinned dependencies
@@ -558,25 +590,22 @@ function setup_ai_stack() {
   v ollama pull nomic-embed-text
   v ollama pull moondream2
 
-  # ── 7. Install MCP servers ────────────────────────────────────────────────
-  local mcp_dir="${REPO_ROOT}/tools/jarvis/mcp_servers"
-  for server in system_control smart_organizer hyprland_control; do
-    if [[ -f "${mcp_dir}/${server}.py" ]]; then
-      v install -Dm755 "${mcp_dir}/${server}.py" "${BIN_DIR}/jarvis-${server//_/-}-mcp"
-    fi
-  done
-
-  # ── 8. Install MCP server systemd user services ───────────────────────────
+  # ── 7 & 8. Install MCP servers that ACTUALLY EXIST (no dead units) ────────
+  local mcp_dir="${REPO_ROOT}/tools/sesha/mcp_servers"
   local unit_dest="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-  for server in system_control smart_organizer hyprland_control; do
-    cat > "${unit_dest}/jarvis-${server//_/-}-mcp.service" << EOF
+  local mcp_server installed=()
+  shopt -s nullglob
+  for mcp_file in "${mcp_dir}"/*.py; do
+    mcp_server="$(basename "${mcp_file}" .py)"
+    v install -Dm755 "${mcp_file}" "${BIN_DIR}/sesha-${mcp_server//_/-}-mcp"
+    cat > "${unit_dest}/sesha-${mcp_server//_/-}-mcp.service" << EOF
 [Unit]
-Description=Jarvis MCP Server: ${server}
+Description=Sesha MCP Server: ${mcp_server}
 After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=${venv}/bin/python ${BIN_DIR}/jarvis-${server//_/-}-mcp
+ExecStart=${venv}/bin/python ${BIN_DIR}/sesha-${mcp_server//_/-}-mcp
 Restart=on-failure
 RestartSec=5s
 TimeoutStartSec=15
@@ -585,13 +614,20 @@ TimeoutStopSec=10
 [Install]
 WantedBy=graphical-session.target
 EOF
-    v systemctl --user enable --now "jarvis-${server//_/-}-mcp.service"
+    installed+=("${mcp_server}")
   done
+  shopt -u nullglob
+  if (( ${#installed[@]} == 0 )); then
+    log_warning "No MCP servers found in ${mcp_dir}"
+  fi
 
   v systemctl --user daemon-reload
-  log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + MCP servers) installed"
+  for mcp_server in "${installed[@]}"; do
+    v systemctl --user enable --now "sesha-${mcp_server//_/-}-mcp.service"
+  done
+  log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + MCP servers: ${installed[*]}) installed"
   log_info   "Launch Newelle → Settings → Models → Add Ollama → phi4-mini"
-  log_info   "Settings → MCP → Add server → path: jarvis-system-control-mcp"
+  log_info   "Settings → MCP → Add server → path: sesha-system-control-mcp"
 }
 
 showfun setup_ai_stack
@@ -602,22 +638,30 @@ v setup_ai_stack
 #####################################################################################
 # Power Management Setup
 function setup_power_management(){
+  if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]]; then
+    printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping power management${STY_RST}\n"
+    return 0
+  fi
   printf "${STY_CYAN}[$0]: Setting up power management${STY_RST}\n"
 
-  # Install power-profiles-daemon
-  v sudo pacman -S --noconfirm --needed power-profiles-daemon || true
-
-  # Enable service
-  v sudo systemctl enable --now power-profiles-daemon.service || true
-
-  # Set balanced profile by default
+  v sudo pacman -S --noconfirm --needed power-profiles-daemon
+  v sudo systemctl enable --now power-profiles-daemon.service
   v powerprofilesctl set balanced || true
 
-  # ZRAM configuration for 16GB RAM
-  printf "  Configuring ZRAM for 16GB RAM...\n"
-  if [[ -f /etc/systemd/system/systemd-zram-setup@.service ]]; then
-    v sudo systemctl enable --now systemd-zram-setup@zram0.service || true
-  fi
+  # ZRAM: size = half of RAM, zstd, capped at 16G. Idempotent.
+  local mem_kb mem_gb zram_gb
+  mem_kb=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+  mem_gb=$(( mem_kb / 1024 / 1024 ))
+  zram_gb=$(( mem_gb / 2 )); (( zram_gb > 16 )) && zram_gb=16
+  printf "  Detected %sGB RAM — configuring %sGB zram0 (zstd)\n" "$mem_gb" "$zram_gb"
+  v sudo install -Dm644 /dev/stdin /etc/systemd/zram-generator.conf << EOFZRAM
+# managed-by=auto-desktopenv
+[zram0]
+zram-size = ${zram_gb} GiB
+compression-algorithm = zstd
+EOFZRAM
+  v sudo systemctl daemon-reload
+  v sudo systemctl enable --now systemd-zram-setup@zram0.service || true
 
   printf "${STY_GREEN}[$0]: Power management configured${STY_RST}\n"
 }

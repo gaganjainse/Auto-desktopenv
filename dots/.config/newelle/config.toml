@@ -1,25 +1,56 @@
+# Newelle 1.4.5 configuration for Sesha (native install, not Flatpak).
+# Native install is required for STDIO MCP + microphone + filesystem access.
+# See docs/SESHA/06_SESHA_AGENT.md
+
 [model]
 provider = "ollama"
-model = "phi4-mini"           # RTX 4050 6GB safe
+model = "phi4-mini"
 ollama_url = "http://localhost:11434"
 
 [voice]
 enabled = true
-# Newelle 1.4.5 has built-in wake word — no separate openWakeWord daemon needed
 wake_word = "hey sesha"
 stt_backend = "faster_whisper"
-stt_model = "base.en"        # fast, English, ~145MB
+stt_model = "base.en"          # ~145MB; English, fast. Use "small.en" if CPU allows.
 tts_backend = "piper"
 tts_voice = "en_US-ryan-high"
 
-[mcp_servers]
-# Your custom skills exposed as MCP endpoints
-smart_organizer = "http://localhost:8765/mcp"
-system_control  = "http://localhost:8766/mcp"
-hyprland_control = "http://localhost:8767/mcp"
+[memory]
+enabled = true
+embedding_model = "nomic-embed-text"
 
 [permissions]
-# Newelle 1.3.5+ file permissions system
-allow_read  = ["~/Documents", "~/Downloads", "~/Projects"]
-allow_write = ["~/Documents", "~/Downloads"]
-ask_before  = ["~/"]          # ask before writing to home root
+# Newelle 1.3.5+ file permissions
+allow_read = [
+  "~/Documents/Personal",
+  "~/Downloads",
+  "~/Notes",
+  "~/Projects/personal",
+]
+allow_write = [
+  "~/Downloads",
+  "~/Documents/Inbox",
+  "~/.local/share/sesha",
+]
+ask_before = ["~/"]
+deny = [
+  "~/Documents/Job",
+  "~/Projects/job",
+  "~/Vaults",
+  "~/.ssh",
+  "~/.gnupg",
+]
+
+# MCP servers — STDIO transport (Newelle 1.4.5 supports STDIO on native installs).
+# The venv is created by setup_ai_stack; bin names are sesha-<name>-mcp.
+[mcp.system_control]
+command = "~/.local/state/sesha/.venv/bin/python"
+args = ["~/.local/bin/sesha-system-control-mcp"]
+
+[mcp.smart_organizer]
+command = "~/.local/state/sesha/.venv/bin/python"
+args = ["~/.local/bin/sesha-smart-organizer-mcp"]
+
+[mcp.hyprland_control]
+command = "~/.local/state/sesha/.venv/bin/python"
+args = ["~/.local/bin/sesha-hyprland-control-mcp"]
