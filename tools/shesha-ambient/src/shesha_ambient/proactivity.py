@@ -84,3 +84,18 @@ def snooze(state: ProactivityState, seconds: int, now: float) -> None:
 
 def reset_day(state: ProactivityState) -> None:
     state.offered_today.clear()
+
+
+def offer_from_signal(sig) -> "Offer":
+    """Convert a signals.Signal into an Offer."""
+    return Offer(title=sig.title, detail=sig.detail, action=sig.action,
+                priority=sig.priority)
+
+
+def candidates_with_signals(candidates, live_signals) -> list:
+    """Boost/insert live signals, dropping static offers whose action matches
+    a live one (so 'Commit your work?' uses real repo names, not a template)."""
+    by_action = {o.action: o for o in candidates}
+    for sig in live_signals:
+        by_action[sig.action] = offer_from_signal(sig)
+    return list(by_action.values())
