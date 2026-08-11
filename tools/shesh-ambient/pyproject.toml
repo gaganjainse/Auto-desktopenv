@@ -1,5 +1,5 @@
 [project]
-name = "shesha-ambient"
+name = "shesh-ambient"
 version = "0.1.0"
 description = "Shesha: catch-up scheduler, do-not-disturb policy, and warm proactivity for a laptop"
 readme = "README.md"
@@ -9,7 +9,7 @@ authors = [{ name = "Gagan Jain" }]
 dependencies = []
 
 [project.scripts]
-shesha-ambient = "shesha_ambient.cli:main"
+shesh-ambient = "shesh_ambient.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.6"]

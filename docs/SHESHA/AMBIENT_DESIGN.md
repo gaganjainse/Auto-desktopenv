@@ -3,7 +3,7 @@
 The first automation draft used fixed wall-clock timers (`Sun 03:00`, `08:00`).
 That's wrong for a laptop: it's asleep/off much of the day, `Persistent=true`
 fires *every* missed job the instant you unlock (a thundering herd), and the
-agent was either passive or interrupting. `shesha-ambient` replaces that model.
+agent was either passive or interrupting. `shesh-ambient` replaces that model.
 
 ## 1. Catch-up, not cron
 

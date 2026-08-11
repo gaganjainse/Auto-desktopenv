@@ -20,7 +20,7 @@ from .policy import Context
 class Offer:
     title: str          # one line shown in the overlay
     detail: str         # optional second line
-    action: str         # a shesha command / MCP tool call
+    action: str         # a shesh command / MCP tool call
     priority: int = 50  # higher = more eager to show
 
 
@@ -99,3 +99,20 @@ def candidates_with_signals(candidates, live_signals) -> list:
     for sig in live_signals:
         by_action[sig.action] = offer_from_signal(sig)
     return list(by_action.values())
+
+
+def offer_for_moment(
+    ctx,
+    state,
+    live_signals,
+    candidates=None,
+    rng=None,
+):
+    """High-level entry: merge live signals, then pick one offer.
+
+    This is what the ambient loop should call instead of pick_offer()
+    directly so data-aware signals (git/backup/inbox) take priority over
+    static templates.
+    """
+    merged = candidates_with_signals(candidates or DEFAULT_OFFERS, live_signals)
+    return pick_offer(ctx, state, candidates=merged, rng=rng)

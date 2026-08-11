@@ -1,4 +1,4 @@
-# 🌤️ shesha-ambient
+# 🌤️ shesh-ambient
 
 Polite, catch-up scheduler and proactivity engine for a **laptop that sleeps/shuts down**.
 
@@ -22,11 +22,11 @@ Polite, catch-up scheduler and proactivity engine for a **laptop that sleeps/shu
 ## Layout
 
 ```
-src/shesha_ambient/
+src/shesh_ambient/
   policy.py       # Context + decide() (run/defer/skip), busy/natural_pause
   scheduler.py    # due detection, jitter, catch-up budget
   proactivity.py  # offer selection, cooldown, daily cap, snooze
-  cli.py          # `shesha-ambient tick|offer` (real system probing)
+  cli.py          # `shesh-ambient tick|offer` (real system probing)
 units/            # user timer + service (OnStartupSec, not fixed wall-clock)
 tests/            # 15 offline tests
 ```
@@ -38,16 +38,16 @@ uv sync --extra dev
 uv run pytest -q
 uv run ruff check .
 # Dry-run what a tick would do now:
-uv run shesha-ambient --dry-run tick
+uv run shesh-ambient --dry-run tick
 # Check whether an offer is appropriate (for an overlay/hotkey):
-uv run shesha-ambient offer
+uv run shesh-ambient offer
 ```
 
 ## How it integrates
 
 - The **timer** fires 3 min after the graphical session starts and every 4 h, with
-  catch-up + jitter; it calls `shesha-ambient tick`.
-- The **Quickshell overlay** calls `shesha-ambient offer` opportunistically (e.g. on
+  catch-up + jitter; it calls `shesh-ambient tick`.
+- The **Quickshell overlay** calls `shesh-ambient offer` opportunistically (e.g. on
   workspace switch to an empty workspace) and shows the returned offer as a
   dismissible pill with "yes / later / no".
 - Nothing runs while busy; deferred jobs retry on the next tick.

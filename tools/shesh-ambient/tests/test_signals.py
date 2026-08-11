@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from shesha_ambient import signals as sig  # noqa: E402
+from shesh_ambient import signals as sig  # noqa: E402
 
 
 def test_inbox_signal_triggers_above_threshold(tmp_path):
