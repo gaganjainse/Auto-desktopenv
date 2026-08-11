@@ -15,7 +15,7 @@ OnUnitActiveSec=4h
 Persistent=true
 # Spread load so all jobs don't fire together
 RandomizedDelaySec=3min
-Unit=shesha-ambient.service
+Unit=shesh-ambient.service
 
 [Install]
 WantedBy=graphical-session.target

@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from shesha_ambient.policy import Context, decide  # noqa: E402
-from shesha_ambient.proactivity import (  # noqa: E402
+from shesh_ambient.policy import Context, decide  # noqa: E402
+from shesh_ambient.proactivity import (  # noqa: E402
     DEFAULT_OFFERS,
     ProactivityState,
     mark_offered,
@@ -16,7 +16,7 @@ from shesha_ambient.proactivity import (  # noqa: E402
     should_offer,
     snooze,
 )
-from shesha_ambient.scheduler import Job, SchedulerState, jittered_delays, plan  # noqa: E402
+from shesh_ambient.scheduler import Job, SchedulerState, jittered_delays, plan  # noqa: E402
 
 
 # ── policy ────────────────────────────────────────────────────────────────

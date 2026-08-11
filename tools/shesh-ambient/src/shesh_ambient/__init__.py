@@ -1,4 +1,4 @@
-"""shesha-ambient: polite, catch-up scheduler and proactivity engine.
+"""shesh-ambient: polite, catch-up scheduler and proactivity engine.
 
 This solves three problems with fixed timers on a laptop that sleeps/shuts down:
 

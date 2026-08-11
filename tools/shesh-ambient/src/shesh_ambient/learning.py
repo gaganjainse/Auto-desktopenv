@@ -1,7 +1,7 @@
 """Bridge ambient observations into memory/habit learning.
 
-This module has no hard dependency on shesha-memory; it imports it lazily so
-shesha-ambient remains usable standalone. Observations are coarse signals (offer
+This module has no hard dependency on shesh-memory; it imports it lazily so
+shesh-ambient remains usable standalone. Observations are coarse signals (offer
 accepted/declined, focus-mode entry, repeated workspace/app patterns) — not
 keystroke surveillance.
 """
@@ -38,10 +38,10 @@ def record_focus(port: HabitPort | None, hour: int, dow: int) -> None:
 
 
 def default_memory_port():
-    """Lazily construct a HabitLearner backed by shesha-memory, or None if unavailable."""
+    """Lazily construct a HabitLearner backed by shesh-memory, or None if unavailable."""
     try:
-        from shesha_memory.habits import HabitLearner
-        from shesha_memory.store import MemoryStore
+        from shesh_memory.habits import HabitLearner
+        from shesh_memory.store import MemoryStore
 
         return HabitLearner(MemoryStore())
     except Exception:  # noqa: BLE001 - optional integration
