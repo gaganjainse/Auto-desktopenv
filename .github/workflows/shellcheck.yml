@@ -3,16 +3,8 @@ name: ShellCheck
 on:
   push:
     branches: [main]
-    paths:
-      - 'tools/**'
-      - 'sdata/subcmd-smart-organizer/**'
-      - '.github/workflows/**'
   pull_request:
     branches: [main]
-    paths:
-      - 'tools/**'
-      - 'sdata/subcmd-smart-organizer/**'
-      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -20,35 +12,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run ShellCheck
+      - name: Install shellcheck
         run: |
-          set -euo pipefail
-          echo "Installing shellcheck..."
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y shellcheck
           shellcheck --version
 
-          echo "Finding shell scripts..."
-          scripts=$(find tools sdata/subcmd-smart-organizer -type f \( -name '*.sh' -o -name 'bootstrap.sh' \) 2>/dev/null | sort)
-          echo "Found scripts: $scripts"
-
-          if [[ -z "$scripts" ]]; then
-            echo "No shell scripts found to check"
-            exit 0
-          fi
-
-          exit_code=0
-          for script in $scripts; do
+      # Tier 1 — Shesh-owned scripts: WARNING-clean required (ratchet: never regress).
+      - name: Strict gate — tools/, entry scripts, sdata entry points we own
+        run: |
+          set -euo pipefail
+          ours=$(find ./tools -type f -name '*.sh' | sort)
+          ours="$ours ./setup ./diagnose ./test.sh"
+          echo "Strict scope:"; echo "$ours"
+          for script in $ours; do
             echo "Checking: $script"
-            if ! shellcheck -x -S error "$script"; then
-              echo "FAILED: $script"
-              exit_code=1
-            fi
+            shellcheck -x -s bash -S warning "$script"
           done
+          echo "STRICT SCOPE: warning-clean ✓"
 
-          if [[ $exit_code -eq 0 ]]; then
-            echo "All shell scripts passed ShellCheck"
-          else
-            echo "Some shell scripts failed ShellCheck"
-            exit 1
-          fi
+      # Tier 2 — upstream sdata/ installer: bash -n + error-severity only.
+      # Mass-fixing upstream shell style belongs to upstream rebases, not us.
+      - name: Baseline gate — sdata (upstream fork code) at error severity
+        run: |
+          set -euo pipefail
+          legacy=$(find ./sdata -type f -name '*.sh' ! -path "./.git/*" | sort)
+          for script in $legacy; do
+            bash -n "$script"
+            shellcheck -x -s bash -S error "$script"
+          done
+          echo "BASELINE SCOPE: error-clean ✓"

@@ -66,7 +66,7 @@ r v sudo dnf install createrepo_c -y
 # Install COPR repositories
 copr_repos_json=$(yq -o=j '.copr.repos // []' "$deps_data_file")
 eval "$(jq -r '@sh "copr_repos_array+=(\(.[]))"' <<<"$copr_repos_json")" # Fedora distro contains jq
-for copr in ${copr_repos_array[@]}; do
+for copr in "${copr_repos_array[@]}"; do
   v sudo dnf copr enable "$copr" -y
 done
 
@@ -94,7 +94,7 @@ while IFS= read -r deps_list_key; do
 done < <(echo "$deps_data" | yq '.groups | keys[]? | select(length > 0)')
 
 # Add back versionlock at the end
-[ -n $nolock_qs ] || v sudo dnf versionlock add quickshell-git || true
+[ -n "$nolock_qs" ] || v sudo dnf versionlock add quickshell-git || true
 
 echo -e "\n========================================"
 echo "All installations are completed."

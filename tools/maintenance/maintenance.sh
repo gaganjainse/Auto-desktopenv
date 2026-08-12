@@ -76,6 +76,16 @@ log_info " System Maintenance"
 log_info "========================================"
 echo ""
 
+if ! $DRY_RUN && ! $AUTO_MODE; then
+    # Interactive by default: system changes require consent.
+    printf 'Proceed with system maintenance (update, cache clean, orphans, journal)? [y/N] '
+    read -r answer
+    case "${answer,,}" in
+        y|yes) ;;
+        *) log_info "Aborted by user. Use --auto for non-interactive/cron runs." ; exit 0 ;;
+    esac
+fi
+
 # 1. System update
 log_info "1. Checking for system updates..."
 if command -v pacman >/dev/null 2>&1; then

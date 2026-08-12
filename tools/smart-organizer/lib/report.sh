@@ -62,7 +62,8 @@ print_report() {
     echo "Files deleted:   $FILES_DELETED ($(human_readable_size $BYTES_DELETED))"
     echo "Files hard-linked: $FILES_HARDLINKED ($(human_readable_size $BYTES_HARDLINKED))"
     echo ""
-    local total_saved=$((BYTES_DELETED + BYTES_HARDLINKED))
+    local total_saved
+    total_saved=$((BYTES_DELETED + BYTES_HARDLINKED))
     echo "Total space affected: $(human_readable_size $total_saved)"
     echo ""
 }
@@ -71,9 +72,7 @@ print_report() {
 # Recovery functions
 # =============================================================================
 
-RECOVERY_DIR="${HOME}/.local/share/smart-organizer/recovery"
-RECOVERY_MANIFEST="${RECOVERY_DIR}/.manifest"
-
+# RECOVERY_DIR / RECOVERY_MANIFEST come from lib/config.sh (canonical, sourced first)
 list_recovery() {
     if [[ ! -d "$RECOVERY_DIR" ]]; then
         echo "Recovery directory does not exist."
@@ -85,9 +84,12 @@ list_recovery() {
     echo ""
     for item in "$RECOVERY_DIR"/*; do
         if [[ -e "$item" ]] && [[ "$(basename "$item")" != ".manifest" ]]; then
-            local name=$(basename "$item")
-            local date=$(stat -c %y "$item" 2>/dev/null | cut -d'.' -f1 || echo "unknown")
-            local size=$(du -sh "$item" 2>/dev/null | cut -f1 || echo "unknown")
+            local name
+            name=$(basename "$item")
+            local date
+            date=$(stat -c %y "$item" 2>/dev/null | cut -d'.' -f1 || echo "unknown")
+            local size
+            size=$(du -sh "$item" 2>/dev/null | cut -f1 || echo "unknown")
             local original=""
             if [[ -f "$RECOVERY_MANIFEST" ]]; then
                 original=$(grep "^${name}:" "$RECOVERY_MANIFEST" 2>/dev/null | cut -d: -f2 || echo "")

@@ -34,7 +34,7 @@ PROTECTED_PATHS=(
     "/root"
 )
 
-# Protected file patterns
+# Protected file patterns — deduped; *password* kept broad on purpose (wifi-password.txt must stay put)
 PROTECTED_FILE_PATTERNS=(
     "*.key"
     "*.pem"
@@ -47,7 +47,6 @@ PROTECTED_FILE_PATTERNS=(
     "*.pfx"
     "*backup*"
     "*password*"
-    "*credentials*"
 )
 
 # Exempt paths (user-specified paths to skip during organization)
@@ -59,6 +58,7 @@ EXEMPT_PATHS=(
 # =============================================================================
 
 safety_check() {
+    local -a targets=("$@")
     log_info "Running safety checks..."
 
     # Check if running as root
@@ -91,8 +91,8 @@ safety_check() {
 
 is_protected() {
     local filepath="$1"
-    local filename="$(basename "$filepath")"
-
+    local filename
+    filename="$(basename "$filepath")"
     # Check protected paths
     for protected in "${PROTECTED_PATHS[@]}"; do
         if [[ "$filepath" == "$protected"* ]]; then
@@ -102,6 +102,7 @@ is_protected() {
 
     # Check protected file patterns
     for pattern in "${PROTECTED_FILE_PATTERNS[@]}"; do
+        # shellcheck disable=SC2053
         if [[ "$filename" == $pattern ]]; then
             return 0
         fi
@@ -130,7 +131,8 @@ add_exempt_path() {
 
 is_hidden() {
     local filepath="$1"
-    local filename="$(basename "$filepath")"
+    local filename
+    filename="$(basename "$filepath")"
     [[ "$filename" == .* ]]
 }
 
@@ -149,7 +151,8 @@ is_empty_dir() {
 
 create_backup() {
     local target="$1"
-    local backup_dir="${HOME}/.smart-organizer-backups/$(date +%Y%m%d-%H%M%S)"
+    local backup_dir
+    backup_dir="${HOME}/.smart-organizer-backups/$(date +%Y%m%d-%H%M%S)"
 
     if is_dry_run; then
         log_action_dry "Would create backup of $target -> $backup_dir"

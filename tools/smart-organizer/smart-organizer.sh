@@ -39,13 +39,13 @@ set -euo pipefail
 # =============================================================================
 # Configuration
 # =============================================================================
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_REAL_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 LIB_DIR="${SCRIPT_REAL_DIR}/lib"
 
 # Load user configuration if it exists
 USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/smart-organizer/smart-organizer.conf"
 if [[ -f "$USER_CONFIG" ]]; then
+    # shellcheck source=/dev/null
     source "$USER_CONFIG"
 fi
 
@@ -59,7 +59,11 @@ DEFAULT_TARGETS=(
     "$HOME/Desktop"
 )
 
+# The globals below are consumed by sourced lib/*.sh; scalars exported,
+# arrays carry disable directives (bash cannot export arrays).
 # Systemwide cleanup targets
+# consumed by sourced libs
+# shellcheck disable=SC2034
 SYSTEM_CACHE_DIRS=(
     "$HOME/.cache"
     "$HOME/.config"
@@ -67,6 +71,8 @@ SYSTEM_CACHE_DIRS=(
 )
 
 # Trash locations
+# consumed by sourced libs
+# shellcheck disable=SC2034
 TRASH_DIRS=(
     "$HOME/.local/share/Trash"
     "$HOME/.trash"
@@ -74,22 +80,24 @@ TRASH_DIRS=(
 )
 
 # Age thresholds (in days)
-CACHE_MAX_AGE=30
-TRASH_MAX_AGE=30
-OLD_INSTALLER_MAX_AGE=90
-TEMP_MAX_AGE=7
-DOWNLOADS_PROMOTION_AGE=30
-OLD_MEDIA_AGE=180
-BUILD_ARTIFACT_MAX_AGE=30
+export CACHE_MAX_AGE=30
+export TRASH_MAX_AGE=30
+export OLD_INSTALLER_MAX_AGE=90
+export TEMP_MAX_AGE=7
+export DOWNLOADS_PROMOTION_AGE=30
+export OLD_MEDIA_AGE=180
+export BUILD_ARTIFACT_MAX_AGE=30
 
 # File size thresholds (in MB)
-LARGE_FILE_THRESHOLD_MB=1024
-DUPLICATE_CHECK_SIZE=10
+export LARGE_FILE_THRESHOLD_MB=1024
+export DUPLICATE_CHECK_SIZE=10
 
 # Lock file for mutual exclusion (kernel-managed via flock)
 LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/smart-organizer.lock"
 
 # Protected patterns (never touch these)
+# consumed by sourced libs
+# shellcheck disable=SC2034
 PROTECTED_PATTERNS=(
     "*.ssh"
     "*.gnupg"
@@ -141,11 +149,17 @@ log_action_dry() {
 # =============================================================================
 # Load libraries
 # =============================================================================
-source "${LIB_DIR}/report.sh"
+# shellcheck source=lib/config.sh
 source "${LIB_DIR}/config.sh"
+# shellcheck source=lib/report.sh
+source "${LIB_DIR}/report.sh"
+# shellcheck source=lib/content.sh
 source "${LIB_DIR}/content.sh"
+# shellcheck source=lib/safety.sh
 source "${LIB_DIR}/safety.sh"
+# shellcheck source=lib/heuristics.sh
 source "${LIB_DIR}/heuristics.sh"
+# shellcheck source=lib/cleanup.sh
 source "${LIB_DIR}/cleanup.sh"
 source "${LIB_DIR}/organize.sh"
 source "${LIB_DIR}/media.sh"
@@ -297,7 +311,7 @@ main() {
     echo ""
 
     # Safety check
-    if ! safety_check; then
+    if ! safety_check "${targets[@]}"; then
         log_error "Safety check failed. Aborting."
         exit 1
     fi

@@ -353,10 +353,12 @@ function backup_clashing_targets(){
   local backup_dir="$3"
   local -a ignored_list=("${@:4}")
 
-  # Find clash dirs/files, save as clash_list
+  # Find clash dirs/files, save as clash_list — fixed to use mapfile not ls word-split
   local clash_list=()
-  local source_list=($(ls -A "$source_dir"))
-  local target_list=($(ls -A "$target_dir"))
+  local source_list=()
+  local target_list=()
+  mapfile -t source_list < <(ls -A "$source_dir" 2>/dev/null || true)
+  mapfile -t target_list < <(ls -A "$target_dir" 2>/dev/null || true)
   local -A target_map
   for i in "${target_list[@]}"; do
     target_map["$i"]=1
@@ -441,7 +443,7 @@ function install_cmds(){
     *)
       printf "WARNING\n"
       printf "No method found to install package providing the commands:\n"
-      printf "  $@\n"
+      printf "  %s\n" "$@"
       printf "Please install by yourself.\n"
       ;;
   esac
