@@ -60,7 +60,7 @@ case "$state" in
 esac
 # log to audit
 echo "{\"ts\":\"$(date -Iseconds)\",\"event\":\"power\",\"state\":\"$state\"}" \
-  >> "${XDG_DATA_HOME:-$HOME/.local/share}/shesha/audit/events.jsonl"
+  >> "${XDG_DATA_HOME:-$HOME/.local/share}/shesh/audit/events.jsonl"
 ```
 ```bash
 sudo install -m755 shesh-power.sh /usr/local/bin/shesh-power.sh
@@ -119,7 +119,7 @@ set -euo pipefail
 REPO="${BACKUP_REPO:-$HOME/Backups/external}"
 [ -d "$REPO" ] || { notify-send -a Shesha "Backup skipped" "$REPO not mounted"; exit 0; }
 restic -r "$REPO" backup "$HOME/Documents" "$HOME/Notes" "$HOME/Projects/personal" \
-  --exclude-file="$HOME/.config/shesha/restic-excludes" \
+  --exclude-file="$HOME/.config/shesh/restic-excludes" \
   --one-file-system
 restic -r "$REPO" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
 restic -r "$REPO" check --read-data-subset=5%   # verify a slice each run
@@ -181,6 +181,6 @@ Guard every destructive action with a 7-day "new install" dry-run window (config
 2. Installed via `install -Dm644`, never generated with here-docs.
 3. `TimeoutStartSec=15`, `TimeoutStopSec=10` (CachyOS 260628 user-service defaults).
 4. `IOSchedulingClass=idle` and `CPUQuota` for background jobs so the desktop stays smooth at 144 Hz.
-5. Every job appends one JSON line to `~/.local/share/shesha/audit/events.jsonl`.
+5. Every job appends one JSON line to `~/.local/share/shesh/audit/events.jsonl`.
 6. Destructive actions default to **notify/ask** for the first 7 days and after any failure.
 7. No network calls except explicit, local-only services (Ollama, restic repo).

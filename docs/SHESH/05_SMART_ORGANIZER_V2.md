@@ -304,7 +304,7 @@ conflicting variants currently in the repo.
 
 ## 7. MCP surface for Shesha
 
-`tools/shesha/mcp_servers/smart_organizer.py` (FastMCP stdio) exposes:
+`tools/shesh/mcp_servers/smart_organizer.py` (FastMCP stdio) exposes:
 - `organize(path="~/Downloads", dry_run=False)` — trigger a sweep.
 - `last_moves(n=10)` — recent activity from `history.db`.
 - `undo_last()` — reverse the most recent batch (reads undo JSONL, moves files back).
