@@ -1,4 +1,4 @@
-# Shesha — Implementation Checklist
+# Shesh — Implementation Checklist
 
 Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 
@@ -24,7 +24,7 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 ## Phase 1 — CI gates
 - [ ] ShellCheck lints ALL scripts (not just tools/)
 - [ ] Arch container CI (`archlinux:latest`)
-- [ ] Python `py_compile` + ruff for tools/shesha
+- [ ] Python `py_compile` + ruff for tools/shesh
 - [ ] `cargo check` for watcher-rs
 - [ ] `justfile`/Makefile: lint/test/dry-install
 - [ ] Branch protection on main
@@ -64,11 +64,11 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 - [ ] disk/SMART/battery health report
 - [ ] wallpaper/swww + matugen (optional)
 
-## Phase 6 — Shesha agent
+## Phase 6 — Shesh agent
 - [ ] Newelle 1.4.5 native + Ollama models
 - [ ] 3 MCP servers (✅ system/smart-organizer/hyprland added; test in Newelle)
 - [ ] config.toml uses stdio (✅ fixed)
-- [ ] shesha audit log + policy.toml + `sesha` CLI
+- [ ] shesh audit log + policy.toml + `sesha` CLI
 - [ ] Quickshell overlay
 - [ ] Newelle starts on login (user service)
 - [ ] voice acceptance test in 06 §10 passes offline

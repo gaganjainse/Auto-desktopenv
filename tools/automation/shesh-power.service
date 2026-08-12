@@ -1,5 +1,5 @@
 [Unit]
-Description=Shesha power profile auto-switch (AC/battery)
+Description=Shesh power profile auto-switch (AC/battery)
 Documentation=https://github.com/gaganjainse/shesh-desktop
 After=graphical-session.target
 

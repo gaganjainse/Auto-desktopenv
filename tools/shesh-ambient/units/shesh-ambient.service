@@ -1,5 +1,5 @@
 [Unit]
-Description=Shesha ambient scheduler and proactivity
+Description=Shesh ambient scheduler and proactivity
 Documentation=https://github.com/gaganjainse/shesh-desktop
 After=graphical-session.target
 

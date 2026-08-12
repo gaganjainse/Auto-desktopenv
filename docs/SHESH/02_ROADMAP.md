@@ -1,7 +1,7 @@
 # 02 — Roadmap & Execution Plan
 
 > A dependency-ordered plan to take the fork from "partially-fixed, partially-broken" to a
-> production-grade Shesha ecosystem. Each phase ends in a **shippable, tested state** so you can stop
+> production-grade Shesh ecosystem. Each phase ends in a **shippable, tested state** so you can stop
 > after any phase and have a working system. Effort estimates assume you + an AI pair-programmer.
 
 Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing on real hardware
@@ -124,7 +124,7 @@ Spec in `05_SMART_ORGANIZER_V2.md`. Build order:
   `~/.local/share/smart-organizer/{history.db,undo/}`.
 - 4.4 Safety: centralized protected patterns (deduped), trash-not-rm (`gio trash`), always
   `--dry-run`-capable, low-confidence → `notify-send` with action buttons.
-- 4.5 Wire into MCP so Shesha can say "organize downloads" / "undo last move".
+- 4.5 Wire into MCP so Shesh can say "organize downloads" / "undo last move".
 - 4.6 Quickshell indicator widget (last N moves, pause/resume, open undo).
 
 **Exit criteria:** drop 20 mixed files into Downloads → they land in the right folders within a minute;
@@ -146,11 +146,11 @@ Catalog in `07_AUTOMATIONS.md`. Implement as canonical units:
 - Session restore + window rules per activity.
 
 **Exit criteria:** a single `systemctl --user list-timers` shows the whole automation surface; every job
-logs to the journal and to the Shesha audit log.
+logs to the journal and to the Shesh audit log.
 
 ---
 
-## Phase 6 — Shesha agent (Shesha/Shesha)
+## Phase 6 — Shesh agent (Shesh/Shesh)
 
 **Goal:** voice-first, local, private, auditable desktop agent.
 **Effort:** 3–5 sessions · **Risk:** medium (voice/MCP integration)
@@ -158,17 +158,17 @@ logs to the journal and to the Shesha audit log.
 Architecture in `06_SHESH_AGENT.md`. Build order:
 - 6.1 Install Newelle **1.4.5 native** (AUR, not Flatpak) + Ollama ≥0.32; pull the 6 GB-safe models.
 - 6.2 Provide the 3 MCP servers (system-control, smart-organizer, hyprland-control) over **stdio**.
-- 6.3 Configure Newelle: Ollama `phi4-mini`, STT faster-whisper `base.en`, TTS Piper, wake "Hey Shesha".
+- 6.3 Configure Newelle: Ollama `phi4-mini`, STT faster-whisper `base.en`, TTS Piper, wake "Hey Shesh".
 - 6.4 Quickshell overlay (listening/thinking/speaking states) driven by Newelle's
   interface/API (1.4.0+ OpenAI-compatible endpoint) or a small bridge.
 - 6.5 `shesh-audit`: append every tool call/result to a local SQLite/JSONL event log
-  (SheshAOS-style), with a `shesha undo` and a policy file that requires confirmation for destructive
+  (SheshAOS-style), with a `shesh undo` and a policy file that requires confirmation for destructive
   actions (`rm`, `pacman -R`, writes outside allowed dirs).
 - 6.6 Daily 08:00 briefing skill: weather, calendar, battery health, updates, last night's backups.
 - 6.7 (Optional, later) Android phone harness over ADB for your Realme Narzo 90x (see
   `08_ECOSYSTEM_TOOLS.md`).
 
-**Exit criteria:** "Hey Shesha, organize my downloads and switch to performance mode" → done by voice,
+**Exit criteria:** "Hey Shesh, organize my downloads and switch to performance mode" → done by voice,
 visible in the overlay, recorded in the audit log, undoable.
 
 ---
@@ -176,9 +176,9 @@ visible in the overlay, recorded in the audit log, undoable.
 ## Phase 7 — SheshAOS / SheshaOS convergence (the long game)
 
 **Effort:** ongoing · No deadlines. This is your research vision.
-- 7.1 Expose the Shesha audit log through the same append-only event-store API SheshAOS uses.
+- 7.1 Expose the Shesh audit log through the same append-only event-store API SheshAOS uses.
 - 7.2 Run your RAG service locally over `~/Documents`, `~/Projects`, and the dotfiles for memory.
-- 7.3 eBPF observability: feed scheduler/power/GPU telemetry to Shesha for hints (start with
+- 7.3 eBPF observability: feed scheduler/power/GPU telemetry to Shesh for hints (start with
   `bcc`/`bpftrace` scripts; do **not** fork the kernel yet).
 - 7.4 Treat the AI-first kernel as a multi-year research track; the practical near-term win is
   AI-assisted tuning of an already-excellent CachyOS kernel, not a from-scratch microkernel.
@@ -195,7 +195,7 @@ visible in the overlay, recorded in the audit log, undoable.
 | 3 Device tuning | 1 + on-device | ✅ fast/pretty |
 | 4 Organizer v2 | 2–3 | ✅ clutter gone |
 | 5 Automations | 1–2 | ✅ hands-off |
-| 6 Shesha agent | 3–5 | ✅ voice AI |
+| 6 Shesh agent | 3–5 | ✅ voice AI |
 | 7 OS convergence | ongoing | 🔭 research |
 
 Realistically: **Phases 0–3 in the first week**, **4–5 in week two**, **6 across weeks 3–4**, with 7

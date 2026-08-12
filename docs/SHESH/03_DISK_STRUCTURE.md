@@ -2,7 +2,7 @@
 
 > A clean, XDG-compliant, backup-friendly layout that separates your **job** (employed work),
 > **personal projects** (SheshAOS, SheshaOS, Vyākṛti, shesh-desktop), and **personal life**, while
-> giving the smart-organizer and Shesha predictable roots to operate on.
+> giving the smart-organizer and Shesh predictable roots to operate on.
 
 ---
 
@@ -82,7 +82,7 @@ Gen4 drive; use the Gen5 slot later for a second disk (projects/VMs) or a larger
 │   └── Sessions/              ← agent transcripts / audit logs
 │
 ├── Notes/                     ← knowledge base (Obsidian/logseq vault, git-backed)
-│   ├── Daily/  Tech/  Ideas/  Meetings/  Shesha/
+│   ├── Daily/  Tech/  Ideas/  Meetings/  Shesh/
 │
 ├── Vaults/                    ← encrypted at rest
 │   ├── Passwords/             ← KeePassXC / gopass database (NOT synced to cloud)
@@ -102,18 +102,18 @@ Gen4 drive; use the Gen5 slot later for a second disk (projects/VMs) or a larger
   - git identity (`includeIf "gitdir:~/Projects/job/"` → work `user.email`),
   - cloud-sync (job accounts never touch personal sync),
   - backup encryption keys (job data encrypted with employer-approved tooling, not your personal key),
-  - Shesha permissions (the agent is **denied** write to `~/Documents/Job` and `~/Projects/job` by default).
+  - Shesh permissions (the agent is **denied** write to `~/Documents/Job` and `~/Projects/job` by default).
 - **One `Media/` root** instead of XDG's Pictures/Music/Videos split — easier for the organizer and
   for queries like "find that screenshot". Set XDG dirs to point here (or symlink).
 - **`AI/` is one big, snapshot-excluded tree.** Models and datasets are regenerable and huge; never
   let them bloat btrfs snapshots or restic backups.
-- **`Notes/` is a git-backed vault** — versioned, diffable, queryable by Shesha RAG.
+- **`Notes/` is a git-backed vault** — versioned, diffable, queryable by Shesh RAG.
 
 ---
 
 ## 3. XDG + environment variables
 
-Put this in `dots/.config/environment.d/99-shesha.conf` (systemd environment generator, works across
+Put this in `dots/.config/environment.d/99-shesh.conf` (systemd environment generator, works across
 Hyprland/Quickshell/SSH):
 
 ```ini
@@ -123,7 +123,7 @@ XDG_DATA_HOME=%h/.local/share
 XDG_CACHE_HOME=%h/.cache
 XDG_STATE_HOME=%h/.local/state
 
-# Project roots (consumed by smart-organizer, Shesha, shell aliases)
+# Project roots (consumed by smart-organizer, Shesh, shell aliases)
 PROJECTS_HOME=%h/Projects
 JOB_HOME=%h/Projects/job
 PERSONAL_HOME=%h/Projects/personal
@@ -168,11 +168,11 @@ re-run) and sets permissions. (A copy is also written to the repo by the doc bui
 
 ```bash
 #!/usr/bin/env bash
-# tools/setup-dirs.sh — create the Shesha home layout. Idempotent.
+# tools/setup-dirs.sh — create the Shesh home layout. Idempotent.
 set -euo pipefail
 
 home="${HOME}"
-mkdir -p "$home"/{Desk,Downloads/{Archives,Installers,Torrents,Unsorted},Notes/{Daily,Tech,Ideas,Meetings,Shesha}}
+mkdir -p "$home"/{Desk,Downloads/{Archives,Installers,Torrents,Unsorted},Notes/{Daily,Tech,Ideas,Meetings,Shesh}}
 
 # Documents
 mkdir -p "$home"/Documents/{Personal/{Finance,Government-ID,Medical,Travel},Job,Reference,Inbox}
@@ -196,7 +196,7 @@ mkdir -p "$home"/.local/share "$home"/.config "$home"/.cache "$home"/.local/stat
 # Permissions for secrets
 chmod 700 "$home/Vaults" "$home/Vaults/Keys"
 
-echo "✅ Shesha directory structure created under $home"
+echo "✅ Shesh directory structure created under $home"
 ```
 
 > **btrfs + CoW:** `chattr +C` on `AI/Models` and `AI/Datasets` disables copy-on-write for those
@@ -244,7 +244,7 @@ The repo already uses the `dots/` tree + `setup` (rsync/cp with auto-backup). Re
 - **Smart-organizer** watches `Desk`, `Downloads`, `Documents/Inbox`, `Media/Screenshots` and sorts
   into the folders above using `rules.toml`. It is **forbidden** (via `safety.sh`) to touch
   `Projects/`, `Vaults/`, `Documents/Job`, `.ssh`, `.gnupg`, `.config`.
-- **Shesha** gets a permission profile (in Newelle's per-file permissions + your MCP policy):
+- **Shesh** gets a permission profile (in Newelle's per-file permissions + your MCP policy):
   read-only for `Documents/Personal`, `Notes`, `Projects/personal`; write only to `Downloads`,
   `Documents/Inbox`, `AI/Sessions`; **deny** on `Documents/Job`, `Projects/job`, `Vaults`.
 - **Backup tool** reads the policy table in §5 to decide what to snapshot/back up.

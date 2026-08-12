@@ -3,7 +3,7 @@
 # (idle/AC/not-fullscreen) before doing anything, and exits early if busy.
 # We avoid fixed wall-clock hours so jobs don't all pile up when you unlock.
 [Unit]
-Description=Shesha ambient — polite catch-up + proactivity
+Description=Shesh ambient — polite catch-up + proactivity
 Documentation=https://github.com/gaganjainse/shesh-desktop
 
 [Timer]

@@ -5,7 +5,7 @@ import Quickshell
 import qs.modules.common
 
 /**
- * Shesha — applies the user's settings (Config.options.sesha) to the system.
+ * Shesh — applies the user's settings (Config.options.sesha) to the system.
  *
  * Toggles translate to `systemctl --user` unit state and hyprctl visual state.
  * All effects are idempotent and safe to re-run; the service only acts when a
@@ -19,7 +19,7 @@ Singleton {
     }
 
     function applyPowerVisuals() {
-        if (!Config.options.shesha.lowPowerVisuals) {
+        if (!Config.options.shesh.lowPowerVisuals) {
             Quickshell.execDetached(["hyprctl", "--keyword", "decoration:blur:passes", "3"]);
             Quickshell.execDetached(["hyprctl", "--keyword", "decoration:shadow:enabled", "1"]);
             return;
@@ -35,19 +35,19 @@ Singleton {
     }
 
     function applyAll() {
-        const on = Config.options.shesha.enabled;
+        const on = Config.options.shesh.enabled;
         systemctl(on ? "enable --now" : "disable --now", "shesh-mcp.target");
-        systemctl(Config.options.shesha.realtimeOrganizer && on ? "enable --now" : "disable --now",
+        systemctl(Config.options.shesh.realtimeOrganizer && on ? "enable --now" : "disable --now",
                   "smart-organizer-watch.service");
-        systemctl(Config.options.shesha.autoBackup && on ? "enable --now" : "disable --now",
+        systemctl(Config.options.shesh.autoBackup && on ? "enable --now" : "disable --now",
                   "backup.timer");
-        systemctl(Config.options.shesha.autoPowerProfile && on ? "enable --now" : "disable --now",
+        systemctl(Config.options.shesh.autoPowerProfile && on ? "enable --now" : "disable --now",
                   "shesh-power.service");
         applyPowerVisuals();
     }
 
-    // React to every option under shesha.*
-    property var _opts: Config.options.shesha
+    // React to every option under shesh.*
+    property var _opts: Config.options.shesh
     onOpts_changed: applyAll()
 
     Component.onCompleted: {

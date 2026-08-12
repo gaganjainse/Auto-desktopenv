@@ -51,7 +51,7 @@ undo_ai_stack() {
   v rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}"/shesh-*-mcp
   v rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}"/sm-watcher
 
-  # Remove the Shesha venv (state, not config)
+  # Remove the Shesh venv (state, not config)
   v rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/sesha"
 
   # Disable (do NOT uninstall) Ollama — it may be used by other things.

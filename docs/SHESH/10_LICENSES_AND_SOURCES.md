@@ -11,7 +11,7 @@
 Your repo root is **GPL-3.0** (matches upstream `end-4/dots-hyprland`). The README must say GPL-3.0
 (the current "MIT" claim is wrong — see MED-16). All the components below are GPL-3-compatible:
 
-| Component | License | GPL-3 compatible? | Use in Shesha |
+| Component | License | GPL-3 compatible? | Use in Shesh |
 |---|---|---|---|
 | end-4/dots-hyprland (base) | GPL-3.0 | ✅ same | core dotfiles |
 | Newelle 1.4.5 | GPL-3.0 | ✅ same | agent frontend |
@@ -84,7 +84,7 @@ crossbeam-channel = "0.5"
 # future: hyprland = "0.3" (verify latest on crates.io)
 ```
 
-### Python (Shesha MCP servers / memory)
+### Python (Shesh MCP servers / memory)
 ```
 mcp[cli]>=1.0
 fastmcp>=0.1
@@ -126,9 +126,9 @@ Note: one URL in your message was concatenated incorrectly
 
 ## 4. Your own repos to connect (from your profile)
 
-| Repo | Role in the Shesha vision |
+| Repo | Role in the Shesh vision |
 |---|---|
-| **SheshAOS** | Governance/event-sourcing layer → Shesha audit log & policy (the bridge) |
+| **SheshAOS** | Governance/event-sourcing layer → Shesh audit log & policy (the bridge) |
 | **SheshaOS** | Local-first specialist-model OS concept → informs model routing |
 | **shesh-kernel** | Alpha microkernel track → long-term research, not daily driver |
 | **rag-service** | Run locally as `shesh-memory` (RAG over notes/docs/projects) |
@@ -136,7 +136,7 @@ Note: one URL in your message was concatenated incorrectly
 | **Vyākṛti** | Personal project; keep under `Projects/personal`, exclude from AI scope |
 | AIM/FWRS/portfolio/etc. | Job/personal; keep the work/personal boundary in `03_DISK_STRUCTURE.md` |
 
-The single highest-leverage connection is **SheshAOS ↔ Shesha audit log**: it makes your desktop agent
+The single highest-leverage connection is **SheshAOS ↔ Shesh audit log**: it makes your desktop agent
 the first client of the governance system you already built, and gives you a real, daily testbed for
 the event-sourced AI-kernel thesis.
 

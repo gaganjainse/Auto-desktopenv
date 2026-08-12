@@ -1,7 +1,7 @@
 [project]
 name = "shesh-ambient"
 version = "0.1.0"
-description = "Shesha: catch-up scheduler, do-not-disturb policy, and warm proactivity for a laptop"
+description = "Shesh: catch-up scheduler, do-not-disturb policy, and warm proactivity for a laptop"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "GPL-3.0-or-later" }

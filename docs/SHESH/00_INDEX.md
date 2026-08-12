@@ -1,4 +1,4 @@
-# Shesha Ecosystem — Master Index
+# Shesh Ecosystem — Master Index
 
 > **Owner:** Gagan Jain (`gaganjainse`) · Jaipur, IN (Asia/Kolkata)
 > **Device:** MSI Sword 16 HX **B14VEKG-210IN**
@@ -6,7 +6,7 @@
 > **Desktop:** Hyprland ≥0.55 (Lua config era) + Quickshell (`ii`), on top of `end-4/dots-hyprland`
 > **Last reconciled:** 2026-08-09
 
-This folder is the single source of truth for the **Shesha** ecosystem — the production-grade,
+This folder is the single source of truth for the **Shesh** ecosystem — the production-grade,
 AI-first, hands-off desktop built on top of your `shesh-desktop` fork. Every document here was
 independently verified against the live repo on 2026-08-09; it supersedes the two prior AI audits
 (`uploads/shesh-desktop-audit.md` and the 63-page `shesh-desktop_Master_Plan_90p.pdf`), both of
@@ -27,7 +27,7 @@ specific order so you can paste them into an AI one at a time, check the result,
 | 03 | `03_DISK_STRUCTURE.md` | Full on-disk layout (work vs personal vs job) + bootstrap script | When you install CachyOS |
 | 04 | `04_DEVICE_PROFILE.md` | MSI Sword + CachyOS tuning: GPU/MUX, 144 Hz, power, kernel | Hardware setup |
 | 05 | `05_SMART_ORGANIZER_V2.md` | Real-time, AI-assisted file organizer spec + code | Beating clutter |
-| 06 | `06_SHESH_AGENT.md` | The Shesha agent: Newelle + Ollama + MCP, local-first | Building the assistant |
+| 06 | `06_SHESH_AGENT.md` | The Shesh agent: Newelle + Ollama + MCP, local-first | Building the assistant |
 | 07 | `07_AUTOMATIONS.md` | Catalog of every autonomous job + units + udev rules | Set-and-forget |
 | 08 | `08_ECOSYSTEM_TOOLS.md` | The broader tool ecosystem (incl. Android phone harness) | Expanding the system |
 | 09 | `09_AI_PROMPTS.md` | **Copy-paste prompts for AI assistants**, per phase/situation | Every work session |
@@ -101,7 +101,7 @@ design principles for this ecosystem are:
 1. **Local-first & private.** Voice, files, memory, and models run on-device. Cloud is an
    opt-in fallback (OmniRoute-style), never the default.
 2. **Governance & auditability.** Borrow SheshAOS's append-only event log: every autonomous action
-   Shesha takes is recorded, replayable, and reversible. Policy gates destructive actions.
+   Shesh takes is recorded, replayable, and reversible. Policy gates destructive actions.
 3. **Performance without compromise.** Looks (end-4 Material You + Quickshell polish) and speed
    (144 Hz, CachyOS BORE, NVMe kyber) are first-class; bloat from other distros/devices is pruned.
 4. **Hands-off.** If it can be automated safely, it is automated. You speak; the system acts.
@@ -109,7 +109,7 @@ design principles for this ecosystem are:
    MCP/IPC; one agent orchestrates them — not one giant binary.
 6. **Rust where it matters (systems, watchers, kernel-adjacent); Python for AI glue; Lua/QML for
    the shell; Bash for the installer.** Matches your existing skill set (Rust + Python + TS).
-7. **Indian-rooted identity.** The names (Shesha, Vyākṛti, Nexus) and the Sanskrit/Indic framing are
+7. **Indian-rooted identity.** The names (Shesh, Vyākṛti, Nexus) and the Sanskrit/Indic framing are
    intentional — keep them consistent across the system.
 
 Keep every future decision aligned to these seven principles. If a proposal violates one, it needs
@@ -119,7 +119,7 @@ an explicit exception in this file.
 
 ## 4. The one-paragraph vision
 
-**Shesha** is the local AI layer that sits between you and your CachyOS/Hyprland machine: it watches
+**Shesh** is the local AI layer that sits between you and your CachyOS/Hyprland machine: it watches
 your folders and organizes them, switches GPU/power profiles based on what you're doing, backs up
 and maintains the system in the background, and answers you by voice through a Quickshell overlay —
 all while writing every action to a SheshAOS-style audit log so nothing it does is invisible or

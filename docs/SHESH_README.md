@@ -1,6 +1,6 @@
-# Shesha Documentation
+# Shesh Documentation
 
-This directory is the single source of truth for the **Shesha** ecosystem — the production-grade,
+This directory is the single source of truth for the **Shesh** ecosystem — the production-grade,
 local-first, AI-assisted desktop built on this fork of `end-4/dots-hyprland` for the MSI Sword
 16 HX B14VEKG on CachyOS 260628.
 

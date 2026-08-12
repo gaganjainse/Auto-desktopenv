@@ -166,12 +166,12 @@ Your actual SKU (`B14VEKG-210IN`) is **1920×1200 FHD+ @ 144 Hz** with **RTX 405
 as the single source of these values and source it everywhere; never hardcode resolution/VRAM.
 
 ### NEW-B 🟠 No `hyprland_control` / `smart_organizer` MCP servers (also N-04) — agent can't actually control the desktop
-The headline "Shesha controls Hyprland" feature has no implementation. `06_SHESH_AGENT.md` provides
+The headline "Shesh controls Hyprland" feature has no implementation. `06_SHESH_AGENT.md` provides
 both servers (hyprctl wrapper + organizer trigger).
 
 ### NEW-C 🟠 No wake-word/voice service unit
 Newelle is installed but there's no user service ensuring it (or its voice backend) starts on login,
-and no documented `uwsm`/graphical-session ordering. The "Hey Shesha" experience won't survive reboot.
+and no documented `uwsm`/graphical-session ordering. The "Hey Shesh" experience won't survive reboot.
 
 ### NEW-D 🟡 Smart-organizer `--watch` is a polling loop, not inotify
 `smart-organizer.sh` advertises `--watch` but the lib has no event watcher; it likely re-scans on a
@@ -216,7 +216,7 @@ Two sources of truth for the same unit. Delete the static one or make setup inst
 | Idempotent installer | ✅ | ✅ | ✅ | ✅ | n/a | 🔴 NVIDIA/mkinitcpio |
 | Device/driver setup | **explicitly none** ("not a system setup script") | some | some | some | ✅ chwd | ✅ your differentiator — make it bulletproof |
 | File/automation tooling | none | none | some (theme) | welcome app | none | ✅ smart-organizer (your edge) |
-| Local AI agent | sidebar (Ollama/Gemini) | none | none | none | none | ✅ Shesha (your edge) |
+| Local AI agent | sidebar (Ollama/Gemini) | none | none | none | none | ✅ Shesh (your edge) |
 | Visual polish | 🏆 best-in-class | good | good (70+ themes) | very good | clean | **must not regress** |
 | Uninstall reverses changes | n/a | partial | partial | partial | n/a | 🔴 stub |
 

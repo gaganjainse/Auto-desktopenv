@@ -3,7 +3,7 @@ name = "sm-watcher"
 version = "0.2.0"
 edition = "2021"
 license = "GPL-3.0-only"
-description = "Real-time, debounced inotify watcher for the Shesha smart-organizer"
+description = "Real-time, debounced inotify watcher for the Shesh smart-organizer"
 
 [[bin]]
 name = "sm-watcher"
