@@ -1,18 +1,10 @@
-name: ShellCheck
+name: ShellCheck — all scripts
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'tools/**'
-      - 'sdata/subcmd-smart-organizer/**'
-      - '.github/workflows/**'
   pull_request:
     branches: [main]
-    paths:
-      - 'tools/**'
-      - 'sdata/subcmd-smart-organizer/**'
-      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -20,35 +12,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run ShellCheck
+      - name: Install shellcheck
         run: |
-          set -euo pipefail
-          echo "Installing shellcheck..."
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y shellcheck
           shellcheck --version
 
-          echo "Finding shell scripts..."
-          scripts=$(find tools sdata/subcmd-smart-organizer -type f \( -name '*.sh' -o -name 'bootstrap.sh' \) 2>/dev/null | sort)
-          echo "Found scripts: $scripts"
-
-          if [[ -z "$scripts" ]]; then
-            echo "No shell scripts found to check"
-            exit 0
-          fi
+      - name: Run ShellCheck on all .sh plus setup, diagnose, test.sh (exclude dots/, .git/)
+        run: |
+          set -euo pipefail
+          echo "Finding all shell scripts (all .sh + setup, diagnose, test.sh)..."
+          # Find all .sh files plus setup, diagnose, test.sh, bootstrap.sh, excluding dots/ and .git/
+          scripts=$(find . -type f \( -name '*.sh' -o -name 'setup' -o -name 'diagnose' -o -name 'test.sh' -o -name 'bootstrap.sh' \) ! -path "./dots/*" ! -path "./.git/*" ! -path "./screenshots/*" 2>/dev/null | sort)
+          echo "Found $(echo "$scripts" | wc -l) scripts"
+          echo "$scripts"
 
           exit_code=0
           for script in $scripts; do
             echo "Checking: $script"
-            if ! shellcheck -x -S error "$script"; then
+            if ! shellcheck -x -s bash -S warning "$script"; then
               echo "FAILED: $script"
               exit_code=1
             fi
           done
 
           if [[ $exit_code -eq 0 ]]; then
-            echo "All shell scripts passed ShellCheck"
+            echo "All shell scripts passed ShellCheck at warning severity"
           else
-            echo "Some shell scripts failed ShellCheck"
+            echo "Some scripts failed ShellCheck"
             exit 1
           fi

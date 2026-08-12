@@ -1,0 +1,41 @@
+name: Arch Container Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  arch-test:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps in Arch container
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm git bash shellcheck python python-pip
+          bash --version
+          shellcheck --version
+          python3 --version
+
+      - name: bash -n all scripts
+        run: |
+          set -euo pipefail
+          echo "Running bash -n on all .sh plus setup, diagnose, test.sh..."
+          find . -type f \( -name '*.sh' -o -name 'setup' -o -name 'diagnose' -o -name 'test.sh' \) ! -path "./dots/*" ! -path "./.git/*" -exec bash -n {} \; && echo "bash -n OK"
+
+      - name: shellcheck
+        run: |
+          shellcheck -x -s bash -S warning $(find . -type f -name '*.sh' ! -path "./dots/*" ! -path "./.git/*" | head -n 50) || true
+          echo "shellcheck done"
+
+      - name: Dry-run setup --help
+        run: |
+          chmod +x setup diagnose test.sh || true
+          ./setup --help || true
+          ./diagnose --help || true

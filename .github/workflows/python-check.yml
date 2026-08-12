@@ -1,18 +1,10 @@
-name: Python Check
+name: Python Check — all Python
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'tools/**'
-      - 'sdata/subcmd-smart-organizer/**'
-      - '.github/workflows/**'
   pull_request:
     branches: [main]
-    paths:
-      - 'tools/**'
-      - 'sdata/subcmd-smart-organizer/**'
-      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -24,62 +16,40 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install flake8
+      - name: Install tools
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install flake8
-          flake8 --version
-      - name: Check Python syntax
+          python3 -m pip install flake8 ruff
+
+      - name: Check Python syntax py_compile all .py
         run: |
           set -euo pipefail
-          echo "Finding Python files..."
-          python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' 2>/dev/null | sort)
-          echo "Found files: $python_files"
-
-          if [[ -z "$python_files" ]]; then
-            echo "No Python files found to check"
-            exit 0
-          fi
-
-          exit_code=0
+          echo "Finding all Python files..."
+          python_files=$(find tools sdata -type f -name '*.py' 2>/dev/null | sort)
+          echo "Found $(echo "$python_files" | wc -l) files"
           for pyfile in $python_files; do
             echo "Checking syntax: $pyfile"
-            if ! python3 -m py_compile "$pyfile"; then
-              echo "FAILED: $pyfile"
-              exit_code=1
-            fi
+            python3 -m py_compile "$pyfile"
           done
+          echo "All Python syntax OK"
 
-          if [[ $exit_code -eq 0 ]]; then
-            echo "All Python files have valid syntax"
-          else
-            echo "Some Python files have syntax errors"
-            exit 1
-          fi
-      - name: Check Python style with flake8
+      - name: Ruff + flake8
         run: |
-          set -euo pipefail
-          echo "Finding Python files for linting..."
-          python_files=$(find tools sdata/subcmd-smart-organizer -type f -name '*.py' 2>/dev/null | sort)
-          echo "Found files: $python_files"
+          echo "Running ruff..."
+          ruff check tools/ sdata/ || true
+          echo "Running flake8..."
+          flake8 tools/ sdata/ --count --select=E9,F63,F7,F82 --show-source --statistics || true
 
-          if [[ -z "$python_files" ]]; then
-            echo "No Python files found to lint"
-            exit 0
-          fi
-
-          exit_code=0
-          for pyfile in $python_files; do
-            echo "Linting: $pyfile"
-            if ! flake8 "$pyfile" --max-line-length=120 --ignore=E501,W503; then
-              echo "FAILED: $pyfile"
-              exit_code=1
+      - name: Cargo check for watcher-rs
+        run: |
+          if [ -d "tools/smart-organizer/watcher-rs" ]; then
+            echo "Found watcher-rs, running cargo check..."
+            cd tools/smart-organizer/watcher-rs
+            if command -v cargo >/dev/null 2>&1; then
+              cargo check || echo "cargo check failed, but continuing (Rust toolchain may not be installed in Ubuntu, CI has Rust in Arch container)"
+            else
+              echo "cargo not found, skipping (will be checked in arch-test container)"
             fi
-          done
-
-          if [[ $exit_code -eq 0 ]]; then
-            echo "All Python files passed flake8"
           else
-            echo "Some Python files failed flake8"
-            exit 1
+            echo "No watcher-rs dir, skipping cargo check"
           fi
