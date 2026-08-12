@@ -87,7 +87,7 @@ undo_power_management() {
   # Only remove zram-generator.conf if we are the ones who wrote it. We tag our
   # managed file; if it has our marker, remove it. (Conservative otherwise.)
   if [[ -f /etc/systemd/zram-generator.conf ]] && \
-     grep -q "# managed-by=auto-desktopenv" /etc/systemd/zram-generator.conf 2>/dev/null; then
+     grep -q "# managed-by=shesh-desktop" /etc/systemd/zram-generator.conf 2>/dev/null; then
     v sudo rm -f /etc/systemd/zram-generator.conf
   fi
 }

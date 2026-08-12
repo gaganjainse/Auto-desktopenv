@@ -18,7 +18,7 @@ Partially works. See [Discussion #2382](https://github.com/end-4/dots-hyprland/d
 Note that this script must be idempotent.
 
 TODO:
-- [ ] Fix all TODOs inside `dist-nix`. ([search online](https://github.com/search?q=repo%3Aend-4%2Fdots-hyprland+path%3A%2F%5Esdata%5C%2Fdist-nix%5C%2F%2F+TODO&type=code))
+- [ ] Fix all TODOs inside `dist-nix`. ([search online](https://github.com/search?q=repo%3Aend-4%2Fshesh-desktop+path%3A%2F%5Esdata%5C%2Fdist-nix%5C%2F%2F+TODO&type=code))
 - [ ] Since Nix uses a large number of inodes, need to warn user if inode-limited filesystem (typically ext4) is used.
 - [ ] Deal with error when running `systemctl --user enable ydotool --now`:
   ```plain
@@ -92,7 +92,7 @@ This is similar to the above. For example user may want to use their own `~/.con
 **3. Easy developing dotfiles or at least not worse than current state.**
 
 About the current state:
-- @clsty: "If I were the one who develops the dotfiles, I will make changes to the local Git repo `dots-hyprland` and rerun `./setup install-files -f` to apply the changes to observe the outcome."
+- @clsty: "If I were the one who develops the dotfiles, I will make changes to the local Git repo `shesh-desktop` and rerun `./setup install-files -f` to apply the changes to observe the outcome."
 - @end-4 (who develops the dots; see [comment](https://github.com/end-4/dots-hyprland/pull/2278#issuecomment-3454929577)): "I modify my local copy of stuff, copy the relevant parts over, optionally selectively pick changes then commit. It's.... the most obvious way but I guess not necessarily the cleanest"
 
 If we use Nix to handle dotfiles, then it must be at least better than the current state described above, mainly in terms of convenience and automation.
