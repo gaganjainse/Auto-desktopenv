@@ -1,4 +1,4 @@
-# Comprehensive Audit & Roadmap for shesha-desktop (MSI Sword 16 HX on CachyOS)
+# Comprehensive Audit & Roadmap for shesh-desktop (MSI Sword 16 HX on CachyOS)
 
 ## Executive Summary
 This document provides a full audit and roadmap to upgrade the repository into a fully automated, AI-integrated, device-optimized (MSI Sword 16 HX B14VEKG, CachyOS) ecosystem.

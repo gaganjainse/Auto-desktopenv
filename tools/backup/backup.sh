@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# shesha-desktop Backup Script
+# shesh-desktop Backup Script
 # Automated backup of critical files
 #
 # Features:
@@ -137,7 +137,7 @@ backup_item "$HOME/Pictures" "$DEST/Pictures" "Pictures"
 
 # 6. Projects (only critical ones)
 if [[ -d "$HOME/Workspace" ]]; then
-    backup_item "$HOME/Workspace/shesha-kernel" "$DEST/Workspace/shesha-kernel" "shesha-kernel"
+    backup_item "$HOME/Workspace/shesh-kernel" "$DEST/Workspace/shesh-kernel" "shesh-kernel"
 fi
 
 # 7. Package lists

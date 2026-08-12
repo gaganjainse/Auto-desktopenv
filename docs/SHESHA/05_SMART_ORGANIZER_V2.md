@@ -278,7 +278,7 @@ notifications append new rules here.
 ```ini
 [Unit]
 Description=Smart Organizer real-time watcher
-Documentation=https://github.com/gaganjainse/shesha-desktop
+Documentation=https://github.com/gaganjainse/shesh-desktop
 After=graphical-session.target ollama.service
 PartOf=graphical-session.target
 

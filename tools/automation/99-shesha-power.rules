@@ -2,6 +2,6 @@
 # Install to /etc/udev/rules.d/ then `sudo udevadm control --reload-rules`.
 # Long scripts must not run directly in udev; use systemd-run.
 SUBSYSTEM=="power_supply", ATTR{online}=="1", \
-  RUN+="/usr/bin/systemd-run --no-block --unit=shesha-on-ac /usr/local/bin/shesha-power.sh ac"
+  RUN+="/usr/bin/systemd-run --no-block --unit=shesh-on-ac /usr/local/bin/shesh-power.sh ac"
 SUBSYSTEM=="power_supply", ATTR{online}=="0", \
-  RUN+="/usr/bin/systemd-run --no-block --unit=shesha-on-bat /usr/local/bin/shesha-power.sh battery"
+  RUN+="/usr/bin/systemd-run --no-block --unit=shesh-on-bat /usr/local/bin/shesh-power.sh battery"

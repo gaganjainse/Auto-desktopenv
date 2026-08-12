@@ -6,8 +6,8 @@
 # License: GPL-3.0 (same as the repo)
 
 # Avoid double-sourcing.
-[[ -n "${__SHESHA_COMMON_SH_LOADED:-}" ]] && return 0
-__SHESHA_COMMON_SH_LOADED=1
+[[ -n "${__SHESH_COMMON_SH_LOADED:-}" ]] && return 0
+__SHESH_COMMON_SH_LOADED=1
 
 # ── Colors (respect NO_COLOR and non-TTY) ──────────────────────────────────────
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
@@ -58,8 +58,8 @@ run() {
 }
 
 # Append a JSON line to the Shesha audit log.
-shesha_audit() {
-  # usage: shesha_audit <event> [key=value ...]
+shesh_audit() {
+  # usage: shesh_audit <event> [key=value ...]
   local event="$1"; shift || return 0
   local logdir="${XDG_DATA_HOME:-$HOME/.local/share}/shesha/audit"
   mkdir -p "$logdir"

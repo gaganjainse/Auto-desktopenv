@@ -74,7 +74,7 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 - [ ] voice acceptance test in 06 §10 passes offline
 
 ## Phase 7 — Convergence
-- [ ] shesha-memory = local rag-service over Notes/Docs/Projects
-- [ ] SheshaAOS event-store bridge for audit log
-- [ ] eBPF telemetry into shesha-health
+- [ ] shesh-memory = local rag-service over Notes/Docs/Projects
+- [ ] SheshAOS event-store bridge for audit log
+- [ ] eBPF telemetry into shesh-health
 - [ ] Android ADB phone harness for Realme Narzo 90x

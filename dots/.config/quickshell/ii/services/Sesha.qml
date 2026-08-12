@@ -36,13 +36,13 @@ Singleton {
 
     function applyAll() {
         const on = Config.options.shesha.enabled;
-        systemctl(on ? "enable --now" : "disable --now", "shesha-mcp.target");
+        systemctl(on ? "enable --now" : "disable --now", "shesh-mcp.target");
         systemctl(Config.options.shesha.realtimeOrganizer && on ? "enable --now" : "disable --now",
                   "smart-organizer-watch.service");
         systemctl(Config.options.shesha.autoBackup && on ? "enable --now" : "disable --now",
                   "backup.timer");
         systemctl(Config.options.shesha.autoPowerProfile && on ? "enable --now" : "disable --now",
-                  "shesha-power.service");
+                  "shesh-power.service");
         applyPowerVisuals();
     }
 

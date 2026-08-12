@@ -2,9 +2,9 @@
 Description=Sesha MCP servers (system, shell, files)
 Documentation=https://github.com/gaganjainse/Auto-desktopenv
 After=graphical-session.target
-Wants=shesha-system-control-mcp.service
-Wants=shesha-files-mcp.service
-Wants=shesha-shell-mcp.service
+Wants=shesh-system-control-mcp.service
+Wants=shesh-files-mcp.service
+Wants=shesh-shell-mcp.service
 
 [Install]
 WantedBy=graphical-session.target

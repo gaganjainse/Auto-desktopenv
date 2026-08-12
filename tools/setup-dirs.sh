@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # tools/setup-dirs.sh — Create the Shesha home layout. Idempotent.
-# See docs/SHESHA/03_DISK_STRUCTURE.md for the full rationale.
+# See docs/SHESH/03_DISK_STRUCTURE.md for the full rationale.
 #
 # Usage: tools/setup-dirs.sh [--dry-run]
 set -euo pipefail
@@ -66,4 +66,4 @@ fi
 (( ! DRY_RUN )) && chmod 700 "$home/Vaults" "$home/Vaults/Keys" 2>/dev/null || true
 
 log_ok "Shesha directory structure created."
-log_info "Next: review docs/SHESHA/03_DISK_STRUCTURE.md for XDG env, git identity, and backup policy."
+log_info "Next: review docs/SHESH/03_DISK_STRUCTURE.md for XDG env, git identity, and backup policy."

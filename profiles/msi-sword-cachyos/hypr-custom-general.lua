@@ -1,7 +1,7 @@
 -- profiles/msi-sword-cachyos/hypr-custom-general.lua
 -- Copy/symlink to ~/.config/hypr/custom/general.lua OR append its content.
 -- MSI Sword 16 HX B14VEKG: 1920x1200 @ 144Hz internal panel (eDP-1).
--- SEE: docs/SHESHA/04_DEVICE_PROFILE.md
+-- SEE: docs/SHESH/04_DEVICE_PROFILE.md
 
 -- Force the internal panel to its native 144 Hz mode. If 144 isn't advertised,
 -- replace with `hl.config("monitor", [[eDP-1,highrr,auto,1]])` for auto-high-refresh.

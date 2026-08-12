@@ -5,7 +5,7 @@ Polite, catch-up scheduler and proactivity engine for a **laptop that sleeps/shu
 - License: GPL-3.0
 - Solves: fixed `OnCalendar` timers assume a 24/7 server and pile up on unlock;
   agents that are either passive or interrupt mid-work.
-- Part of: [Shesha](https://github.com/gaganjainse/shesha-desktop)
+- Part of: [Shesha](https://github.com/gaganjainse/shesh-desktop)
 
 ## Three guarantees
 
@@ -53,4 +53,4 @@ uv run shesh-ambient offer
 - Nothing runs while busy; deferred jobs retry on the next tick.
 - Heavy jobs (backup, organizer, maintenance) require AC + 2 min idle.
 
-See `docs/SHESHA/AMBIENT_DESIGN.md` for the full rationale and the proactivity model.
+See `docs/SHESH/AMBIENT_DESIGN.md` for the full rationale and the proactivity model.

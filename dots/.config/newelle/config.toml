@@ -1,6 +1,6 @@
 # Newelle 1.4.5 configuration for Shesha (native install, not Flatpak).
 # Native install is required for STDIO MCP + microphone + filesystem access.
-# See docs/SHESHA/06_SHESHA_AGENT.md
+# See docs/SHESH/06_SHESH_AGENT.md
 
 [model]
 provider = "ollama"
@@ -42,15 +42,15 @@ deny = [
 ]
 
 # MCP servers — STDIO transport (Newelle 1.4.5 supports STDIO on native installs).
-# The venv is created by setup_ai_stack; bin names are shesha-<name>-mcp.
+# The venv is created by setup_ai_stack; bin names are shesh-<name>-mcp.
 [mcp.system_control]
 command = "~/.local/state/shesha/.venv/bin/python"
-args = ["~/.local/bin/shesha-system-control-mcp"]
+args = ["~/.local/bin/shesh-system-control-mcp"]
 
 [mcp.smart_organizer]
 command = "~/.local/state/shesha/.venv/bin/python"
-args = ["~/.local/bin/shesha-smart-organizer-mcp"]
+args = ["~/.local/bin/shesh-smart-organizer-mcp"]
 
 [mcp.hyprland_control]
 command = "~/.local/state/shesha/.venv/bin/python"
-args = ["~/.local/bin/shesha-hyprland-control-mcp"]
+args = ["~/.local/bin/shesh-hyprland-control-mcp"]

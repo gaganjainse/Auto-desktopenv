@@ -1,6 +1,6 @@
 [Unit]
 Description=Smart Organizer real-time watcher (sm-watcher -> classifier -> apply)
-Documentation=https://github.com/gaganjainse/shesha-desktop
+Documentation=https://github.com/gaganjainse/shesh-desktop
 After=graphical-session.target ollama.service
 PartOf=graphical-session.target
 

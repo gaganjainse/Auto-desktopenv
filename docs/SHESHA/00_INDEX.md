@@ -7,9 +7,9 @@
 > **Last reconciled:** 2026-08-09
 
 This folder is the single source of truth for the **Shesha** ecosystem — the production-grade,
-AI-first, hands-off desktop built on top of your `shesha-desktop` fork. Every document here was
+AI-first, hands-off desktop built on top of your `shesh-desktop` fork. Every document here was
 independently verified against the live repo on 2026-08-09; it supersedes the two prior AI audits
-(`uploads/shesha-desktop-audit.md` and the 63-page `shesha-desktop_Master_Plan_90p.pdf`), both of
+(`uploads/shesh-desktop-audit.md` and the 63-page `shesh-desktop_Master_Plan_90p.pdf`), both of
 which contained factual errors catalogued in `01_AUDIT.md`.
 
 ---
@@ -27,7 +27,7 @@ specific order so you can paste them into an AI one at a time, check the result,
 | 03 | `03_DISK_STRUCTURE.md` | Full on-disk layout (work vs personal vs job) + bootstrap script | When you install CachyOS |
 | 04 | `04_DEVICE_PROFILE.md` | MSI Sword + CachyOS tuning: GPU/MUX, 144 Hz, power, kernel | Hardware setup |
 | 05 | `05_SMART_ORGANIZER_V2.md` | Real-time, AI-assisted file organizer spec + code | Beating clutter |
-| 06 | `06_SHESHA_AGENT.md` | The Shesha agent: Newelle + Ollama + MCP, local-first | Building the assistant |
+| 06 | `06_SHESH_AGENT.md` | The Shesha agent: Newelle + Ollama + MCP, local-first | Building the assistant |
 | 07 | `07_AUTOMATIONS.md` | Catalog of every autonomous job + units + udev rules | Set-and-forget |
 | 08 | `08_ECOSYSTEM_TOOLS.md` | The broader tool ecosystem (incl. Android phone harness) | Expanding the system |
 | 09 | `09_AI_PROMPTS.md` | **Copy-paste prompts for AI assistants**, per phase/situation | Every work session |
@@ -35,7 +35,7 @@ specific order so you can paste them into an AI one at a time, check the result,
 
 A parallel set of **machine-actionable files** lives in this repo:
 
-- `docs/SHESHA/checklist.md` — one-line-per-task checklist you tick off.
+- `docs/SHESH/checklist.md` — one-line-per-task checklist you tick off.
 - `tools/lib/common.sh`, `profiles/msi-sword-cachyos/`, etc. — actual code referenced by the docs.
 
 ---
@@ -93,14 +93,14 @@ The authoritative issue list with current status is in `01_AUDIT.md`.
 
 ## 3. Your philosophy (read this before changing anything)
 
-From your chats, GitHub profile (`AI/LLM Engineer, VIT Vellore 2025, author of SheshaAOS`), and
-repos (SheshaAOS — governance-first, event-sourced, append-only audit trail; SheshaOS — local-first
+From your chats, GitHub profile (`AI/LLM Engineer, VIT Vellore 2025, author of SheshAOS`), and
+repos (SheshAOS — governance-first, event-sourced, append-only audit trail; SheshaOS — local-first
 specialist models; Vyākṛti — a Sanskrit programming language; RAG service; LLM eval harness), the
 design principles for this ecosystem are:
 
 1. **Local-first & private.** Voice, files, memory, and models run on-device. Cloud is an
    opt-in fallback (OmniRoute-style), never the default.
-2. **Governance & auditability.** Borrow SheshaAOS's append-only event log: every autonomous action
+2. **Governance & auditability.** Borrow SheshAOS's append-only event log: every autonomous action
    Shesha takes is recorded, replayable, and reversible. Policy gates destructive actions.
 3. **Performance without compromise.** Looks (end-4 Material You + Quickshell polish) and speed
    (144 Hz, CachyOS BORE, NVMe kyber) are first-class; bloat from other distros/devices is pruned.
@@ -122,6 +122,6 @@ an explicit exception in this file.
 **Shesha** is the local AI layer that sits between you and your CachyOS/Hyprland machine: it watches
 your folders and organizes them, switches GPU/power profiles based on what you're doing, backs up
 and maintains the system in the background, and answers you by voice through a Quickshell overlay —
-all while writing every action to a SheshaAOS-style audit log so nothing it does is invisible or
-irreversible. Over time it becomes the desktop manifestation of your SheshaAOS/SheshaOS thesis:
+all while writing every action to a SheshAOS-style audit log so nothing it does is invisible or
+irreversible. Over time it becomes the desktop manifestation of your SheshAOS/SheshaOS thesis:
 an AI-first operating environment built on a fast, beautiful, trustworthy open base.

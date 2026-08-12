@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# tools/automation/shesha-power.sh
-# Called by udev on AC plug/unplug (see 99-shesha-power.rules).
+# tools/automation/shesh-power.sh
+# Called by udev on AC plug/unplug (see 99-shesh-power.rules).
 # Sets power profile, toggles Hyprland visuals, notifies, and logs to audit.
 set -euo pipefail
 
