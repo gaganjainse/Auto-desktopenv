@@ -5,7 +5,7 @@ Reads file-event JSON lines from stdin (as emitted by sm-watcher), classifies
 each file (deterministic rules first, optional local LLM for unknowns), and
 writes decision JSON lines to stdout.
 
-License: GPL-3.0   See docs/SHESHA/05_SMART_ORGANIZER_V2.md
+License: GPL-3.0   See docs/SHESH/05_SMART_ORGANIZER_V2.md
 """
 from __future__ import annotations
 
@@ -20,9 +20,9 @@ import urllib.request
 
 HOME = pathlib.Path(os.path.expanduser("~"))
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/generate")
-LLM_MODEL = os.environ.get("SHESHA_CLASSIFIER_MODEL", "phi4-mini")
-# Set SHESHA_NO_LLM=1 to disable LLM calls (fully offline/deterministic).
-NO_LLM = os.environ.get("SHESHA_NO_LLM") == "1"
+LLM_MODEL = os.environ.get("SHESH_CLASSIFIER_MODEL", "phi4-mini")
+# Set SHESH_NO_LLM=1 to disable LLM calls (fully offline/deterministic).
+NO_LLM = os.environ.get("SHESH_NO_LLM") == "1"
 
 # extension -> destination (relative to HOME)
 EXT_MAP: dict[str, str] = {

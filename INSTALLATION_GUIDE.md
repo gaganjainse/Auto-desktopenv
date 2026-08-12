@@ -1,4 +1,4 @@
-# CachyOS + shesha-desktop Installation Guide
+# CachyOS + shesh-desktop Installation Guide
 ## MSI Sword 16 HX B14VEKG — Offline Reference
 
 **Copy this file to your phone before starting.**
@@ -82,7 +82,7 @@ lsblk
 
 **Desktop Environment:**
 - Select **"No Desktop"**
-- Reason: dots-hyprland handles its own dependencies
+- Reason: shesh-desktop handles its own dependencies
 
 **Additional Packages:**
 - ✅ Check: **Base-devel + Common packages**
@@ -167,12 +167,12 @@ UUID=<models-uuid> /models btrfs noatime,compress=zstd:1,space_cache=v2,autodefr
 **Run this command exactly:**
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
 ```
 
 **If curl fails, try:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/tools/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh | bash
 ```
 
 ### What bootstrap does:
@@ -182,7 +182,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/too
 4. Confirms OS is CachyOS/Arch
 5. Runs `sudo pacman -Syu` (full system update)
 6. Installs: git, curl, wget, base-devel, yay, inotify-tools, python, python-pip, go, rustup
-7. Clones repo to `~/Workspace/shesha-desktop`
+7. Clones repo to `~/Workspace/shesh-desktop`
 8. Runs `./setup install`
 
 **You will be prompted for sudo password multiple times.**
@@ -193,7 +193,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/too
 
 ### 7.1 Dependencies
 - Removes deprecated packages
-- Installs all dots-hyprland dependencies
+- Installs all shesh-desktop dependencies
 - Installs AUR packages via yay
 
 ### 7.2 System Setup
@@ -246,7 +246,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesha-desktop/main/too
 - Creates maintenance timer (weekly)
 
 ### 7.8 Config Files
-- Copies dots-hyprland configs to `~/.config/`
+- Copies shesh-desktop configs to `~/.config/`
 
 ---
 
@@ -423,7 +423,7 @@ sudo usermod -aG video,render $USER
 | `~/.local/bin/msi-gpu-switcher` | MUX switcher |
 | `/usr/local/bin/nvidia-run` | NVIDIA wrapper script |
 | `/.snapshots/` | BTRFS snapshots |
-| `~/Workspace/shesha-desktop/` | This repo |
+| `~/Workspace/shesh-desktop/` | This repo |
 
 ---
 
@@ -432,10 +432,10 @@ sudo usermod -aG video,render $USER
 ```
 /home/gagan/
 ├── Workspace/          # Git repos
-│   ├── shesha-desktop/
-│   ├── shesha-kernel/
-│   ├── SheshaAOS/
-│   └── SheshaOS/
+│   ├── shesh-desktop/
+│   ├── shesh-kernel/
+│   ├── SheshAOS/
+│   └── SheshAOS/
 ├── Projects/           # Non-Git projects
 ├── Models/             # AI models
 │   ├── ollama/         # Symlink
@@ -484,9 +484,9 @@ sudo usermod -aG video,render $USER
 
 ## SUPPORT
 
-- Repo: https://github.com/gaganjainse/shesha-desktop
+- Repo: https://github.com/gaganjainse/shesh-desktop
 - Guide: `/home/gagan/Downloads/CachyOS-Installation-Guide.md`
-- Issues: https://github.com/gaganjainse/shesha-desktop/issues
+- Issues: https://github.com/gaganjainse/shesh-desktop/issues
 
 ---
 

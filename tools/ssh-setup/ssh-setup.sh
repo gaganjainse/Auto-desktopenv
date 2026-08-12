@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# shesha-desktop SSH Setup
+# shesh-desktop SSH Setup
 # Automated SSH key generation and configuration
 #
 # Features:

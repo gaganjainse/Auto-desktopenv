@@ -1,0 +1,11 @@
+[Unit]
+Description=Shesh power profile auto-switch (AC/battery)
+Documentation=https://github.com/gaganjainse/shesh-desktop
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+# Triggered by udev rules via systemd-run; also usable manually:
+#   systemctl --user start shesh-power.service
+ExecStart=%h/.local/bin/shesh-power ac
+RemainAfterExit=no
