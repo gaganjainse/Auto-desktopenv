@@ -34,7 +34,7 @@ PROTECTED_PATHS=(
     "/root"
 )
 
-# Protected file patterns
+# Protected file patterns - deduped (was duplicate *credentials* and overlapping *backup*/*password*)
 PROTECTED_FILE_PATTERNS=(
     "*.key"
     "*.pem"
@@ -46,8 +46,6 @@ PROTECTED_FILE_PATTERNS=(
     "*.p12"
     "*.pfx"
     "*backup*"
-    "*password*"
-    "*credentials*"
 )
 
 # Exempt paths (user-specified paths to skip during organization)

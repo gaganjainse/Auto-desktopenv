@@ -103,19 +103,19 @@ function install_file__auto_backup(){
   # NOTE: Do not add prefix `v` or `x` when using this function
   local s=$1
   local t=$2
-  if [ -f $t ];then
+  if [ -f "$t" ];then
     echo -e "${STY_YELLOW}[$0]: \"$t\" already exists.${STY_RST}"
     if ${INSTALL_FIRSTRUN};then
       echo -e "${STY_BLUE}[$0]: It seems to be the firstrun.${STY_RST}"
-      v mv $t $t.old
-      v cp_file $s $t
+      v mv "$t" "$t.old"
+      v cp_file "$s" "$t"
     else
       echo -e "${STY_BLUE}[$0]: It seems not a firstrun.${STY_RST}"
-      v cp_file $s $t.new
+      v cp_file "$s" "$t.new"
     fi
   else
     echo -e "${STY_GREEN}[$0]: \"$t\" does not exist yet.${STY_RST}"
-    v cp_file $s $t
+    v cp_file "$s" "$t"
   fi
 }
 function install_dir(){
