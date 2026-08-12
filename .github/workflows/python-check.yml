@@ -34,11 +34,14 @@ jobs:
           echo "All Python syntax OK"
 
       - name: Ruff + flake8
+        # Hard gates since 2026-08-13: previously `|| true`'d away, which let
+        # 26 lint findings (incl. two real glxinfo pipe bugs) accumulate
+        # invisibly. Debt cleared; these commands now decide the build.
         run: |
           echo "Running ruff..."
-          ruff check tools/ sdata/ || true
+          ruff check tools/ sdata/
           echo "Running flake8..."
-          flake8 tools/ sdata/ --count --select=E9,F63,F7,F82 --show-source --statistics || true
+          flake8 tools/ sdata/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Cargo check for watcher-rs
         run: |

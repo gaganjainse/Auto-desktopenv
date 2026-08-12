@@ -70,7 +70,7 @@ def decide(path: str) -> dict:
     p = pathlib.Path(path)
     try:
         name = p.name
-    except Exception:
+    except (OSError, AttributeError, ValueError):
         return {"src": path, "dest": str(HOME / "Documents/Inbox"),
                 "method": "error", "conf": 0.0}
 
@@ -134,7 +134,7 @@ def _llm(p: pathlib.Path, mime: str | None) -> dict | None:
         dest = str(HOME / data["dest"])
         return {"src": str(p), "dest": dest, "method": "llm",
                 "conf": float(data.get("conf", 0.4))}
-    except Exception as e:  # offline / busy -> deterministic fallback
+    except Exception as e:  # noqa: BLE001 — LLM probe must degrade to the deterministic fallback on ANY failure (offline, busy, malformed reply)
         print(f"# llm unavailable: {e}", file=sys.stderr)
         return None
 
@@ -150,7 +150,7 @@ def main() -> int:
             if not path:
                 continue
             print(json.dumps(decide(path)), flush=True)
-        except Exception as e:  # never die on one bad event
+        except Exception as e:  # noqa: BLE001 — a batch daemon must not die on one bad event; reported on stderr instead
             print(json.dumps({"error": str(e)}), file=sys.stderr, flush=True)
     return 0
 

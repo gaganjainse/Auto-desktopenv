@@ -26,14 +26,14 @@ Reboot required after switching.
 """
 
 import argparse
-import os
-import sys
 import fcntl
+import logging
+import os
 import struct
 import subprocess
-import logging
+import sys
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
@@ -41,7 +41,6 @@ log = logging.getLogger(__name__)
 
 class MSIMUXSwitcherError(Exception):
     """Base exception for MUX switcher errors."""
-    pass
 
 
 class MSIMUXSwitcher:
@@ -66,7 +65,7 @@ class MSIMUXSwitcher:
 
     # Mode values for UEFI variable
     # These are model-specific and may need adjustment
-    MODE_VALUES = {
+    MODE_VALUES: ClassVar[dict] = {
         "hybrid": {
             "uefi": bytes([0x00, 0x00, 0x00, 0x00]),
             "description": "Hybrid mode — Intel iGPU primary, NVIDIA offload",
@@ -133,14 +132,14 @@ class MSIMUXSwitcher:
 
         return var_path
 
-    def _read_uefi_var(self, var_path: Path) -> Optional[bytes]:
+    def _read_uefi_var(self, var_path: Path) -> bytes | None:
         """Read UEFI variable value."""
         try:
             data = var_path.read_bytes()
             # UEFI vars have a header: attributes (4 bytes) + data
             # Skip first 4 bytes (attributes)
             return data[4:]
-        except Exception as e:
+        except OSError as e:
             log.error(f"Failed to read UEFI variable: {e}")
             return None
 
@@ -159,8 +158,8 @@ class MSIMUXSwitcher:
                     0x40086601,  # FS_IOC_SETFLAGS
                     struct.pack("Q", 0),  # Clear immutable flag
                 )
-            except Exception:
-                pass  # Flag may not be set
+            except OSError:
+                pass  # flag absent means already clear — best-effort by design
 
             # Read existing data to preserve attributes
             existing = var_path.read_bytes()
@@ -172,7 +171,7 @@ class MSIMUXSwitcher:
 
             log.info(f"Wrote UEFI variable: {data.hex()}")
             return True
-        except Exception as e:
+        except OSError as e:
             log.error(f"Failed to write UEFI variable: {e}")
             log.error("You may need to:")
             log.error(f"  sudo chattr -i {var_path}")
@@ -188,8 +187,8 @@ class MSIMUXSwitcher:
                 f.seek(addr)
                 data = f.read(1)
                 return data[0] if data else 0
-        except Exception as e:
-            raise MSIMUXSwitcherError(f"EC read failed at 0x{addr:02x}: {e}")
+        except (OSError, ValueError) as e:
+            raise MSIMUXSwitcherError(f"EC read failed at 0x{addr:02x}: {e}") from e
 
     def _ec_write_byte(self, addr: int, value: int) -> bool:
         """Write byte to EC via ec_sys debugfs."""
@@ -201,8 +200,8 @@ class MSIMUXSwitcher:
                 f.seek(addr)
                 f.write(bytes([value & 0xFF]))
             return True
-        except Exception as e:
-            raise MSIMUXSwitcherError(f"EC write failed at 0x{addr:02x}: {e}")
+        except (OSError, ValueError) as e:
+            raise MSIMUXSwitcherError(f"EC write failed at 0x{addr:02x}: {e}") from e
 
     def _trigger_mux_switch(self) -> bool:
         """
@@ -229,11 +228,11 @@ class MSIMUXSwitcher:
             self._ec_write_byte(self.EC_MUX_ADDR, new_value)
 
             return True
-        except Exception as e:
+        except (OSError, ValueError) as e:
             log.error(f"EC MUX switch failed: {e}")
             return False
 
-    def get_current_mode(self) -> Optional[str]:
+    def get_current_mode(self) -> str | None:
         """
         Detect current MUX mode.
 
@@ -251,8 +250,7 @@ class MSIMUXSwitcher:
         # Method 2: Check active GPU via glxinfo
         try:
             result = subprocess.run(
-                ["glxinfo", "|", "grep", "OpenGL renderer string"],
-                shell=True,
+                ["glxinfo"], check=False,
                 capture_output=True,
                 text=True,
             )
@@ -268,7 +266,7 @@ class MSIMUXSwitcher:
         # Method 3: Check if NVIDIA is loaded
         try:
             result = subprocess.run(
-                ["lsmod"], capture_output=True, text=True
+                ["lsmod"], check=False, capture_output=True, text=True
             )
             if "nvidia" in result.stdout:
                 return "dgpu"  # Likely dGPU mode
@@ -355,15 +353,14 @@ class MSIMUXSwitcher:
                 log.info("\n--- EC Registers ---")
                 log.info(f"EC MUX register (0x{self.EC_MUX_ADDR:02x}): 0x{mux_val:02x}")
                 log.info(f"MUX bit (0x{self.EC_MUX_MASK:02x}): {'set' if mux_val & self.EC_MUX_MASK else 'clear'}")
-            except Exception as e:
+            except OSError as e:
                 log.error(f"Failed to read EC: {e}")
 
         # Check active GPU
         log.info("\n--- Active GPU ---")
         try:
             result = subprocess.run(
-                ["glxinfo", "|", "grep", "OpenGL renderer string"],
-                shell=True,
+                ["glxinfo"], check=False,
                 capture_output=True,
                 text=True,
             )
@@ -371,17 +368,17 @@ class MSIMUXSwitcher:
                 log.info(f"OpenGL renderer: {result.stdout.strip()}")
             else:
                 log.info("glxinfo not available or no output")
-        except Exception:
+        except OSError:
             log.info("glxinfo not installed")
 
         # Check NVIDIA
         try:
             result = subprocess.run(
-                ["lsmod"], capture_output=True, text=True
+                ["lsmod"], check=False, capture_output=True, text=True
             )
             nvidia_loaded = "nvidia" in result.stdout
             log.info(f"NVIDIA module loaded: {'✓' if nvidia_loaded else '✗'}")
-        except Exception:
+        except OSError:
             log.info("Could not check NVIDIA module")
 
         # Overall mode

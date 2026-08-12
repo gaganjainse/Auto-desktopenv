@@ -86,7 +86,7 @@ def reset_day(state: ProactivityState) -> None:
     state.offered_today.clear()
 
 
-def offer_from_signal(sig) -> "Offer":
+def offer_from_signal(sig) -> Offer:
     """Convert a signals.Signal into an Offer."""
     return Offer(title=sig.title, detail=sig.detail, action=sig.action,
                 priority=sig.priority)
