@@ -435,7 +435,7 @@ sudo usermod -aG video,render $USER
 │   ├── shesh-desktop/
 │   ├── shesh-kernel/
 │   ├── SheshAOS/
-│   └── SheshaOS/
+│   └── SheshAOS/
 ├── Projects/           # Non-Git projects
 ├── Models/             # AI models
 │   ├── ollama/         # Symlink
