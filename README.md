@@ -129,3 +129,8 @@ See [`LICENSE`](LICENSE). Third-party components retain their own licenses; see
 
 - [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) - Base dotfiles
 - [illogical-impulse](https://ii.clsty.link) - Original design
+
+## Security
+
+Security posture and vulnerability reporting: [canonical ecosystem security
+policy](https://github.com/gaganjainse/shesh-ecosystem/blob/main/SECURITY.md).
