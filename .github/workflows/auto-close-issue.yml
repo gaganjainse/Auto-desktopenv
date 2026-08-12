@@ -25,6 +25,8 @@ jobs:
           echo "Processing issue #${ISSUE_NUMBER} in ${OWNER}/${REPO}"
 
           # Normalize the JSON-encoded body into plain text
+          # Single-quoted sed programs are literal by design here.
+          # shellcheck disable=SC2016
           BODY=$(printf '%s' "$ISSUE_BODY" | sed -E 's/^"(.*)"$/\1/' | sed 's/\\"/"/g' | sed 's/\\n/\n/g')
 
           echo "Checking issue #${ISSUE_NUMBER} for the target checked checkbox..."
@@ -32,6 +34,8 @@ jobs:
             echo "Target checkbox is checked. Proceeding to comment, close and lock the issue."
 
             # --- Get issue node id via GraphQL ---
+          # GraphQL variables must NOT be expanded by bash — single quotes are required.
+          # shellcheck disable=SC2016
             QUERY='query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { issue(number: $number) { id } } }'
             GET_ID_PAYLOAD=$(jq -n --arg q "$QUERY" --arg owner "$OWNER" --arg name "$REPO" --argjson number "$ISSUE_NUMBER" '{query:$q, variables:{owner:$owner, name:$name, number:$number}}')
 
@@ -51,6 +55,8 @@ jobs:
             COMMENT_BODY="Hi @${ISSUE_USER} — I noticed you checked \"I've ticked the checkboxes without reading their contents\" in the issue template. To help others assist you effectively, please read the template and provide the requested diagnostic information. I will close this issue now. If you create a new issue with the required information, we can re-evaluate. Thank you!"
 
             # --- Post a comment to the issue ---
+            # GraphQL text in single quotes: bash must not expand $vars.
+            # shellcheck disable=SC2016
             MUT_ADD_COMMENT='mutation($id: ID!, $body: String!) { addComment(input: {subjectId: $id, body: $body}) { clientMutationId } }'
             ADD_COMMENT_PAYLOAD=$(jq -n --arg q "$MUT_ADD_COMMENT" --arg id "$ISSUE_ID" --arg body "$COMMENT_BODY" '{query:$q, variables:{id:$id, body:$body}}')
 
@@ -67,6 +73,8 @@ jobs:
             echo "Comment posted."
 
             # --- Attempt to close via GraphQL updateIssue ---
+            # GraphQL text in single quotes: bash must not expand $vars.
+            # shellcheck disable=SC2016
             MUT_UPDATE_ISSUE='mutation($id: ID!) { updateIssue(input: {id: $id, state: CLOSED, stateReason: NOT_PLANNED}) { issue { number, state, stateReason } } }'
             UPDATE_PAYLOAD=$(jq -n --arg q "$MUT_UPDATE_ISSUE" --arg id "$ISSUE_ID" '{query:$q, variables:{id:$id}}')
 
@@ -124,7 +132,9 @@ jobs:
             if [[ "$CLOSED_OK" == "true" ]]; then
               echo "Attempting to lock the conversation..."
 
-              MUT_LOCK='mutation($id: ID!, $reason: LockReason) { lockLockable(input:{lockableId:$id, lockReason:$reason}) { clientMutationId } }'
+              # GraphQL text in single quotes: bash must not expand $vars.
+            # shellcheck disable=SC2016
+            MUT_LOCK='mutation($id: ID!, $reason: LockReason) { lockLockable(input:{lockableId:$id, lockReason:$reason}) { clientMutationId } }'
               LOCK_PAYLOAD=$(jq -n --arg q "$MUT_LOCK" --arg id "$ISSUE_ID" --arg reason "NO_REASON" '{query:$q, variables:{id:$id, reason:$reason}}')
 
               RES_LOCK=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$LOCK_PAYLOAD" https://api.github.com/graphql)

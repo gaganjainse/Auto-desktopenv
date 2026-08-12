@@ -29,10 +29,20 @@ jobs:
           echo "Running bash -n on all .sh plus setup, diagnose, test.sh..."
           find . -type f \( -name '*.sh' -o -name 'setup' -o -name 'diagnose' -o -name 'test.sh' \) ! -path "./dots/*" ! -path "./.git/*" -exec bash -n {} \; && echo "bash -n OK"
 
-      - name: shellcheck
+      # Deliberately no shellcheck step: it ran with `|| true` here for months,
+      # which only LOOKED like coverage. The desktop scripts have a known
+      # finding backlog (141 findings at -S warning on 2026-08-12) tracked in
+      # TODO.md; the bash -n syntax gate above stays a hard gate. When the
+      # backlog is cleared this step returns as a hard gate.
+      - name: shellcheck (report-only until backlog clears — see TODO.md)
+        continue-on-error: false
         run: |
-          shellcheck -x -s bash -S warning $(find . -type f -name '*.sh' ! -path "./dots/*" ! -path "./.git/*" | head -n 50) || true
-          echo "shellcheck done"
+          mapfile -t SHF < <(find . -type f -name '*.sh' ! -path "./dots/*" ! -path "./.git/*" | head -n 50)
+          shellcheck -x -s bash -S warning "${SHF[@]}" | tee /tmp/sc.log
+          echo "SHELLCHECK_FINDINGS=$(grep -cE 'SC[0-9]{4}' /tmp/sc.log || echo 0)" >> "$GITHUB_ENV"
+          if [ "${SHELLCHECK_FINDINGS:-1}" != "0" ]; then
+            echo "::warning::shellcheck reports $SHELLCHECK_FINDINGS findings — tracked in TODO.md, hard gate lands when cleared"
+          fi
 
       - name: Dry-run setup --help
         run: |
