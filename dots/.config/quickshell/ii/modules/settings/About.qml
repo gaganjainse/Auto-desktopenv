@@ -118,7 +118,7 @@ ContentPage {
                 materialIcon: "auto_stories"
                 mainText: Translation.tr("Documentation")
                 onClicked: {
-                    Qt.openUrlExternally("https://end-4.github.io/dots-hyprland-wiki/en/ii-qs/02usage/")
+                    Qt.openUrlExternally("https://end-4.github.io/shesh-desktop-wiki/en/ii-qs/02usage/")
                 }
             }
             RippleButtonWithIcon {

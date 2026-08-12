@@ -113,7 +113,7 @@ run_installer() {
     log_info "Starting full installation..."
     log_info "  - System update"
     log_info "  - NVIDIA drivers + hybrid graphics"
-    log_info "  - dots-hyprland (illogical-impulse fork)"
+    log_info "  - shesh-desktop (illogical-impulse fork)"
     log_info "  - MSI MUX switcher"
     log_info "  - Smart Organizer"
     log_info "  - Power management + utilities"

@@ -655,7 +655,7 @@ function setup_power_management(){
   zram_gb=$(( mem_gb / 2 )); (( zram_gb > 16 )) && zram_gb=16
   printf "  Detected %sGB RAM — configuring %sGB zram0 (zstd)\n" "$mem_gb" "$zram_gb"
   v sudo install -Dm644 /dev/stdin /etc/systemd/zram-generator.conf << EOFZRAM
-# managed-by=auto-desktopenv
+# managed-by=shesh-desktop
 [zram0]
 zram-size = ${zram_gb} GiB
 compression-algorithm = zstd

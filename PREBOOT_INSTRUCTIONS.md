@@ -2,7 +2,7 @@
 ## Everything to do BEFORE booting from USB
 
 **Current time:** 2026-08-07 03:13 IST  
-**Target:** MSI Sword 16 HX B14VEKG → CachyOS 260628 + dots-hyprland
+**Target:** MSI Sword 16 HX B14VEKG → CachyOS 260628 + shesh-desktop
 
 ---
 

@@ -82,7 +82,7 @@ lsblk
 
 **Desktop Environment:**
 - Select **"No Desktop"**
-- Reason: dots-hyprland handles its own dependencies
+- Reason: shesh-desktop handles its own dependencies
 
 **Additional Packages:**
 - ✅ Check: **Base-devel + Common packages**
@@ -193,7 +193,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tool
 
 ### 7.1 Dependencies
 - Removes deprecated packages
-- Installs all dots-hyprland dependencies
+- Installs all shesh-desktop dependencies
 - Installs AUR packages via yay
 
 ### 7.2 System Setup
@@ -246,7 +246,7 @@ curl -fsSL https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tool
 - Creates maintenance timer (weekly)
 
 ### 7.8 Config Files
-- Copies dots-hyprland configs to `~/.config/`
+- Copies shesh-desktop configs to `~/.config/`
 
 ---
 
