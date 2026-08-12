@@ -3,7 +3,7 @@
 > **Shesha** (शेष) is the name of the agent layer — your Shesha/Friday/Ultron. It is deliberately
 > **not** a from-scratch agent framework. As of 2026-08, the fastest path to a working,
 > production-grade voice assistant on CachyOS/Hyprland is **Newelle 1.4.5 (frontend/voice/MCP host)
-> + Ollama ≥0.32 (local models) + your own MCP servers (device skills) + a SheshaAOS-style audit log
+> + Ollama ≥0.32 (local models) + your own MCP servers (device skills) + a SheshAOS-style audit log
 > (governance).** This doc specifies exactly that, corrected for RTX 4050 6 GB and the FHD+ panel.
 
 ---
@@ -19,7 +19,7 @@
 | Vision | **moondream2** Q4 (~2.5 GB) | Screenshots/OCR. |
 | Embeddings | **nomic-embed-text** (<0.5 GB) | Memory/RAG, runs alongside primary. |
 | Tool protocol | **MCP 2026-07-28** (Model Context Protocol) | Open standard Newelle speaks; your servers are reusable in any MCP client. |
-| Governance | **Shesha audit log** (your SheshaAOS pattern) | Append-only JSONL/SQLite of every tool call + result; policy gates destructive actions. |
+| Governance | **Shesha audit log** (your SheshAOS pattern) | Append-only JSONL/SQLite of every tool call + result; policy gates destructive actions. |
 | Overlay | **Quickshell QML** (the shell you already run) | Mic/thinking/speaking indicator; no new dependency. |
 
 **Do not build** a custom wake-word daemon, STT pipeline, chat UI, or agent loop — Newelle ships all of
@@ -51,7 +51,7 @@ audit/policy layer that makes autonomy safe. That is where your unique value is.
              │ every tool call + result
              ▼
    ┌──────────────────────────────────────────────────────┐
-   │ shesha-audit  (append-only JSONL + SQLite)            │
+   │ shesh-audit  (append-only JSONL + SQLite)            │
    │ ~/.local/share/shesha/audit/events.db                 │
    │ policy.toml: which tools need confirmation / are denied│
    └──────────────────────────────────────────────────────┘
@@ -128,17 +128,17 @@ deny        = ["~/Documents/Job", "~/Projects/job", "~/Vaults", "~/.ssh", "~/.gn
 MCP servers are registered in Newelle's settings as **stdio commands** (not the bogus HTTP URLs from
 the prior config):
 ```toml
-[mcp.shesha_system]
+[mcp.shesh_system]
 command = "~/.local/state/shesha/.venv/bin/python"
-args = ["~/.local/bin/shesha-system-control-mcp"]
+args = ["~/.local/bin/shesh-system-control-mcp"]
 
-[mcp.shesha_organizer]
+[mcp.shesh_organizer]
 command = "~/.local/state/shesha/.venv/bin/python"
-args = ["~/.local/bin/shesha-smart-organizer-mcp"]
+args = ["~/.local/bin/shesh-smart-organizer-mcp"]
 
-[mcp.shesha_hyprland]
+[mcp.shesh_hyprland]
 command = "~/.local/state/shesha/.venv/bin/python"
-args = ["~/.local/bin/shesha-hyprland-control-mcp"]
+args = ["~/.local/bin/shesh-hyprland-control-mcp"]
 ```
 
 ---
@@ -208,7 +208,7 @@ Every MCP tool call is wrapped to append an event:
  "args":{"mode":"gaming"},"result":"ok","session":"newelle-...","hash":"sha256:..."}
 ```
 Stored in `~/.local/share/shesha/audit/events.db` (SQLite) + a hash-chained JSONL (each line includes
-the previous line's hash, à la SheshaAOS append-only log — tamper-evident).
+the previous line's hash, à la SheshAOS append-only log — tamper-evident).
 
 `~/.config/shesha/policy.toml`:
 ```toml
@@ -229,12 +229,12 @@ A `sesha` CLI wraps queries:
 ```bash
 shesha log --since 1h          # what did Shesha do
 shesha undo                    # undo the last reversible action
-shesha replay --from <hash>    # replay the event log (SheshaAOS-style)
+shesha replay --from <hash>    # replay the event log (SheshAOS-style)
 ```
 
-This is the bridge to your **SheshaAOS** thesis: the desktop agent becomes the first *client* of the
+This is the bridge to your **SheshAOS** thesis: the desktop agent becomes the first *client* of the
 governance/event-sourcing layer you already built in Rust. Later, replace the SQLite/JSONL shim with a
-real SheshaAOS event-store connection.
+real SheshAOS event-store connection.
 
 ---
 
@@ -263,7 +263,7 @@ You are Shesha, Gagan's local AI desktop agent on CachyOS Linux + Hyprland.
 - You are brief and precise. Prefer acting over explaining. One short sentence + the action.
 - You control the system through MCP tools (GPU, power, files, Hyprland, organizer).
 - Every action is logged; destructive actions require Gagan's confirmation per policy.toml.
-- Gagan is an AI/LLM engineer who builds SheshaAOS, SheshaOS, and Vyākṛti. Be technical when asked.
+- Gagan is an AI/LLM engineer who builds SheshAOS, SheshaOS, and Vyākṛti. Be technical when asked.
 - Speak English by default; respond in the language Gagan uses.
 - If unsure, ask one short question rather than guessing.
 ```

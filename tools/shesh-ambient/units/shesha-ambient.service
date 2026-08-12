@@ -1,6 +1,6 @@
 [Unit]
 Description=Shesha ambient scheduler and proactivity
-Documentation=https://github.com/gaganjainse/shesha-desktop
+Documentation=https://github.com/gaganjainse/shesh-desktop
 After=graphical-session.target
 
 [Service]

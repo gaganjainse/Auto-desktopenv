@@ -4,7 +4,7 @@
 # We avoid fixed wall-clock hours so jobs don't all pile up when you unlock.
 [Unit]
 Description=Shesha ambient — polite catch-up + proactivity
-Documentation=https://github.com/gaganjainse/shesha-desktop
+Documentation=https://github.com/gaganjainse/shesh-desktop
 
 [Timer]
 # First run shortly after the session starts (not at boot — wait for the desktop)

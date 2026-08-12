@@ -69,12 +69,12 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 - 2.4 Implement `subcmd-uninstall/2.undo-setups.sh` for real:
   - undo mkinitcpio MODULES (remove nvidia/i915 added by us — behind a marker comment),
   - remove `/etc/udev/rules.d/{igpu,dgpu}-device-path.rules`, `/usr/local/bin/nvidia-run`,
-  - disable+remove `smart-organizer.*`, `backup.*`, `maintenance.*`, `shesha-*-mcp.*` units,
+  - disable+remove `smart-organizer.*`, `backup.*`, `maintenance.*`, `shesh-*-mcp.*` units,
   - disable `ollama.service` (do **not** `pacman -R` without asking),
   - remove zram-generator.conf only if we created it (marker),
   - print bold warnings about bootloader params that need manual removal.
 - 2.5 Consolidate `.updateignore` to one XDG path with a one-time migration; remove the TODO.
-- 2.6 Add `CONTRIBUTING.md` at root pointing to `docs/SHESHA/` + checklist.
+- 2.6 Add `CONTRIBUTING.md` at root pointing to `docs/SHESH/` + checklist.
 - 2.7 Prune (behind a flag, don't delete upstream sync ability): keep `dist-arch`; for your personal
   install set `--device msi-sword-cachyos` which skips fedora/gentoo/nix branches. **Do not** delete
   them from the repo (they aid upstream merges) — just don't execute them.
@@ -155,14 +155,14 @@ logs to the journal and to the Shesha audit log.
 **Goal:** voice-first, local, private, auditable desktop agent.
 **Effort:** 3–5 sessions · **Risk:** medium (voice/MCP integration)
 
-Architecture in `06_SHESHA_AGENT.md`. Build order:
+Architecture in `06_SHESH_AGENT.md`. Build order:
 - 6.1 Install Newelle **1.4.5 native** (AUR, not Flatpak) + Ollama ≥0.32; pull the 6 GB-safe models.
 - 6.2 Provide the 3 MCP servers (system-control, smart-organizer, hyprland-control) over **stdio**.
 - 6.3 Configure Newelle: Ollama `phi4-mini`, STT faster-whisper `base.en`, TTS Piper, wake "Hey Shesha".
 - 6.4 Quickshell overlay (listening/thinking/speaking states) driven by Newelle's
   interface/API (1.4.0+ OpenAI-compatible endpoint) or a small bridge.
-- 6.5 `shesha-audit`: append every tool call/result to a local SQLite/JSONL event log
-  (SheshaAOS-style), with a `shesha undo` and a policy file that requires confirmation for destructive
+- 6.5 `shesh-audit`: append every tool call/result to a local SQLite/JSONL event log
+  (SheshAOS-style), with a `shesha undo` and a policy file that requires confirmation for destructive
   actions (`rm`, `pacman -R`, writes outside allowed dirs).
 - 6.6 Daily 08:00 briefing skill: weather, calendar, battery health, updates, last night's backups.
 - 6.7 (Optional, later) Android phone harness over ADB for your Realme Narzo 90x (see
@@ -173,10 +173,10 @@ visible in the overlay, recorded in the audit log, undoable.
 
 ---
 
-## Phase 7 — SheshaAOS / SheshaOS convergence (the long game)
+## Phase 7 — SheshAOS / SheshaOS convergence (the long game)
 
 **Effort:** ongoing · No deadlines. This is your research vision.
-- 7.1 Expose the Shesha audit log through the same append-only event-store API SheshaAOS uses.
+- 7.1 Expose the Shesha audit log through the same append-only event-store API SheshAOS uses.
 - 7.2 Run your RAG service locally over `~/Documents`, `~/Projects`, and the dotfiles for memory.
 - 7.3 eBPF observability: feed scheduler/power/GPU telemetry to Shesha for hints (start with
   `bcc`/`bpftrace` scripts; do **not** fork the kernel yet).

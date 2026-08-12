@@ -1,6 +1,6 @@
 # 01 — Independent Audit (verified against the live repo, 2026-08-09)
 
-> **Method:** I cloned `gaganjainse/shesha-desktop` at `36481e1` and read every installer script,
+> **Method:** I cloned `gaganjainse/shesh-desktop` at `36481e1` and read every installer script,
 > systemd unit, tool, and CI workflow directly. Prior AIs produced two audits (40 issues) and a
 > 63-page master plan, then **partially applied fixes to the repo**. This audit is the *current
 > truth*: it marks which old issues are fixed, which remain, and — critically — which **new bugs the
@@ -68,10 +68,10 @@ remove the block until it exists. Do not ship references to absent code.
 `system_control smart_organizer hyprland_control`, but only `tools/shesha/mcp_servers/system_control.py`
 exists. The `[[ -f ]]` guard means the missing two are silently skipped, yet the unit-enable loop
 **still generates and enables `.service` files for all three names**, producing
-`shesha-smart-organizer-mcp.service` and `shesha-hyprland-control-mcp.service` that point at
+`shesh-smart-organizer-mcp.service` and `shesh-hyprland-control-mcp.service` that point at
 non-existent executables → failed/dead units after boot.
 **Fix:** iterate over *present* files (`for f in "$mcp_dir"/*.py`) and derive names from disk, or
-create the two missing servers (provided in `06_SHESHA_AGENT.md`).
+create the two missing servers (provided in `06_SHESH_AGENT.md`).
 
 ### N-05 🟠 `tools/shesha/core/memory.py` is a two-line assertion stub
 The only content is a ChromaDB version assert. There is no `SheshaMemory` class, no store/search,
@@ -96,7 +96,7 @@ message tells the user to run `msi-gpu-switcher`, which does not exist.
 shipped. Newelle will fail to connect to all three. Either run the MCP servers as stdio (Newelle
 1.4.5 supports STDIO on native installs) and configure them as `command:` entries, or ship a tiny
 stdio↔HTTP bridge.
-**Fix:** use stdio MCP config in Newelle (see `06_SHESHA_AGENT.md`); remove the bogus http URLs.
+**Fix:** use stdio MCP config in Newelle (see `06_SHESH_AGENT.md`); remove the bogus http URLs.
 
 ### N-09 🟡 Bootloader/NVIDIA code has unclosed heredoc/branch in the truncated region
 The visible portion of `setup_nvidia_mux` in the live file is malformed around the systemd-boot
@@ -166,7 +166,7 @@ Your actual SKU (`B14VEKG-210IN`) is **1920×1200 FHD+ @ 144 Hz** with **RTX 405
 as the single source of these values and source it everywhere; never hardcode resolution/VRAM.
 
 ### NEW-B 🟠 No `hyprland_control` / `smart_organizer` MCP servers (also N-04) — agent can't actually control the desktop
-The headline "Shesha controls Hyprland" feature has no implementation. `06_SHESHA_AGENT.md` provides
+The headline "Shesha controls Hyprland" feature has no implementation. `06_SHESH_AGENT.md` provides
 both servers (hyprctl wrapper + organizer trigger).
 
 ### NEW-C 🟠 No wake-word/voice service unit
@@ -197,7 +197,7 @@ Verify they mention the **Lua** config (Hyprland ≥0.55) and CachyOS `chwd` dri
 update any stale `hyprland.conf` references.
 
 ### NEW-I 🔵 No `CONTRIBUTING.md` at root; PR template exists but no dev setup doc
-Add a short `CONTRIBUTING.md` pointing at `docs/SHESHA/` and the checklist, so future AI/you don't
+Add a short `CONTRIBUTING.md` pointing at `docs/SHESH/` and the checklist, so future AI/you don't
 reintroduce drift.
 
 ### NEW-J 🔵 Repo ships both `tools/backup/backup.service` (static) AND generates one via here-doc

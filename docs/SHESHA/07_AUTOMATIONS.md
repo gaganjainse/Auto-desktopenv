@@ -31,15 +31,15 @@
 
 ## 2. Power profile auto-switch (AC/battery)
 
-`/etc/udev/rules.d/99-shesha-power.rules`:
+`/etc/udev/rules.d/99-shesh-power.rules`:
 ```udev
 # On AC plug/unplug, delegate to a transient systemd unit (never run long scripts in udev)
 SUBSYSTEM=="power_supply", ATTR{online}=="1", \
-  RUN+="/usr/bin/systemd-run --no-block --unit=shesha-on-ac /usr/local/bin/shesha-power.sh ac"
+  RUN+="/usr/bin/systemd-run --no-block --unit=shesh-on-ac /usr/local/bin/shesh-power.sh ac"
 SUBSYSTEM=="power_supply", ATTR{online}=="0", \
-  RUN+="/usr/bin/systemd-run --no-block --unit=shesha-on-bat /usr/local/bin/shesha-power.sh battery"
+  RUN+="/usr/bin/systemd-run --no-block --unit=shesh-on-bat /usr/local/bin/shesh-power.sh battery"
 ```
-`/usr/local/bin/shesha-power.sh`:
+`/usr/local/bin/shesh-power.sh`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -63,7 +63,7 @@ echo "{\"ts\":\"$(date -Iseconds)\",\"event\":\"power\",\"state\":\"$state\"}" \
   >> "${XDG_DATA_HOME:-$HOME/.local/share}/shesha/audit/events.jsonl"
 ```
 ```bash
-sudo install -m755 shesha-power.sh /usr/local/bin/shesha-power.sh
+sudo install -m755 shesh-power.sh /usr/local/bin/shesh-power.sh
 sudo udevadm control --reload-rules
 ```
 > Note: dGPU MUX switching needs a reboot; don't try it on udev. The script only changes the power
@@ -75,7 +75,7 @@ sudo udevadm control --reload-rules
 
 Arch/CachyOS is rolling; blind `pacman -Syu` on a timer can break NVIDIA/Hyprland. So we only **notify**:
 
-`~/.local/bin/shesha-update-check`:
+`~/.local/bin/shesh-update-check`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -86,7 +86,7 @@ fi
 # Also check AUR if paru/yay present
 for h in paru yay; do command -v "$h" >/dev/null && "$h" -Qua 2>/dev/null | wc -l | read -r an; done
 ```
-`units/shesha-update-check.timer`:
+`units/shesh-update-check.timer`:
 ```ini
 [Unit]
 Description=Shesha update check (notify only)
@@ -110,9 +110,9 @@ Use **restic** to an external/NAS repo (`~/Backups/external` mounted). Fix BUG-0
 ```ini
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/shesha-backup
+ExecStart=%h/.local/bin/shesh-backup
 ```
-`~/.local/bin/shesha-backup`:
+`~/.local/bin/shesh-backup`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail

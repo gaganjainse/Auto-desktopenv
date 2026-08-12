@@ -13,7 +13,7 @@ Paste this at the top of every AI session. It anchors the model to reality:
 
 ```
 You are working on the "Shesha" ecosystem — Gagan's local-first, AI-first CachyOS/Hyprland desktop
-fork of end-4/dots-hyprland. Repo: /home/user/shesha-desktop (a git repo).
+fork of end-4/dots-hyprland. Repo: /home/user/shesh-desktop (a git repo).
 
 HARDWARE (verified 2026-08-09 — do NOT use other numbers):
 - MSI Sword 16 HX B14VEKG-210IN; i7-14700HX; Intel iGPU + NVIDIA RTX 4050 6GB GDDR6
@@ -30,7 +30,7 @@ RULES:
 1. Read the actual files before changing them; never assume.
 2. Give minimal, reviewable diffs (unified). Explain each change.
 3. Run/fix `bash -n`, shellcheck, py_compile, ruff, cargo check as applicable.
-4. One logical change per turn. Update docs/SHESHA/checklist.md.
+4. One logical change per turn. Update docs/SHESH/checklist.md.
 5. If a task is hardware-dependent, write the code AND a verification command; don't claim success
    without it.
 6. Never hardcode the wrong resolution/VRAM. Source them from profiles/msi-sword-cachyos/.
@@ -139,7 +139,7 @@ Create profiles/msi-sword-cachyos/ containing profile.conf (the canonical hardwa
 04_DEVICE_PROFILE.md), mkinitcpio.fragment, kernel-cmdline.txt, sysctl/99-shesha.conf,
 udev/60-ioschedulers.rules, and a hypr/custom snippet that sets monitor eDP-1,1920x1200@144 and
 battery/AC visual presets. Then wire setup to apply this profile when product_name matches "Sword 16
-HX". Every file must have a comment pointing back to docs/SHESHA/04_DEVICE_PROFILE.md. Provide
+HX". Every file must have a comment pointing back to docs/SHESH/04_DEVICE_PROFILE.md. Provide
 verification commands for display, GPU renderer, zram, scheduler.
 ```
 
@@ -148,7 +148,7 @@ verification commands for display, GPU renderer, zram, scheduler.
 ## 5. Phase 4 — organizer prompts
 
 ```
-Implement smart-organizer v2 per docs/SHESHA/05_SMART_ORGANIZER_V2.md:
+Implement smart-organizer v2 per docs/SHESH/05_SMART_ORGANIZER_V2.md:
 1. tools/smart-organizer/watcher-rs/ (Cargo.toml + src/main.rs) as specified, with debounce and
    JSON-lines output. It must build with cargo build --release.
 2. classifier.py reading JSON from stdin, deterministic EXT_MAP/NAME_PATTERNS first, optional phi4-mini
@@ -168,7 +168,7 @@ Show each file and the test output. Do not call the LLM in tests (mock it).
 ```
 Fix tools/sesha: (a) correct system_control.py (fix the `decoration` typo, add get_system_status,
 trigger_backup, set_power_profile); (b) create hyprland_control.py from
-docs/SHESHA/06_SHESHA_AGENT.md section 5; (c) create smart_organizer.py with organize/last_moves/
+docs/SHESH/06_SHESH_AGENT.md section 5; (c) create smart_organizer.py with organize/last_moves/
 undo_last/pause/resume; (d) change setup_ai_stack to iterate actual *.py files and create stdio units
 only for those (fix N-04); (e) replace the bogus http://localhost:87xx MCP URLs in
 dots/.config/newelle/config.toml with stdio command entries. Use fastmcp, stdio transport, and a
@@ -177,7 +177,7 @@ shared audit-log helper. Provide py_compile + a manual MCP smoke test.
 
 ### 6.2 Audit log + policy
 ```
-Create tools/shesha/shesha_audit.py: an append-only JSONL + SQLite writer with a chained SHA-256 hash
+Create tools/shesha/shesh_audit.py: an append-only JSONL + SQLite writer with a chained SHA-256 hash
 (prev_hash field) like an event log, and policy.toml loading (confirm/deny/auto tool lists + denied
 paths). Wrap every @mcp.tool with it (decorator) so calls/args/results are logged and denied tools
 refused. Add `shesha log` and `shesha undo` CLI subcommands. Include tests that tampering breaks the
@@ -200,7 +200,7 @@ performance at 144Hz.
 ### 7.1 An AI gives you code you're unsure about
 ```
 You are a skeptical reviewer. Here is a patch <paste>. Verify: (1) does it match the verified
-hardware/OS facts in docs/SHESHA/00_INDEX.md? (2) does it introduce undefined vars, missing quoting,
+hardware/OS facts in docs/SHESH/00_INDEX.md? (2) does it introduce undefined vars, missing quoting,
 or unguarded rm? (3) is it idempotent? (4) does it duplicate something already present? (5) what's
 the exact command to test it on CachyOS? List problems by severity and give corrected diffs.
 ```
@@ -209,7 +209,7 @@ the exact command to test it on CachyOS? List problems by severity and give corr
 ```
 Read the error below <paste>. Determine which phase/script failed, find the root cause in the repo
 (not just the symptom), propose a minimal fix, and a command to resume from where it stopped without
-re-running completed steps. If it's a known issue from docs/SHESHA/01_AUDIT.md, cite its ID.
+re-running completed steps. If it's a known issue from docs/SHESH/01_AUDIT.md, cite its ID.
 ```
 
 ### 7.3 Before rebasing on upstream end-4
@@ -241,7 +241,7 @@ the iGPU or hurts battery. Give the exact custom/*.lua / QML snippets.
 
 ### 7.6 Adding a new automation
 ```
-I want to automate: <describe>. Following docs/SHESHA/07_AUTOMATIONS.md conventions, produce a
+I want to automate: <describe>. Following docs/SHESH/07_AUTOMATIONS.md conventions, produce a
 canonical .service + .timer under tools/<name>/units/, the script under tools/<name>/, an install
 snippet for setup, an uninstall reversal, an audit-log append, and a dry-run flag. It must not run
 destructive actions without asking for the first 7 days. Show the file tree and diffs.
@@ -249,7 +249,7 @@ destructive actions without asking for the first 7 days. Show the file tree and 
 
 ### 7.7 Writing a weekly progress / resume prompt
 ```
-Read docs/SHESHA/checklist.md and git log since last week. Summarize what's done, what's next from
+Read docs/SHESH/checklist.md and git log since last week. Summarize what's done, what's next from
 02_ROADMAP.md, any blockers, and produce the next 5 ordered tasks as copy-paste prompts in the style
 of this file. Keep me moving one phase at a time and don't let scope creep.
 ```
@@ -264,4 +264,4 @@ of this file. Keep me moving one phase at a time and don't let scope creep.
   checklist; commit with a Conventional Commit (`fix:`, `feat:`, `docs:`, `chore(ci):`).
 - If an AI contradicts `00_INDEX.md` hardware facts, it's wrong — correct it.
 - Prefer asking it to *show* the plan first for anything touching bootloader/NVIDIA/partitioning.
-- Keep `docs/SHESHA/` as the spec of record; if reality changes, update the doc in the same commit.
+- Keep `docs/SHESH/` as the spec of record; if reality changes, update the doc in the same commit.

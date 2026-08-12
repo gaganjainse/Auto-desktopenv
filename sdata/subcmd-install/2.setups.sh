@@ -597,15 +597,15 @@ function setup_ai_stack() {
   shopt -s nullglob
   for mcp_file in "${mcp_dir}"/*.py; do
     mcp_server="$(basename "${mcp_file}" .py)"
-    v install -Dm755 "${mcp_file}" "${BIN_DIR}/shesha-${mcp_server//_/-}-mcp"
-    cat > "${unit_dest}/shesha-${mcp_server//_/-}-mcp.service" << EOF
+    v install -Dm755 "${mcp_file}" "${BIN_DIR}/shesh-${mcp_server//_/-}-mcp"
+    cat > "${unit_dest}/shesh-${mcp_server//_/-}-mcp.service" << EOF
 [Unit]
 Description=Shesha MCP Server: ${mcp_server}
 After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=${venv}/bin/python ${BIN_DIR}/shesha-${mcp_server//_/-}-mcp
+ExecStart=${venv}/bin/python ${BIN_DIR}/shesh-${mcp_server//_/-}-mcp
 Restart=on-failure
 RestartSec=5s
 TimeoutStartSec=15
@@ -623,11 +623,11 @@ EOF
 
   v systemctl --user daemon-reload
   for mcp_server in "${installed[@]}"; do
-    v systemctl --user enable --now "shesha-${mcp_server//_/-}-mcp.service"
+    v systemctl --user enable --now "shesh-${mcp_server//_/-}-mcp.service"
   done
   log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + MCP servers: ${installed[*]}) installed"
   log_info   "Launch Newelle → Settings → Models → Add Ollama → phi4-mini"
-  log_info   "Settings → MCP → Add server → path: shesha-system-control-mcp"
+  log_info   "Settings → MCP → Add server → path: shesh-system-control-mcp"
 }
 
 showfun setup_ai_stack

@@ -1,7 +1,7 @@
 # 03 — Disk Structure: Work vs Personal vs Job
 
 > A clean, XDG-compliant, backup-friendly layout that separates your **job** (employed work),
-> **personal projects** (SheshaAOS, SheshaOS, Vyākṛti, shesha-desktop), and **personal life**, while
+> **personal projects** (SheshAOS, SheshaOS, Vyākṛti, shesh-desktop), and **personal life**, while
 > giving the smart-organizer and Shesha predictable roots to operate on.
 
 ---
@@ -62,10 +62,10 @@ Gen4 drive; use the Gen5 slot later for a second disk (projects/VMs) or a larger
 ├── Projects/                  ← ALL code, clearly split
 │   ├── job/                   ← work repos (cloned with work git identity)
 │   ├── personal/              ← your own repos
-│   │   ├── shesha-desktop/
-│   │   ├── SheshaAOS/
+│   │   ├── shesh-desktop/
+│   │   ├── SheshAOS/
 │   │   ├── SheshaOS/
-│   │   ├── shesha-kernel/
+│   │   ├── shesh-kernel/
 │   │   ├── Vyakrti/
 │   │   ├── rag-service/
 │   │   ├── llm-eval-harness/

@@ -3,7 +3,7 @@
 # Reverses the system changes made by sdata/subcmd-install/2.setups.sh.
 # Sourced by 0.run.sh. Safe to re-run. Conservative: it never removes packages
 # without asking and never edits the bootloader automatically.
-# See docs/SHESHA/02_ROADMAP.md (Phase 2) and 01_AUDIT.md (HIGH-06).
+# See docs/SHESH/02_ROADMAP.md (Phase 2) and 01_AUDIT.md (HIGH-06).
 
 undo_nvidia_mux() {
   printf "${STY_CYAN}[$0]: Undoing NVIDIA/MUX setup${STY_RST}\n"
@@ -39,8 +39,8 @@ undo_ai_stack() {
 
   # Stop/disable user units we created (only if systemctl --user works)
   if command_exists systemctl && [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
-    for u in shesha-system-control-mcp.service shesha-smart-organizer-mcp.service \
-             shesha-hyprland-control-mcp.service; do
+    for u in shesh-system-control-mcp.service shesh-smart-organizer-mcp.service \
+             shesh-hyprland-control-mcp.service; do
       v systemctl --user disable --now "$u" 2>/dev/null || true
       v rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$u"
     done
@@ -48,7 +48,7 @@ undo_ai_stack() {
   fi
 
   # Remove installed MCP launcher symlinks
-  v rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}"/shesha-*-mcp
+  v rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}"/shesh-*-mcp
   v rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}"/sm-watcher
 
   # Remove the Shesha venv (state, not config)

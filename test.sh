@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Comprehensive test suite for shesha-desktop
+# Comprehensive test suite for shesh-desktop
 # Tests syntax, help output, dry-run behavior, and functional correctness
 #
 
