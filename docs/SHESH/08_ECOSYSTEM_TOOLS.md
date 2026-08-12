@@ -150,7 +150,7 @@ Standardize the repo on:
 
 ## 6. The kernel/AI-OS vision — realistic track
 
-Your long-term thesis (AI-first OS, SheshAOS/SheshaOS/shesh-kernel) is valid but years-scale. The
+Your long-term thesis (AI-first OS, SheshAOS/SHESH/shesh-kernel) is valid but years-scale. The
 practical near-term contributions that build toward it without a from-scratch kernel:
 
 1. **eBPF observability:** write BCC/libbpf tools that collect scheduler, GPU, and I/O telemetry and

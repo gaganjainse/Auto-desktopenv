@@ -46,7 +46,7 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 - 1.2 Add `.github/workflows/arch-test.yml`: `container: archlinux:latest`, `pacman -Syu --noconfirm
   git bash shellcheck`, run `bash -n`, `shellcheck`, then `./setup --help` and `./diagnose` (dry).
 - 1.3 Extend `python-check.yml` to `py_compile` and `ruff`/`flake8` everything under
-  `tools/sesha` and `tools/smart-organizer/**/*.py`.
+  `tools/shesh` and `tools/smart-organizer/**/*.py`.
 - 1.4 Add a `cargo check` step for `watcher-rs` once created (Phase 3).
 - 1.5 Add a `Makefile` / `justfile` with `make lint`, `make test`, `make dry-install` so you and AI
   have one command to validate.
@@ -173,7 +173,7 @@ visible in the overlay, recorded in the audit log, undoable.
 
 ---
 
-## Phase 7 — SheshAOS / SheshaOS convergence (the long game)
+## Phase 7 — SheshAOS / SHESH convergence (the long game)
 
 **Effort:** ongoing · No deadlines. This is your research vision.
 - 7.1 Expose the Shesh audit log through the same append-only event-store API SheshAOS uses.

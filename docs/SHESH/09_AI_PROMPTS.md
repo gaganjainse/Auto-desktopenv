@@ -166,7 +166,7 @@ Show each file and the test output. Do not call the LLM in tests (mock it).
 
 ### 6.1 MCP servers
 ```
-Fix tools/sesha: (a) correct system_control.py (fix the `decoration` typo, add get_system_status,
+Fix tools/shesh: (a) correct system_control.py (fix the `decoration` typo, add get_system_status,
 trigger_backup, set_power_profile); (b) create hyprland_control.py from
 docs/SHESH/06_SHESH_AGENT.md section 5; (c) create smart_organizer.py with organize/last_moves/
 undo_last/pause/resume; (d) change setup_ai_stack to iterate actual *.py files and create stdio units
@@ -186,7 +186,7 @@ chain.
 
 ### 6.3 Quickshell overlay
 ```
-Create dots/.config/quickshell/ii/shesh/SheshaOverlay.qml: a small Material-You-colored pill (reuse
+Create dots/.config/quickshell/ii/shesh/SheshOverlay.qml: a small Material-You-colored pill (reuse
 end-4's color variables) bottom-right showing idle/listening/thinking/speaking states. It should read
 state from a small file/socket the Newelle bridge updates (do not assume an API that doesn't exist;
 propose the minimal bridge). Keep it <150 lines, no heavy dependencies. Note it must not regress

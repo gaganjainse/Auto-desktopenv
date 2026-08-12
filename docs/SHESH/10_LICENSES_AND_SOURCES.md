@@ -101,7 +101,7 @@ watchfiles>=0.24   # only if not using the Rust watcher
 
 | Link | What it is | Verdict / use |
 |---|---|---|
-| github.com/gaganjainse | your profile | AI/LLM engineer; SheshAOS, SheshaOS, Vyākṛti, RAG, eval harness |
+| github.com/gaganjainse | your profile | AI/LLM engineer; SheshAOS, SHESH, Vyākṛti, RAG, eval harness |
 | github.com/gaganjainse/shesh-desktop | this repo | fork of end-4; subject of this work |
 | youtube.com/shorts/emfFxq_yXvA | Jarvis-like voice demo | inspiration = wake word + STT + TTS + desktop control (Newelle + MCP) |
 | youtube.com/shorts/WSBwga31gE0 | voice assistant demo | same pattern |
@@ -129,7 +129,7 @@ Note: one URL in your message was concatenated incorrectly
 | Repo | Role in the Shesh vision |
 |---|---|
 | **SheshAOS** | Governance/event-sourcing layer → Shesh audit log & policy (the bridge) |
-| **SheshaOS** | Local-first specialist-model OS concept → informs model routing |
+| **SHESH** | Local-first specialist-model OS concept → informs model routing |
 | **shesh-kernel** | Alpha microkernel track → long-term research, not daily driver |
 | **rag-service** | Run locally as `shesh-memory` (RAG over notes/docs/projects) |
 | **llm-eval-harness** | Use to evaluate phi4-mini/qwen2.5-coder on your own tool-use tasks |

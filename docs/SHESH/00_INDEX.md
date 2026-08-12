@@ -94,7 +94,7 @@ The authoritative issue list with current status is in `01_AUDIT.md`.
 ## 3. Your philosophy (read this before changing anything)
 
 From your chats, GitHub profile (`AI/LLM Engineer, VIT Vellore 2025, author of SheshAOS`), and
-repos (SheshAOS — governance-first, event-sourced, append-only audit trail; SheshaOS — local-first
+repos (SheshAOS — governance-first, event-sourced, append-only audit trail; SeshaOS (archived; now SHESH) — local-first
 specialist models; Vyākṛti — a Sanskrit programming language; RAG service; LLM eval harness), the
 design principles for this ecosystem are:
 
@@ -123,5 +123,5 @@ an explicit exception in this file.
 your folders and organizes them, switches GPU/power profiles based on what you're doing, backs up
 and maintains the system in the background, and answers you by voice through a Quickshell overlay —
 all while writing every action to a SheshAOS-style audit log so nothing it does is invisible or
-irreversible. Over time it becomes the desktop manifestation of your SheshAOS/SheshaOS thesis:
+irreversible. Over time it becomes the desktop manifestation of your SheshAOS/SHESH thesis:
 an AI-first operating environment built on a fast, beautiful, trustworthy open base.

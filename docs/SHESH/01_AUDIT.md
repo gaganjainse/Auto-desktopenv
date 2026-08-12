@@ -74,7 +74,7 @@ non-existent executables → failed/dead units after boot.
 create the two missing servers (provided in `06_SHESH_AGENT.md`).
 
 ### N-05 🟠 `tools/shesh/core/memory.py` is a two-line assertion stub
-The only content is a ChromaDB version assert. There is no `SheshaMemory` class, no store/search,
+The only content is a ChromaDB version assert. There is no `SheshMemory` class, no store/search,
 despite the roadmap and `agent.py` pseudocode referencing it. `Cargo.toml` declares a Rust binary
 with no `src/main.rs`. `config/statusbar.json` is `{"pattern":"ml4w-2.14.1"}` with no explanatory
 schema. These are scaffolding placeholders that look finished.
@@ -189,7 +189,7 @@ The repo has a `test.sh` but it targets upstream exp-update logic. The new tools
 At minimum add: shellcheck + `bash -n` for all `.sh`; `python -m py_compile` for all `.py`; a
 containerized dry-run. This is how N-01..N-09 reached `main`.
 
-### NEW-G 🟡 `.github/workflows/python-check.yml` exists but its scope vs the new `tools/sesha` is unverified
+### NEW-G 🟡 `.github/workflows/python-check.yml` exists but its scope vs the new `tools/shesh` is unverified
 Confirm it actually lints MCP servers; if it only checks `sdata/uv`, it misses the new Python.
 
 ### NEW-H 🔵 `PREBOOT_INSTRUCTIONS.md` and `INSTALLATION_GUIDE.md` may reference the old TOML Hyprland config

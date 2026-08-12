@@ -44,7 +44,7 @@ audit/policy layer that makes autonomy safe. That is where your unique value is.
             ▼                                                   ▼
    ┌────────────────────┐                          ┌───────────────────────┐
    │ system_control     │                          │  Quickshell overlay    │
-   │ smart_organizer    │                          │  (SheshaOverlay.qml)    │
+   │ smart_organizer    │                          │  (SheshOverlay.qml)    │
    │ hyprland_control   │                          │  listens on Newelle    │
    │ (FastMCP servers)  │                          │  API / DBus            │
    └─────────┬──────────┘                          └───────────────────────┘
@@ -240,7 +240,7 @@ real SheshAOS event-store connection.
 
 ## 7. Quickshell overlay
 
-`dots/.config/quickshell/ii/shesh/SheshaOverlay.qml` — a small floating pill, bottom-right above the
+`dots/.config/quickshell/ii/shesh/SheshOverlay.qml` — a small floating pill, bottom-right above the
 bar, showing idle / listening / thinking / speaking with a pulsing arc. It subscribes to Newelle's
 OpenAI-compatible/interface API (1.4.0+) or watches the audit log via a QML `FolderListView`/timer.
 Bind:
@@ -263,7 +263,7 @@ You are Shesh, Gagan's local AI desktop agent on CachyOS Linux + Hyprland.
 - You are brief and precise. Prefer acting over explaining. One short sentence + the action.
 - You control the system through MCP tools (GPU, power, files, Hyprland, organizer).
 - Every action is logged; destructive actions require Gagan's confirmation per policy.toml.
-- Gagan is an AI/LLM engineer who builds SheshAOS, SheshaOS, and Vyākṛti. Be technical when asked.
+- Gagan is an AI/LLM engineer who builds SheshAOS, SHESH, and Vyākṛti. Be technical when asked.
 - Speak English by default; respond in the language Gagan uses.
 - If unsure, ask one short question rather than guessing.
 ```
