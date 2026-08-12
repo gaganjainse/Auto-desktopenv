@@ -65,7 +65,7 @@ remove the block until it exists. Do not ship references to absent code.
 
 ### N-04 🟠 MCP server loop references `hyprland_control.py` and `smart_organizer.py` that don't exist
 **File:** `2.setups.sh` installs MCP servers by iterating
-`system_control smart_organizer hyprland_control`, but only `tools/shesha/mcp_servers/system_control.py`
+`system_control smart_organizer hyprland_control`, but only `tools/shesh/mcp_servers/system_control.py`
 exists. The `[[ -f ]]` guard means the missing two are silently skipped, yet the unit-enable loop
 **still generates and enables `.service` files for all three names**, producing
 `shesh-smart-organizer-mcp.service` and `shesh-hyprland-control-mcp.service` that point at
@@ -73,7 +73,7 @@ non-existent executables → failed/dead units after boot.
 **Fix:** iterate over *present* files (`for f in "$mcp_dir"/*.py`) and derive names from disk, or
 create the two missing servers (provided in `06_SHESH_AGENT.md`).
 
-### N-05 🟠 `tools/shesha/core/memory.py` is a two-line assertion stub
+### N-05 🟠 `tools/shesh/core/memory.py` is a two-line assertion stub
 The only content is a ChromaDB version assert. There is no `SheshaMemory` class, no store/search,
 despite the roadmap and `agent.py` pseudocode referencing it. `Cargo.toml` declares a Rust binary
 with no `src/main.rs`. `config/statusbar.json` is `{"pattern":"ml4w-2.14.1"}` with no explanatory
@@ -104,7 +104,7 @@ branch (`ue` / `NEEDS_INITRAMFS_REBUILD` appears mid-function without the enclos
 Run `bash -n sdata/subcmd-install/2.setups.sh` and fix every syntax error before relying on it.
 **Action:** `bash -n` must pass cleanly; this is the first CI gate (see `02_ROADMAP.md`).
 
-### N-10 🟡 `dots/.config/shesha/config.toml` references "RTX 4050 GPU" correctly, but claims iGPU offload
+### N-10 🟡 `dots/.config/shesh/config.toml` references "RTX 4050 GPU" correctly, but claims iGPU offload
 for `moondream2` via "v0.31.2" — Ollama's iGPU offload for vision is Intel-ARC-specific and your
 14700HX iGPU is Arc (Xe-LPG) class, so it may work, but this is unverified; treat as experimental
 and don't make it a hard dependency of the install.

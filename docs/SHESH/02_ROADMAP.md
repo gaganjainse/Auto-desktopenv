@@ -20,7 +20,7 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 | 0.3 | Fix MSI DMI detection to test *content* with OR; tighten to `Sword 16 HX` for device features | BUG-05, N- | ☐ |
 | 0.4 | Rewrite `setup_power_management`: detect RAM (`/proc/meminfo`), write `/etc/systemd/zram-generator.conf` (RAM/2, zstd, cap 16G), enable service; install `power-profiles-daemon` only on Arch | HIGH-05 | ☐ |
 | 0.5 | Run `bash -n` on every script in `sdata/` and `tools/`; fix syntax (esp. NVIDIA heredoc/case) | N-09 | ☐ |
-| 0.6 | MCP install: iterate `tools/shesha/mcp_servers/*.py` that actually exist; don't enable units for missing files; **or** add the 2 missing servers now | N-04 | ☐ |
+| 0.6 | MCP install: iterate `tools/shesh/mcp_servers/*.py` that actually exist; don't enable units for missing files; **or** add the 2 missing servers now | N-04 | ☐ |
 | 0.7 | Idempotent mkinitcpio MODULES edit (read list, dedupe, prepend nvidia+i915) | BUG-06 | ☐ |
 | 0.8 | Fix NVIDIA tail message `msi-mux-switcher` | N-07 | ☐ |
 | 0.9 | License: README → GPL-3.0 badge/text; fill `licenses/MIT.txt` (2024–2026, gaganjainse) or delete it | MED-16 | ☐ |

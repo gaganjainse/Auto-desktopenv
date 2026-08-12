@@ -52,7 +52,7 @@ audit/policy layer that makes autonomy safe. That is where your unique value is.
              ▼
    ┌──────────────────────────────────────────────────────┐
    │ shesh-audit  (append-only JSONL + SQLite)            │
-   │ ~/.local/share/shesha/audit/events.db                 │
+   │ ~/.local/share/shesh/audit/events.db                 │
    │ policy.toml: which tools need confirmation / are denied│
    └──────────────────────────────────────────────────────┘
              │
@@ -78,8 +78,8 @@ systemctl --user enable --now ollama.service   # or system service; prefer user 
 paru -S --needed newelle        # or: yay -S newelle ; shelly if its CLI supports -S
 
 # 3. Python venv for the MCP servers and memory
-uv venv ~/.local/state/shesha/.venv
-uv pip install --python ~/.local/state/shesha/.venv/bin/python \
+uv venv ~/.local/state/shesh/.venv
+uv pip install --python ~/.local/state/shesh/.venv/bin/python \
   "mcp[cli]>=1.0" "fastmcp>=0.1" "chromadb>=1.5.9" "httpx>=0.27" "pydantic>=2"
 
 # 4. 6 GB-safe models (one at a time on GPU; nomic-embed can co-reside)
@@ -129,15 +129,15 @@ MCP servers are registered in Newelle's settings as **stdio commands** (not the 
 the prior config):
 ```toml
 [mcp.shesh_system]
-command = "~/.local/state/shesha/.venv/bin/python"
+command = "~/.local/state/shesh/.venv/bin/python"
 args = ["~/.local/bin/shesh-system-control-mcp"]
 
 [mcp.shesh_organizer]
-command = "~/.local/state/shesha/.venv/bin/python"
+command = "~/.local/state/shesh/.venv/bin/python"
 args = ["~/.local/bin/shesh-smart-organizer-mcp"]
 
 [mcp.shesh_hyprland]
-command = "~/.local/state/shesha/.venv/bin/python"
+command = "~/.local/state/shesh/.venv/bin/python"
 args = ["~/.local/bin/shesh-hyprland-control-mcp"]
 ```
 
@@ -207,10 +207,10 @@ Every MCP tool call is wrapped to append an event:
 {"ts":"2026-08-09T18:11:02+05:30","server":"system_control","tool":"switch_gpu_mode",
  "args":{"mode":"gaming"},"result":"ok","session":"newelle-...","hash":"sha256:..."}
 ```
-Stored in `~/.local/share/shesha/audit/events.db` (SQLite) + a hash-chained JSONL (each line includes
+Stored in `~/.local/share/shesh/audit/events.db` (SQLite) + a hash-chained JSONL (each line includes
 the previous line's hash, à la SheshAOS append-only log — tamper-evident).
 
-`~/.config/shesha/policy.toml`:
+`~/.config/shesh/policy.toml`:
 ```toml
 [confirm]
 # these tools require an in-chat "yes" before running
@@ -240,7 +240,7 @@ real SheshAOS event-store connection.
 
 ## 7. Quickshell overlay
 
-`dots/.config/quickshell/ii/shesha/SheshaOverlay.qml` — a small floating pill, bottom-right above the
+`dots/.config/quickshell/ii/shesh/SheshaOverlay.qml` — a small floating pill, bottom-right above the
 bar, showing idle / listening / thinking / speaking with a pulsing arc. It subscribes to Newelle's
 OpenAI-compatible/interface API (1.4.0+) or watches the audit log via a QML `FolderListView`/timer.
 Bind:
@@ -256,7 +256,7 @@ separate UI; the overlay is status only, interaction is by voice or Newelle.
 
 ## 8. Persona ("SOUL")
 
-`~/.config/shesha/SOUL.md` (fed as Newelle's system prompt):
+`~/.config/shesh/SOUL.md` (fed as Newelle's system prompt):
 ```
 You are Shesha, Gagan's local AI desktop agent on CachyOS Linux + Hyprland.
 - You are private-first: all models run locally; never send personal data to the cloud.

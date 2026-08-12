@@ -177,7 +177,7 @@ shared audit-log helper. Provide py_compile + a manual MCP smoke test.
 
 ### 6.2 Audit log + policy
 ```
-Create tools/shesha/shesh_audit.py: an append-only JSONL + SQLite writer with a chained SHA-256 hash
+Create tools/shesh/shesh_audit.py: an append-only JSONL + SQLite writer with a chained SHA-256 hash
 (prev_hash field) like an event log, and policy.toml loading (confirm/deny/auto tool lists + denied
 paths). Wrap every @mcp.tool with it (decorator) so calls/args/results are logged and denied tools
 refused. Add `shesha log` and `shesha undo` CLI subcommands. Include tests that tampering breaks the
@@ -186,7 +186,7 @@ chain.
 
 ### 6.3 Quickshell overlay
 ```
-Create dots/.config/quickshell/ii/shesha/SheshaOverlay.qml: a small Material-You-colored pill (reuse
+Create dots/.config/quickshell/ii/shesh/SheshaOverlay.qml: a small Material-You-colored pill (reuse
 end-4's color variables) bottom-right showing idle/listening/thinking/speaking states. It should read
 state from a small file/socket the Newelle bridge updates (do not assume an API that doesn't exist;
 propose the minimal bridge). Keep it <150 lines, no heavy dependencies. Note it must not regress
