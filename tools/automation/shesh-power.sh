@@ -12,7 +12,7 @@ case "$state" in
       hyprctl --keyword decoration:blur:passes 3 >/dev/null
       hyprctl --keyword decoration:shadow:enabled 1 >/dev/null
     }
-    notify-send -a Shesha -i battery-full-charging "Power" "AC connected — performance" 2>/dev/null || true
+    notify-send -a Shesh -i battery-full-charging "Power" "AC connected — performance" 2>/dev/null || true
     ;;
   battery)
     powerprofilesctl set power-saver
@@ -20,12 +20,12 @@ case "$state" in
       hyprctl --keyword decoration:blur:passes 1 >/dev/null
       hyprctl --keyword decoration:shadow:enabled 0 >/dev/null
     }
-    notify-send -a Shesha -i battery-caution "Power" "On battery — power saver" 2>/dev/null || true
+    notify-send -a Shesh -i battery-caution "Power" "On battery — power saver" 2>/dev/null || true
     ;;
   *)
     echo "usage: $0 ac|battery" >&2; exit 2 ;;
 esac
 
-logdir="${XDG_DATA_HOME:-$HOME/.local/share}/shesha/audit"
+logdir="${XDG_DATA_HOME:-$HOME/.local/share}/shesh/audit"
 mkdir -p "$logdir"
 printf '{"ts":"%s","event":"power","state":"%s"}\n' "$(date -Iseconds)" "$state" >> "$logdir/events.jsonl"

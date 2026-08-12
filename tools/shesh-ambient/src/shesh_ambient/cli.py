@@ -144,7 +144,7 @@ def offer(_args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Shesha ambient scheduler/proactivity")
+    ap = argparse.ArgumentParser(description="Shesh ambient scheduler/proactivity")
     ap.add_argument("--dry-run", action="store_true")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("tick")

@@ -57,11 +57,11 @@ run() {
   "$@"
 }
 
-# Append a JSON line to the Shesha audit log.
+# Append a JSON line to the Shesh audit log.
 shesh_audit() {
   # usage: shesh_audit <event> [key=value ...]
   local event="$1"; shift || return 0
-  local logdir="${XDG_DATA_HOME:-$HOME/.local/share}/shesha/audit"
+  local logdir="${XDG_DATA_HOME:-$HOME/.local/share}/shesh/audit"
   mkdir -p "$logdir"
   local ts; ts="$(date -Iseconds)"
   local kv="" k v

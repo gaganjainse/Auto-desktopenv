@@ -549,7 +549,7 @@ function setup_ai_stack() {
   fi
 
   # ── 4. Python venv for MCP servers + STT + TTS ────────────────────────────
-  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/shesha/.venv"
+  local venv="${XDG_STATE_HOME:-$HOME/.local/state}/shesh/.venv"
   v uv venv "$venv"
 
   # Install all pinned dependencies
@@ -591,7 +591,7 @@ function setup_ai_stack() {
   v ollama pull moondream2
 
   # ── 7 & 8. Install MCP servers that ACTUALLY EXIST (no dead units) ────────
-  local mcp_dir="${REPO_ROOT}/tools/shesha/mcp_servers"
+  local mcp_dir="${REPO_ROOT}/tools/shesh/mcp_servers"
   local unit_dest="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
   local mcp_server installed=()
   shopt -s nullglob
@@ -600,7 +600,7 @@ function setup_ai_stack() {
     v install -Dm755 "${mcp_file}" "${BIN_DIR}/shesh-${mcp_server//_/-}-mcp"
     cat > "${unit_dest}/shesh-${mcp_server//_/-}-mcp.service" << EOF
 [Unit]
-Description=Shesha MCP Server: ${mcp_server}
+Description=Shesh MCP Server: ${mcp_server}
 After=graphical-session.target
 
 [Service]

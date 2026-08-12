@@ -1,4 +1,4 @@
-# Ambient Shesha — scheduling without a 24/7 assumption
+# Ambient Shesh — scheduling without a 24/7 assumption
 
 The first automation draft used fixed wall-clock timers (`Sun 03:00`, `08:00`).
 That's wrong for a laptop: it's asleep/off much of the day, `Persistent=true`

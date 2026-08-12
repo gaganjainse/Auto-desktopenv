@@ -3,7 +3,7 @@
 > Goal: a **hands-off** file organizer that reacts within a minute of a file landing in
 > Downloads/Desktop/Inbox, classifies it with deterministic rules first and a small local LLM for
 > ambiguous cases, **never deletes anything you didn't approve**, and can undo every move. It is the
-> first tool Shesha can drive by voice.
+> first tool Shesh can drive by voice.
 
 ---
 
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 4. Records the move in `~/.local/share/smart-organizer/undo/YYYYMMDD.jsonl`:
    `{"ts":..,"from":..,"to":..,"method":..}` and inserts a row in `history.db`.
 5. Uses **`gio trash`** for any deletes/cleanups (never `rm` on user files).
-6. Emits a Quickshell notification (`notify-send -a SmartOrganizer ...`) and a signal Shesha can read.
+6. Emits a Quickshell notification (`notify-send -a SmartOrganizer ...`) and a signal Shesh can read.
 
 Canonical, deduplicated safety patterns (`tools/smart-organizer/lib/safety.sh`):
 ```bash
@@ -302,7 +302,7 @@ conflicting variants currently in the repo.
 
 ---
 
-## 7. MCP surface for Shesha
+## 7. MCP surface for Shesh
 
 `tools/shesh/mcp_servers/smart_organizer.py` (FastMCP stdio) exposes:
 - `organize(path="~/Downloads", dry_run=False)` — trigger a sweep.
@@ -310,7 +310,7 @@ conflicting variants currently in the repo.
 - `undo_last()` — reverse the most recent batch (reads undo JSONL, moves files back).
 - `pause(minutes=60)` / `resume()` — stop the watcher (e.g., while downloading a big torrent).
 
-This makes "Hey Shesha, organize my downloads and undo the last thing" work by voice.
+This makes "Hey Shesh, organize my downloads and undo the last thing" work by voice.
 
 ---
 

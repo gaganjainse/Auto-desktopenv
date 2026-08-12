@@ -1,6 +1,6 @@
-# 06 — Shesha: the local, voice-first desktop agent
+# 06 — Shesh: the local, voice-first desktop agent
 
-> **Shesha** (शेष) is the name of the agent layer — your Shesha/Friday/Ultron. It is deliberately
+> **Shesh** (शेष) is the name of the agent layer — your Shesh/Friday/Ultron. It is deliberately
 > **not** a from-scratch agent framework. As of 2026-08, the fastest path to a working,
 > production-grade voice assistant on CachyOS/Hyprland is **Newelle 1.4.5 (frontend/voice/MCP host)
 > + Ollama ≥0.32 (local models) + your own MCP servers (device skills) + a SheshAOS-style audit log
@@ -19,7 +19,7 @@
 | Vision | **moondream2** Q4 (~2.5 GB) | Screenshots/OCR. |
 | Embeddings | **nomic-embed-text** (<0.5 GB) | Memory/RAG, runs alongside primary. |
 | Tool protocol | **MCP 2026-07-28** (Model Context Protocol) | Open standard Newelle speaks; your servers are reusable in any MCP client. |
-| Governance | **Shesha audit log** (your SheshAOS pattern) | Append-only JSONL/SQLite of every tool call + result; policy gates destructive actions. |
+| Governance | **Shesh audit log** (your SheshAOS pattern) | Append-only JSONL/SQLite of every tool call + result; policy gates destructive actions. |
 | Overlay | **Quickshell QML** (the shell you already run) | Mic/thinking/speaking indicator; no new dependency. |
 
 **Do not build** a custom wake-word daemon, STT pipeline, chat UI, or agent loop — Newelle ships all of
@@ -33,7 +33,7 @@ audit/policy layer that makes autonomy safe. That is where your unique value is.
 ```
                        ┌──────────────────────────────┐
                        │   Newelle 1.4.5 (GTK4)       │
-                       │  - wake word "Hey Shesha"     │
+                       │  - wake word "Hey Shesh"     │
                        │  - STT faster-whisper        │
                        │  - TTS piper/kokoro           │
                        │  - MCP client (stdio)        │
@@ -74,7 +74,7 @@ no auth surface). The audit log is written by a thin wrapper the MCP servers cal
 sudo pacman -S --needed ollama
 systemctl --user enable --now ollama.service   # or system service; prefer user for per-user models
 
-# 2. Newelle 1.4.5 NATIVE (AUR). Do NOT use Flatpak for Shesha — sandbox blocks stdio MCP + mic.
+# 2. Newelle 1.4.5 NATIVE (AUR). Do NOT use Flatpak for Shesh — sandbox blocks stdio MCP + mic.
 paru -S --needed newelle        # or: yay -S newelle ; shelly if its CLI supports -S
 
 # 3. Python venv for the MCP servers and memory
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
 ---
 
-## 6. Governance: the Shesha audit log + policy
+## 6. Governance: the Shesh audit log + policy
 
 Every MCP tool call is wrapped to append an event:
 ```jsonl
@@ -227,9 +227,9 @@ tools = ["get_system_status", "last_moves", "switch_workspace", "get_active_wind
 ```
 A `sesha` CLI wraps queries:
 ```bash
-shesha log --since 1h          # what did Shesha do
-shesha undo                    # undo the last reversible action
-shesha replay --from <hash>    # replay the event log (SheshAOS-style)
+shesh log --since 1h          # what did Shesh do
+shesh undo                    # undo the last reversible action
+shesh replay --from <hash>    # replay the event log (SheshAOS-style)
 ```
 
 This is the bridge to your **SheshAOS** thesis: the desktop agent becomes the first *client* of the
@@ -258,7 +258,7 @@ separate UI; the overlay is status only, interaction is by voice or Newelle.
 
 `~/.config/shesh/SOUL.md` (fed as Newelle's system prompt):
 ```
-You are Shesha, Gagan's local AI desktop agent on CachyOS Linux + Hyprland.
+You are Shesh, Gagan's local AI desktop agent on CachyOS Linux + Hyprland.
 - You are private-first: all models run locally; never send personal data to the cloud.
 - You are brief and precise. Prefer acting over explaining. One short sentence + the action.
 - You control the system through MCP tools (GPU, power, files, Hyprland, organizer).
@@ -284,7 +284,7 @@ You are Shesha, Gagan's local AI desktop agent on CachyOS Linux + Hyprland.
 ## 10. Acceptance test (voice)
 
 1. Boot → Newelle starts, Ollama running, overlay idle.
-2. Say **"Hey Shesha"** → overlay pulses, STT activates.
+2. Say **"Hey Shesh"** → overlay pulses, STT activates.
 3. "Organize my downloads." → confirmation prompt → organizer runs → "Moved 12 files" spoken.
 4. "Switch to performance mode." → `powerprofilesctl set performance` + notification.
 5. "What was my GPU temp an hour ago?" → audit log / `nvidia-smi` query answered.

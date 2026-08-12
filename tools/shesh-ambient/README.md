@@ -5,7 +5,7 @@ Polite, catch-up scheduler and proactivity engine for a **laptop that sleeps/shu
 - License: GPL-3.0
 - Solves: fixed `OnCalendar` timers assume a 24/7 server and pile up on unlock;
   agents that are either passive or interrupt mid-work.
-- Part of: [Shesha](https://github.com/gaganjainse/shesh-desktop)
+- Part of: [Shesh](https://github.com/gaganjainse/shesh-desktop)
 
 ## Three guarantees
 
@@ -16,7 +16,7 @@ Polite, catch-up scheduler and proactivity engine for a **laptop that sleeps/shu
 2. **Do-not-disturb.** Jobs and offers defer when you're fullscreen, on a call,
    presenting, under high CPU, or in quiet hours. Low battery pauses heavy work.
 3. **Warmth, not nagging.** At a natural pause (idle 45s–15m, not busy, work
-   hours), Shesha makes **one** small optional offer (break, organize downloads,
+   hours), Shesh makes **one** small optional offer (break, organize downloads,
    commit, summary…), at most every 30 min, capped per day, snooze-able.
 
 ## Layout

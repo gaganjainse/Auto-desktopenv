@@ -74,10 +74,10 @@ hl.config("decoration:blur:enabled", true)
 hl.config("decoration:blur:size", 8)
 hl.config("decoration:blur:passes", 3)
 hl.config("decoration:shadow:enabled", true)
--- on battery, Shesha flips blur size/passes down via a power profile rule
+-- on battery, Shesh flips blur size/passes down via a power profile rule
 ```
 **On battery**, reduce blur passes and disable window shadows (the iGPU draws them); this is a real
-battery win and is exactly the kind of thing Shesha automates.
+battery win and is exactly the kind of thing Shesh automates.
 
 ---
 
@@ -173,7 +173,7 @@ That yields 8 GB of compressed swap. With 16 GB physical this is the sweet spot.
 32/64 GB, change to `min(ram/4, 8192)`.) Enable `systemd-zram-setup@zram0.service`.
 
 ### Sysctl (battery + responsiveness)
-`/etc/sysctl.d/99-shesha.conf`:
+`/etc/sysctl.d/99-shesh.conf`:
 ```ini
 vm.swappiness = 10
 vm.dirty_ratio = 5
@@ -229,7 +229,7 @@ The BORE scheduler in `linux-cachyos` already favors interactivity; do not over-
      **tell the user to switch in BIOS / MSI Center** rather than silently no-op.
    - Integrate `envycontrol` for the software Optimus side: `envycontrol --switch integrated|hybrid|nvidia`.
 3. Sync `powerprofilesctl` with the chosen mode.
-4. Emit a desktop notification on mode change and write to the Shesha audit log.
+4. Emit a desktop notification on mode change and write to the Shesh audit log.
 5. Fix the `--dry-run` option and the trailing binary-name message (N-07).
 6. Add a `status` JSON output for the Quickshell indicator.
 

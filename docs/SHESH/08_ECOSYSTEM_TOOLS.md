@@ -9,19 +9,19 @@
 
 ## 1. New tools to build (priority-ordered)
 
-Each tool is a small, composable component exposed to Shesha over MCP/IPC — not a monolith.
+Each tool is a small, composable component exposed to Shesh over MCP/IPC — not a monolith.
 
 ### 1.1 `sesha` CLI — the one command
 A Python/CLI entrypoint (`~/.local/bin/sesha`) that unifies control:
 ```
-shesha status            # GPU/power/battery/services/last audit events
-shesha organize [path]   # trigger smart-organizer
-shesha power ac|battery  # set profile + visuals
-shesha gpu hybrid|dgpu|igpu
-shesha backup [verify]
-shesha log [--since]     # read audit log
-shesha undo              # undo last Shesha action
-shesha ask "..."         # pipe to local LLM (phi4-mini) from terminal
+shesh status            # GPU/power/battery/services/last audit events
+shesh organize [path]   # trigger smart-organizer
+shesh power ac|battery  # set profile + visuals
+shesh gpu hybrid|dgpu|igpu
+shesh backup [verify]
+shesh log [--since]     # read audit log
+shesh undo              # undo last Shesh action
+shesh ask "..."         # pipe to local LLM (phi4-mini) from terminal
 ```
 This is the non-voice fallback and the scripting surface. Implement with `typer`; reuse the MCP
 server functions as a library so there's one implementation.
@@ -34,13 +34,13 @@ Keep it opt-in and local.
 
 ### 1.3 `shesh-health` (system health & telemetry)
 Collects CPU/GPU temps, battery wear, NVMe SMART, RAM, failed systemd units, zram pressure, and
-produces a daily/weekly report. Exposes a `health_report()` MCP tool so Shesha can answer "how's my
+produces a daily/weekly report. Exposes a `health_report()` MCP tool so Shesh can answer "how's my
 laptop holding up?" Backed by a tiny SQLite time-series (or `btm`/`sysstat` parsing).
 
 ### 1.4 `shesh-focus` (context/work-mode switching)
 A "focus mode" that: closes/mutes distractions (Discord, browsers), sets a Hyprland workspace layout,
 toggles Do-Not-Notify (`mako`/Quickshell DND), starts a focus timer, and switches to performance.
-Triggered by voice ("Shesha, focus") or a keybind. The inverse ("Shesha, I'm done") restores state.
+Triggered by voice ("Shesh, focus") or a keybind. The inverse ("Shesh, I'm done") restores state.
 
 ### 1.5 `shesh-sync` (personal dotfiles & notes sync)
 A safe, restic/git-based sync for `~/.config` (selected), `~/Notes`, and `~/Projects/personal` to a
@@ -111,9 +111,9 @@ def launch(app):  # monkey launcher
 | **criptogus/HermesOffice** (Apache-2.0) | The *idea* of an OpenAI-compatible local endpoint every app can share (same pattern as Ollama/OmniRoute). | It's Electron, mac/win-first — not relevant as a codebase for you. |
 | **diegosoupw/OmniRoute** (MIT) | Multi-provider routing + fallback + token compression for a *cloud* tier. Add as an **opt-in** fallback when local can't answer. | Don't make cloud the default (violates local-first). |
 | **earendil-works/pi** (MIT) | Agent-loop design and supply-chain hardening (lockfile ground truth, lifecycle allowlist) for your Rust/Python services. | Don't add another agent runtime — Newelle is the host. |
-| **NousResearch/hermes-agent** (MIT) | Skills format, cron automations, multi-platform gateway (Telegram→talk to Shesha from your phone), self-improvement patterns. | Don't duplicate Newelle; consider Hermes only if you outgrow Newelle. |
+| **NousResearch/hermes-agent** (MIT) | Skills format, cron automations, multi-platform gateway (Telegram→talk to Shesh from your phone), self-improvement patterns. | Don't duplicate Newelle; consider Hermes only if you outgrow Newelle. |
 | **avifenesh/computer-use-linux** (Apache-2.0) | AT-SPI accessibility + Wayland input injection for "see and control the desktop" — reference for deeper Hyprland control beyond hyprctl. | Verify maintenance/Wayland support before depending on it. |
-| **PrimeIntellect-ai/prime-agent** (MIT) | The "Continual Harness" idea: a refinement store for prompts/skills without touching the base system prompt — excellent for Shesha learning safely. | The RLM abstraction is overkill at your scale. |
+| **PrimeIntellect-ai/prime-agent** (MIT) | The "Continual Harness" idea: a refinement store for prompts/skills without touching the base system prompt — excellent for Shesh learning safely. | The RLM abstraction is overkill at your scale. |
 | **ShawnPana/phone-harness** (MIT) | The OCR→coordinates→tap loop concept; port to ADB (§2). | macOS-only, unusable directly. |
 | **codecrafters-io/build-your-own-x** (MIT) | Learning path for the kernel/OS vision: build-a-shell, build-a-database, build-an-interpreter. Use the test-driven, increment-by-increment format for `shesh-kernel` learning. | Not a library. |
 | **end-4/dots-hyprland** (GPL-3) | Keep rebasing/merging upstream for Quickshell/Lua/Hyprland improvements; your value is the system+AI layer, not forking the shell itself. | Don't diverge the `dots/` more than necessary (use `custom/` overrides) so merges stay clean. |
@@ -159,7 +159,7 @@ practical near-term contributions that build toward it without a from-scratch ke
    sysctl/scheduler/power hints (with approval). This is "AI-first" without risky kernel patches.
 3. **Contribute upstream:** CachyOS, Hyprland, Quickshell, and Ollama are all moving fast and accept
    patches; your MUX/NVIDIA/hybrid-GPU work is genuinely useful upstream.
-4. **SheshAOS as the governance brain:** connect Shesha's audit log to SheshAOS's event store so the
+4. **SheshAOS as the governance brain:** connect Shesh's audit log to SheshAOS's event store so the
    *policy/governance* layer you already wrote in Rust starts controlling the desktop agent. This is
    the cleanest bridge between your two bodies of work.
 5. Only after (1–4) consider `shesh-kernel` modules — and use build-your-own-x's incremental

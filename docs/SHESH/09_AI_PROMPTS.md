@@ -12,7 +12,7 @@
 Paste this at the top of every AI session. It anchors the model to reality:
 
 ```
-You are working on the "Shesha" ecosystem — Gagan's local-first, AI-first CachyOS/Hyprland desktop
+You are working on the "Shesh" ecosystem — Gagan's local-first, AI-first CachyOS/Hyprland desktop
 fork of end-4/dots-hyprland. Repo: /home/user/shesh-desktop (a git repo).
 
 HARDWARE (verified 2026-08-09 — do NOT use other numbers):
@@ -136,7 +136,7 @@ warnings that bootloader cmdline needs manual editing. Mirror the structure of 2
 
 ```
 Create profiles/msi-sword-cachyos/ containing profile.conf (the canonical hardware values from
-04_DEVICE_PROFILE.md), mkinitcpio.fragment, kernel-cmdline.txt, sysctl/99-shesha.conf,
+04_DEVICE_PROFILE.md), mkinitcpio.fragment, kernel-cmdline.txt, sysctl/99-shesh.conf,
 udev/60-ioschedulers.rules, and a hypr/custom snippet that sets monitor eDP-1,1920x1200@144 and
 battery/AC visual presets. Then wire setup to apply this profile when product_name matches "Sword 16
 HX". Every file must have a comment pointing back to docs/SHESH/04_DEVICE_PROFILE.md. Provide
@@ -162,7 +162,7 @@ Show each file and the test output. Do not call the LLM in tests (mock it).
 
 ---
 
-## 6. Phase 6 — Shesha agent prompts
+## 6. Phase 6 — Shesh agent prompts
 
 ### 6.1 MCP servers
 ```
@@ -180,7 +180,7 @@ shared audit-log helper. Provide py_compile + a manual MCP smoke test.
 Create tools/shesh/shesh_audit.py: an append-only JSONL + SQLite writer with a chained SHA-256 hash
 (prev_hash field) like an event log, and policy.toml loading (confirm/deny/auto tool lists + denied
 paths). Wrap every @mcp.tool with it (decorator) so calls/args/results are logged and denied tools
-refused. Add `shesha log` and `shesha undo` CLI subcommands. Include tests that tampering breaks the
+refused. Add `shesh log` and `shesh undo` CLI subcommands. Include tests that tampering breaks the
 chain.
 ```
 

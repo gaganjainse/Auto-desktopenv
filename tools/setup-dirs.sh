@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tools/setup-dirs.sh — Create the Shesha home layout. Idempotent.
+# tools/setup-dirs.sh — Create the Shesh home layout. Idempotent.
 # See docs/SHESH/03_DISK_STRUCTURE.md for the full rationale.
 #
 # Usage: tools/setup-dirs.sh [--dry-run]
@@ -20,7 +20,7 @@ make_dir() {
   fi
 }
 
-log_step "Creating Shesha directory structure under $home"
+log_step "Creating Shesh directory structure under $home"
 
 # Desktop (kept empty — staging only)
 make_dir "$home/Desk"
@@ -44,7 +44,7 @@ make_dir "$home/Projects"/{job,personal,labs,forks,_archive}
 make_dir "$home/AI"/{Models,Datasets,Vectors,Weights-Cache,Sessions}
 
 # Notes (git-backed vault)
-make_dir "$home/Notes"/{Daily,Tech,Ideas,Meetings,Shesha}
+make_dir "$home/Notes"/{Daily,Tech,Ideas,Meetings,Shesh}
 
 # Vaults (encrypted) & backups
 make_dir "$home/Vaults"/{Passwords,Keys}
@@ -65,5 +65,5 @@ fi
 # Secrets locked down
 (( ! DRY_RUN )) && chmod 700 "$home/Vaults" "$home/Vaults/Keys" 2>/dev/null || true
 
-log_ok "Shesha directory structure created."
+log_ok "Shesh directory structure created."
 log_info "Next: review docs/SHESH/03_DISK_STRUCTURE.md for XDG env, git identity, and backup policy."

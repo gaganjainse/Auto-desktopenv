@@ -55,7 +55,7 @@ ApplicationWindow {
             component: "modules/settings/ServicesConfig.qml"
         },
         {
-            name: Translation.tr("Shesha"),
+            name: Translation.tr("Shesh"),
             icon: "psychology_alt",
             component: "modules/settings/SheshaConfig.qml"
         },
