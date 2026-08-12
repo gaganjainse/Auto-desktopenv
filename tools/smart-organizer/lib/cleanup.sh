@@ -25,20 +25,20 @@ cleanup_cache() {
         log_info "Scanning: $dir"
 
         # Find cache files older than threshold
-        find "$dir" -type f -atime +${CACHE_MAX_AGE} -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            if is_protected "$file" || is_exempt "$file"; then
-                continue
-            fi
+        find "$dir" -type f -atime +${CACHE_MAX_AGE} -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                if is_protected "$file" || is_exempt "$file"; then
+                    continue
+                fi
 
-            local size_mb
-            size_mb=$(file_size_mb "$file")
+                local size_mb
+                size_mb=$(file_size_mb "$file")
 
-            # Only delete files that are small enough (safely)
-            if [[ "$size_mb" -lt 100 ]]; then
-                safe_delete "$file" "old cache file"
-            fi
-        done
+                # Only delete files that are small enough (safely)
+                if [[ "$size_mb" -lt 100 ]]; then
+                    safe_delete "$file" "old cache file"
+                fi
+            done
     done
 
     log_ok "Cache cleanup completed"
@@ -58,12 +58,12 @@ cleanup_trash() {
 
         log_info "Scanning trash: $trash_dir"
 
-        find "$trash_dir" -type f -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            if is_older_than "$file" ${TRASH_MAX_AGE}; then
-                safe_delete "$file" "old trash file"
-            fi
-        done
+        find "$trash_dir" -type f -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                if is_older_than "$file" ${TRASH_MAX_AGE}; then
+                    safe_delete "$file" "old trash file"
+                fi
+            done
     done
 
     log_ok "Trash cleanup completed"
@@ -112,13 +112,13 @@ cleanup_old_logs() {
             continue
         fi
 
-        find "$dir" -type f \( -name "*.log" -o -name "*.old" \) -atime +30 -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            if is_protected "$file" || is_exempt "$file"; then
-                continue
-            fi
-            safe_delete "$file" "old log file"
-        done
+        find "$dir" -type f \( -name "*.log" -o -name "*.old" \) -atime +30 -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                if is_protected "$file" || is_exempt "$file"; then
+                    continue
+                fi
+                safe_delete "$file" "old log file"
+            done
     done
 }
 
@@ -128,28 +128,28 @@ cleanup_package_cache() {
     # pacman cache (only if on Arch-based system)
     if command -v pacman >/dev/null 2>&1; then
         if [[ -d /var/cache/pacman/pkg ]]; then
-            sudo pacman -Sc --noconfirm 2>/dev/null || true
+            sudo pacman -Sc --noconfirm || log_warn "pacman cache clean failed (db locked?); continuing"
         fi
     fi
 
     # AUR helper cache
     if command -v yay >/dev/null 2>&1; then
-        yay -Sc --noconfirm 2>/dev/null || true
+        yay -Sc --noconfirm || log_warn "yay cache clean failed; continuing"
     fi
 
     # pip cache
     if command -v pip >/dev/null 2>&1; then
-        pip cache purge 2>/dev/null || true
+        pip cache purge || log_warn "pip cache purge failed; continuing"
     fi
 
     # npm cache
     if command -v npm >/dev/null 2>&1; then
-        npm cache clean --force 2>/dev/null || true
+        npm cache clean --force || log_warn "npm cache clean failed; continuing"
     fi
 
     # cargo cache
     if [[ -d "$HOME/.cargo/registry/cache" ]]; then
-        find "$HOME/.cargo/registry/cache" -type f -atime +30 -delete 2>/dev/null || true
+        find "$HOME/.cargo/registry/cache" -type f -atime +30 -delete || log_warn "cargo cache sweep hit unreadable entries; continuing"
     fi
 }
 
@@ -177,10 +177,10 @@ cleanup_old_installers() {
             -name "*.msi" -o \
             -name "*.dmg" -o \
             -name "*.run" \
-        \) -atime +${OLD_INSTALLER_MAX_AGE} -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            safe_delete "$file" "old installer"
-        done
+            \) -atime +${OLD_INSTALLER_MAX_AGE} -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                safe_delete "$file" "old installer"
+            done
     done
 }
 
@@ -197,10 +197,10 @@ cleanup_thumbnails() {
             continue
         fi
 
-        find "$dir" -type f -atime +30 -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            safe_delete "$file" "old thumbnail"
-        done
+        find "$dir" -type f -atime +30 -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                safe_delete "$file" "old thumbnail"
+            done
     done
 }
 
@@ -223,13 +223,13 @@ cleanup_browser_cache() {
         fi
 
         # Only clear Cache and Code Cache directories, not profiles
-        find "$dir" -maxdepth 2 -type d \( -name "Cache" -o -name "Code Cache" -o -name "GPUCache" \) -print0 2>/dev/null | \
-        while IFS= read -r -d '' cache_dir; do
-            find "$cache_dir" -type f -atime +7 -print0 2>/dev/null | \
-            while IFS= read -r -d '' file; do
-                safe_delete "$file" "browser cache"
+        find "$dir" -maxdepth 2 -type d \( -name "Cache" -o -name "Code Cache" -o -name "GPUCache" \) -print0 2>/dev/null |
+            while IFS= read -r -d '' cache_dir; do
+                find "$cache_dir" -type f -atime +7 -print0 2>/dev/null |
+                    while IFS= read -r -d '' file; do
+                        safe_delete "$file" "browser cache"
+                    done
             done
-        done
     done
 }
 
@@ -251,22 +251,22 @@ cleanup_empty_dirs() {
             if [[ ! -d "$dir" ]]; then
                 continue
             fi
-            find "$dir" -type d -empty -print0 2>/dev/null | \
+            find "$dir" -type d -empty -print0 2>/dev/null |
+                while IFS= read -r -d '' empty_dir; do
+                    if is_protected "$empty_dir" || is_exempt "$empty_dir"; then
+                        continue
+                    fi
+                    safe_delete "$empty_dir" "empty directory"
+                done
+        done
+    else
+        find "$target" -type d -empty -print0 2>/dev/null |
             while IFS= read -r -d '' empty_dir; do
                 if is_protected "$empty_dir" || is_exempt "$empty_dir"; then
                     continue
                 fi
                 safe_delete "$empty_dir" "empty directory"
             done
-        done
-    else
-        find "$target" -type d -empty -print0 2>/dev/null | \
-        while IFS= read -r -d '' empty_dir; do
-            if is_protected "$empty_dir" || is_exempt "$empty_dir"; then
-                continue
-            fi
-            safe_delete "$empty_dir" "empty directory"
-        done
     fi
 }
 
@@ -322,16 +322,16 @@ cleanup_build_artifacts() {
         log_info "Scanning for build artifacts in: $base_dir"
 
         for pattern in "${artifact_patterns[@]}"; do
-            find "$base_dir" -maxdepth 5 -type d -name "$pattern" -print0 2>/dev/null | \
-            while IFS= read -r -d '' artifact_dir; do
-                if is_protected "$artifact_dir" || is_exempt "$artifact_dir"; then
-                    continue
-                fi
+            find "$base_dir" -maxdepth 5 -type d -name "$pattern" -print0 2>/dev/null |
+                while IFS= read -r -d '' artifact_dir; do
+                    if is_protected "$artifact_dir" || is_exempt "$artifact_dir"; then
+                        continue
+                    fi
 
-                if is_older_than "$artifact_dir" ${BUILD_ARTIFACT_MAX_AGE}; then
-                    safe_delete "$artifact_dir" "old build artifact"
-                fi
-            done
+                    if is_older_than "$artifact_dir" ${BUILD_ARTIFACT_MAX_AGE}; then
+                        safe_delete "$artifact_dir" "old build artifact"
+                    fi
+                done
         done
     done
 
@@ -360,20 +360,20 @@ cleanup_old_media() {
 
         log_info "Scanning: $dir"
 
-        find "$dir" -maxdepth 2 -type f -atime +${OLD_MEDIA_AGE} -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            if is_protected "$file" || is_exempt "$file"; then
-                continue
-            fi
+        find "$dir" -maxdepth 2 -type f -atime +${OLD_MEDIA_AGE} -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                if is_protected "$file" || is_exempt "$file"; then
+                    continue
+                fi
 
-            local size_mb
-            size_mb=$(file_size_mb "$file")
+                local size_mb
+                size_mb=$(file_size_mb "$file")
 
-            # Only delete files that are small enough (safely)
-            if [[ "$size_mb" -lt 500 ]]; then
-                safe_delete "$file" "old media file"
-            fi
-        done
+                # Only delete files that are small enough (safely)
+                if [[ "$size_mb" -lt 500 ]]; then
+                    safe_delete "$file" "old media file"
+                fi
+            done
     done
 
     log_ok "Old media cleanup completed"
@@ -406,16 +406,16 @@ report_large_files() {
             continue
         fi
 
-        find "$dir" -type f -size +${LARGE_FILE_THRESHOLD_MB}M -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            if is_protected "$file" || is_exempt "$file"; then
-                continue
-            fi
+        find "$dir" -type f -size +${LARGE_FILE_THRESHOLD_MB}M -print0 2>/dev/null |
+            while IFS= read -r -d '' file; do
+                if is_protected "$file" || is_exempt "$file"; then
+                    continue
+                fi
 
-            local size_mb
-            size_mb=$(file_size_mb "$file")
-            log_warn "Large file: $file (${size_mb}MB)"
-        done
+                local size_mb
+                size_mb=$(file_size_mb "$file")
+                log_warn "Large file: $file (${size_mb}MB)"
+            done
     done
 
     log_ok "Large file report completed"
@@ -490,10 +490,10 @@ run_cleanup() {
         log_info "Cleaning target: $target"
 
         # Clean cache subdirectories
-        find "$target" -type d -name ".cache" -print0 2>/dev/null | \
-        while IFS= read -r -d '' cache_dir; do
-            cleanup_cache
-        done
+        find "$target" -type d -name ".cache" -print0 2>/dev/null |
+            while IFS= read -r -d '' cache_dir; do
+                cleanup_cache
+            done
 
         # Clean trash
         cleanup_trash
@@ -503,14 +503,14 @@ run_cleanup() {
 
         # Clean build artifacts if in a development directory
         case "$target" in
-            *Workspace*|*Projects*|*AI*)
+            *Workspace* | *Projects* | *AI*)
                 cleanup_build_artifacts
                 ;;
         esac
 
         # Clean old media if in a media directory
         case "$target" in
-            *Pictures*|*Videos*|*Music*)
+            *Pictures* | *Videos* | *Music*)
                 cleanup_old_media
                 ;;
         esac

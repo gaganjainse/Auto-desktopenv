@@ -32,13 +32,13 @@ NC='\033[0m'
 DRY_RUN=false
 AUTO_MODE=false
 
-log_info()  { echo -e "${BLUE}[MAINT]${NC} $*"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}   $*"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
+log_info() { echo -e "${BLUE}[MAINT]${NC} $*"; }
+log_ok() { echo -e "${GREEN}[OK]${NC}   $*"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
 
 usage() {
-    cat << 'EOF'
+    cat <<'EOF'
 maintenance.sh - System maintenance automation
 
 USAGE:
@@ -53,10 +53,23 @@ EOF
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --dry-run) DRY_RUN=true; shift ;;
-        --auto) AUTO_MODE=true; shift ;;
-        --help|-h) usage; exit 0 ;;
-        *) echo "Unknown option: $1"; usage; exit 1 ;;
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --auto)
+            AUTO_MODE=true
+            shift
+            ;;
+        --help | -h)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
     esac
 done
 
@@ -81,8 +94,11 @@ if ! $DRY_RUN && ! $AUTO_MODE; then
     printf 'Proceed with system maintenance (update, cache clean, orphans, journal)? [y/N] '
     read -r answer
     case "${answer,,}" in
-        y|yes) ;;
-        *) log_info "Aborted by user. Use --auto for non-interactive/cron runs." ; exit 0 ;;
+        y | yes) ;;
+        *)
+            log_info "Aborted by user. Use --auto for non-interactive/cron runs."
+            exit 0
+            ;;
     esac
 fi
 
@@ -105,7 +121,7 @@ if command -v pacman >/dev/null 2>&1; then
     if $DRY_RUN; then
         log_info "[DRY-RUN] Would run: sudo pacman -Sc --noconfirm"
     else
-        sudo pacman -Sc --noconfirm || true
+        sudo pacman -Sc --noconfirm || log_warn "pacman cache clean failed (db locked or nothing to clean); continuing"
     fi
     log_ok "Package cache cleaned"
 fi
@@ -114,7 +130,7 @@ if command -v yay >/dev/null 2>&1; then
     if $DRY_RUN; then
         log_info "[DRY-RUN] Would run: yay -Sc --noconfirm"
     else
-        yay -Sc --noconfirm || true
+        yay -Sc --noconfirm || log_warn "yay cache clean failed; continuing"
     fi
     log_ok "AUR cache cleaned"
 fi
@@ -122,12 +138,16 @@ fi
 # 3. Remove orphans
 log_info "3. Removing orphan packages..."
 if command -v pacman >/dev/null 2>&1; then
-    orphans=$(pacman -Qtdq 2>/dev/null || true)
+    # pacman -Qtdq exits 1 when there are NO orphans — that is a normal
+    # state, captured explicitly instead of being blanket-swallowed.
+    if ! orphans=$(pacman -Qtdq 2>/dev/null); then
+        orphans=""
+    fi
     if [[ -n "$orphans" ]]; then
         if $DRY_RUN; then
             log_info "[DRY-RUN] Would remove orphans: $(echo "$orphans" | wc -l) packages"
         else
-            echo "$orphans" | sudo pacman -Rns --noconfirm - || true
+            echo "$orphans" | sudo pacman -Rns --noconfirm - || log_warn "orphan removal failed mid-transaction; rerun to finish"
         fi
         log_ok "Orphans removed"
     else
@@ -141,7 +161,7 @@ if command -v journalctl >/dev/null 2>&1; then
     if $DRY_RUN; then
         log_info "[DRY-RUN] Would run: sudo journalctl --vacuum-time=7d"
     else
-        sudo journalctl --vacuum-time=7d || true
+        sudo journalctl --vacuum-time=7d || log_warn "journal vacuum failed (permissions or journal in use); continuing"
     fi
     log_ok "Journal cleaned"
 fi

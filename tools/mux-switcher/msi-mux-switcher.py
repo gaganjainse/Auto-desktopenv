@@ -260,7 +260,9 @@ class MSIMUXSwitcher:
                 return "dgpu"
             elif "Intel" in result.stdout:
                 return "hybrid"  # Could also be igpu
-        except Exception:
+        except OSError:
+            # Probe tool missing on this machine — fall through to the next
+            # detection method (that is the design of this probe chain).
             pass
 
         # Method 3: Check if NVIDIA is loaded
@@ -270,7 +272,8 @@ class MSIMUXSwitcher:
             )
             if "nvidia" in result.stdout:
                 return "dgpu"  # Likely dGPU mode
-        except Exception:
+        except OSError:
+            # lsmod unavailable — no more probes; return None (unknown).
             pass
 
         return None

@@ -159,11 +159,25 @@ create_backup() {
         return 0
     fi
 
-    mkdir -p "$backup_dir"
+    if ! mkdir -p "$backup_dir"; then
+        log_error "Cannot create backup dir $backup_dir — aborting before any destructive step"
+        return 1
+    fi
     if [[ -d "$target" ]]; then
-        cp -r "$target"/* "$backup_dir/" 2>/dev/null || true
+        shopt -s nullglob dotglob
+        local entries=("$target"/*)
+        shopt -u nullglob dotglob
+        if ((${#entries[@]} == 0)); then
+            log_info "Backup: $target is empty; nothing to copy"
+        elif ! cp -r "${entries[@]}" "$backup_dir/"; then
+            log_error "Backup copy failed for $target — aborting before any destructive step"
+            return 1
+        fi
     elif [[ -f "$target" ]]; then
-        cp "$target" "$backup_dir/"
+        if ! cp "$target" "$backup_dir/"; then
+            log_error "Backup copy failed for $target — aborting before any destructive step"
+            return 1
+        fi
     fi
 
     log_info "Backup created: $backup_dir"
@@ -184,7 +198,7 @@ file_age_days() {
     mtime=$(stat -c %Y "$file" 2>/dev/null || stat -f %m "$file" 2>/dev/null)
     local now
     now=$(date +%s)
-    echo $(( (now - mtime) / 86400 ))
+    echo $(((now - mtime) / 86400))
 }
 
 is_older_than() {
@@ -249,14 +263,14 @@ find_duplicates() {
     # Build hash list
     local hash_file
     hash_file=$(mktemp)
-    find "$dir" -type f -size +${size_limit_mb}M -print0 2>/dev/null | \
-    while IFS= read -r -d '' file; do
-        local hash
-        hash=$(file_hash "$file")
-        if [[ -n "$hash" ]]; then
-            echo "${hash} ${file}"
-        fi
-    done > "$hash_file"
+    find "$dir" -type f -size +${size_limit_mb}M -print0 2>/dev/null |
+        while IFS= read -r -d '' file; do
+            local hash
+            hash=$(file_hash "$file")
+            if [[ -n "$hash" ]]; then
+                echo "${hash} ${file}"
+            fi
+        done >"$hash_file"
 
     # Find duplicate hashes
     local duplicate_hashes
@@ -267,12 +281,12 @@ find_duplicates() {
             # Output all files with duplicate hashes (hash filepath format)
             while read -r hash; do
                 grep -E "^${hash} " "$hash_file"
-            done <<< "$duplicate_hashes"
+            done <<<"$duplicate_hashes"
         else
             # Output only non-first duplicates (for deletion)
             while read -r hash; do
                 grep -E "^${hash} " "$hash_file" | sed "s/^${hash} //" | tail -n +2
-            done <<< "$duplicate_hashes"
+            done <<<"$duplicate_hashes"
         fi
     fi
 

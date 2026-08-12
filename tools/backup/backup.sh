@@ -36,13 +36,13 @@ NC='\033[0m'
 DRY_RUN=false
 ENCRYPT=false
 
-log_info()  { echo -e "${BLUE}[BACKUP]${NC} $*"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}   $*"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
+log_info() { echo -e "${BLUE}[BACKUP]${NC} $*"; }
+log_ok() { echo -e "${GREEN}[OK]${NC}   $*"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
 
 usage() {
-    cat << 'EOF'
+    cat <<'EOF'
 backup.sh - Automated backup script
 
 USAGE:
@@ -65,11 +65,27 @@ EOF
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --dry-run) DRY_RUN=true; shift ;;
-        --encrypt) ENCRYPT=true; shift ;;
-        --help|-h) usage; exit 0 ;;
-        -*) echo "Unknown option: $1"; usage; exit 1 ;;
-        *) DEST="$1"; shift ;;
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --encrypt)
+            ENCRYPT=true
+            shift
+            ;;
+        --help | -h)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+        *)
+            DEST="$1"
+            shift
+            ;;
     esac
 done
 
@@ -145,15 +161,15 @@ log_info "Backing up package lists..."
 if ! $DRY_RUN; then
     mkdir -p "$DEST/package-lists"
     if command -v pacman >/dev/null 2>&1; then
-        pacman -Qqe > "$DEST/package-lists/pacman.txt" 2>/dev/null || true
-        pacman -Qqm > "$DEST/package-lists/aur.txt" 2>/dev/null || true
+        pacman -Qqe >"$DEST/package-lists/pacman.txt" || echo "WARN: pacman -Qqe failed; pacman.txt incomplete" >&2
+        pacman -Qqm >"$DEST/package-lists/aur.txt" || echo "WARN: pacman -Qqm failed; aur.txt incomplete" >&2
     fi
     log_ok "Package lists backed up"
 fi
 
 # 8. Create backup manifest
 if ! $DRY_RUN; then
-    cat > "$DEST/backup-manifest.txt" << EOF
+    cat >"$DEST/backup-manifest.txt" <<EOF
 Backup created: $(date)
 Host: $(hostname)
 User: $(whoami)
@@ -166,7 +182,7 @@ fi
 # 9. Encryption (optional)
 if $ENCRYPT && ! $DRY_RUN; then
     log_info "Encrypting backup with GPG..."
-    tar -czf - -C "$(dirname "$DEST")" "$(basename "$DEST")" | \
+    tar -czf - -C "$(dirname "$DEST")" "$(basename "$DEST")" |
         gpg --symmetric --cipher-algo AES256 -o "${DEST}.tar.gz.gpg"
     log_ok "Backup encrypted: ${DEST}.tar.gz.gpg"
 fi

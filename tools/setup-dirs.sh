@@ -13,11 +13,11 @@ source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/lib/common.sh"
 home="$HOME"
 
 make_dir() {
-  if (( DRY_RUN )); then
-    log_info "[dry-run] mkdir -p $1"
-  else
-    mkdir -p "$1"
-  fi
+    if ((DRY_RUN)); then
+        log_info "[dry-run] mkdir -p $1"
+    else
+        mkdir -p "$1"
+    fi
 }
 
 log_step "Creating Shesh directory structure under $home"
@@ -57,13 +57,16 @@ make_dir "$home/.config"
 make_dir "$home/.cache"
 
 # Disable CoW on big AI model/data dirs (btrfs) if chattr is available
-if (( ! DRY_RUN )) && command_exists chattr; then
-  chattr +C "$home/AI/Models" "$home/AI/Datasets" 2>/dev/null || \
-    log_warn "chattr +C failed (not btrfs?); harmless"
+if ((!DRY_RUN)) && command_exists chattr; then
+    chattr +C "$home/AI/Models" "$home/AI/Datasets" 2>/dev/null ||
+        log_warn "chattr +C failed (not btrfs?); harmless"
 fi
 
 # Secrets locked down
-(( ! DRY_RUN )) && chmod 700 "$home/Vaults" "$home/Vaults/Keys" 2>/dev/null || true
+if ((!DRY_RUN)); then
+    chmod 700 "$home/Vaults" "$home/Vaults/Keys" ||
+        log_warn "chmod 700 on Vaults failed — fix manually: permissions on secret dirs matter"
+fi
 
 log_ok "Shesh directory structure created."
 log_info "Next: review docs/SHESH/03_DISK_STRUCTURE.md for XDG env, git identity, and backup policy."

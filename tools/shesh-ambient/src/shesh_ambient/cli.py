@@ -83,6 +83,8 @@ def probe_context() -> Context:
         load = float(Path("/proc/loadavg").read_text().split()[0])
         ctx.cpu_percent = min(100.0, load * 100 / _nproc())
     except (OSError, ValueError):
+        # Non-Linux host or an unreadable /proc/loadavg: cpu_percent keeps its
+        # 0.0 default, which the scheduler treats as "no pressure signal".
         pass
 
     ctx.network_online = bool(_sh(["bash", "-c", "getent hosts github.com"]).strip())

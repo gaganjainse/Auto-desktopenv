@@ -79,43 +79,43 @@ merge_folders() {
     fi
 
     # Move contents with duplicate handling
-    find "$src" -mindepth 1 -maxdepth 1 -print0 2>/dev/null | \
-    while IFS= read -r -d '' item; do
-        local basename
-        basename=$(basename "$item")
-        local dest_path="${dest}/${basename}"
+    find "$src" -mindepth 1 -maxdepth 1 -print0 2>/dev/null |
+        while IFS= read -r -d '' item; do
+            local basename
+            basename=$(basename "$item")
+            local dest_path="${dest}/${basename}"
 
-        if [[ -e "$dest_path" ]]; then
-            # Handle duplicates
-            if [[ -d "$item" ]] && [[ -d "$dest_path" ]]; then
-                # Recursively merge directories
-                merge_folders "$item" "$dest_path"
-            elif [[ -f "$item" ]] && [[ -f "$dest_path" ]]; then
-                # Check if files are identical
-                if diff -q "$item" "$dest_path" >/dev/null 2>&1; then
-                    safe_delete "$item" "duplicate file"
+            if [[ -e "$dest_path" ]]; then
+                # Handle duplicates
+                if [[ -d "$item" ]] && [[ -d "$dest_path" ]]; then
+                    # Recursively merge directories
+                    merge_folders "$item" "$dest_path"
+                elif [[ -f "$item" ]] && [[ -f "$dest_path" ]]; then
+                    # Check if files are identical
+                    if diff -q "$item" "$dest_path" >/dev/null 2>&1; then
+                        safe_delete "$item" "duplicate file"
+                    else
+                        # Rename and move
+                        local counter=1
+                        local base="${dest_path%.*}"
+                        local ext="${dest_path##*.}"
+                        while [[ -e "${base}_${counter}.${ext}" ]]; do
+                            ((counter++))
+                        done
+                        mv "$item" "${base}_${counter}.${ext}"
+                    fi
                 else
-                    # Rename and move
+                    # Type mismatch, just move with suffix
                     local counter=1
-                    local base="${dest_path%.*}"
-                    local ext="${dest_path##*.}"
-                    while [[ -e "${base}_${counter}.${ext}" ]]; do
+                    while [[ -e "${dest_path}_${counter}" ]]; do
                         ((counter++))
                     done
-                    mv "$item" "${base}_${counter}.${ext}"
+                    mv "$item" "${dest_path}_${counter}"
                 fi
             else
-                # Type mismatch, just move with suffix
-                local counter=1
-                while [[ -e "${dest_path}_${counter}" ]]; do
-                    ((counter++))
-                done
-                mv "$item" "${dest_path}_${counter}"
+                mv "$item" "$dest_path"
             fi
-        else
-            mv "$item" "$dest_path"
-        fi
-    done
+        done
 
     # Remove empty source directory
     if is_empty_dir "$src"; then
@@ -149,19 +149,19 @@ split_folder() {
     local current_subfolder=""
     local file_count=0
 
-    find "$folder" -maxdepth 1 -type f -print0 2>/dev/null | \
-    sort -z | \
-    while IFS= read -r -d '' file; do
-        if [[ "$file_count" -eq 0 ]] || [[ "$file_count" -ge "$max_files" ]]; then
-            current_subfolder="${folder}/part_${counter}"
-            mkdir -p "$current_subfolder"
-            file_count=0
-            counter=$((counter + 1))
-        fi
+    find "$folder" -maxdepth 1 -type f -print0 2>/dev/null |
+        sort -z |
+        while IFS= read -r -d '' file; do
+            if [[ "$file_count" -eq 0 ]] || [[ "$file_count" -ge "$max_files" ]]; then
+                current_subfolder="${folder}/part_${counter}"
+                mkdir -p "$current_subfolder"
+                file_count=0
+                counter=$((counter + 1))
+            fi
 
-        mv "$file" "$current_subfolder/"
-        file_count=$((file_count + 1))
-    done
+            mv "$file" "$current_subfolder/"
+            file_count=$((file_count + 1))
+        done
 
     log_ok "Split completed: created $((counter - 1)) subfolders"
 }
@@ -223,9 +223,12 @@ dedupe_hardlink() {
             else
                 local size
                 size=$(file_size_mb "$filepath")
-                ln -f "$first_file" "$filepath" 2>/dev/null || true
-                increment_hardlinked "$((size * 1024 * 1024))"
-                log_action "Hard-linked: $filepath -> $first_file"
+                if ln -f "$first_file" "$filepath" 2>/dev/null; then
+                    increment_hardlinked "$((size * 1024 * 1024))"
+                    log_action "Hard-linked: $filepath -> $first_file"
+                else
+                    log_warn "hard-link failed (different filesystem?); duplicate kept: $filepath"
+                fi
             fi
         else
             # New group

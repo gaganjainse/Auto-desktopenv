@@ -86,11 +86,15 @@ mkdir -p "$TEST_DIR"
 trap 'rm -rf "$TEST_DIR"' EXIT
 
 # Test: dry-run should not modify files
-echo "test content" > "$TEST_DIR/report.pdf"
+echo "test content" >"$TEST_DIR/report.pdf"
 original_hash=$(md5sum "$TEST_DIR/report.pdf" | awk '{print $1}')
 
 cd "$PROJECT_DIR"
-bash tools/smart-organizer/smart-organizer.sh --dry-run --once --organize "$TEST_DIR" >/dev/null 2>&1 || true
+rc=0
+bash tools/smart-organizer/smart-organizer.sh --dry-run --once --organize "$TEST_DIR" >/dev/null 2>&1 || rc=$?
+if ((rc != 0)); then
+    echo "note: organizer exited $rc on this smoke run; the assertions below judge behavior" >&2
+fi
 
 after_hash=$(md5sum "$TEST_DIR/report.pdf" 2>/dev/null | awk '{print $1}' || echo "FILE_MISSING")
 if [[ "$original_hash" == "$after_hash" ]]; then
@@ -103,7 +107,11 @@ fi
 mkdir -p "$TEST_DIR/.ssh" "$TEST_DIR/.gnupg" "$TEST_DIR/Workspace"
 touch "$TEST_DIR/.ssh/id_rsa" "$TEST_DIR/.gnupg/secret" "$TEST_DIR/Workspace/project"
 
-bash tools/smart-organizer/smart-organizer.sh --dry-run --once --all "$TEST_DIR" >/dev/null 2>&1 || true
+rc=0
+bash tools/smart-organizer/smart-organizer.sh --dry-run --once --all "$TEST_DIR" >/dev/null 2>&1 || rc=$?
+if ((rc != 0)); then
+    echo "note: organizer exited $rc on this smoke run; the assertions below judge behavior" >&2
+fi
 
 if [[ -f "$TEST_DIR/.ssh/id_rsa" ]] && [[ -f "$TEST_DIR/.gnupg/secret" ]] && [[ -f "$TEST_DIR/Workspace/project" ]]; then
     log_test "PASS" "Protected paths are not touched"
@@ -119,7 +127,9 @@ echo "=== 5. Functional tests ==="
 
 # Test: file classification
 cd "$PROJECT_DIR"
-source tools/smart-organizer/lib/content.sh >/dev/null 2>&1 || true
+if ! source tools/smart-organizer/lib/content.sh >/dev/null 2>&1; then
+    echo "note: content.sh did not source in this shell; test_classify re-sources per call" >&2
+fi
 
 test_classify() {
     local file="$1"
@@ -134,9 +144,9 @@ test_classify() {
 }
 
 # Create test files with content
-echo '#!/bin/bash' > "$TEST_DIR/script.sh"
-echo 'echo hello' >> "$TEST_DIR/script.sh"
-echo '%PDF-1.4' > "$TEST_DIR/doc.pdf"
+echo '#!/bin/bash' >"$TEST_DIR/script.sh"
+echo 'echo hello' >>"$TEST_DIR/script.sh"
+echo '%PDF-1.4' >"$TEST_DIR/doc.pdf"
 python3 -c "
 import base64
 png_b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
@@ -149,17 +159,25 @@ test_classify "$TEST_DIR/doc.pdf" "documents"
 test_classify "$TEST_DIR/image.png" "images"
 
 # Test: hard-link deduplication
-echo "duplicate content" > "$TEST_DIR/file1.txt"
+echo "duplicate content" >"$TEST_DIR/file1.txt"
 cp "$TEST_DIR/file1.txt" "$TEST_DIR/file2.txt"
 cp "$TEST_DIR/file1.txt" "$TEST_DIR/file3.txt"
 dd if=/dev/zero of="$TEST_DIR/large1.bin" bs=1M count=15 2>/dev/null
 cp "$TEST_DIR/large1.bin" "$TEST_DIR/large2.bin"
 cp "$TEST_DIR/large1.bin" "$TEST_DIR/large3.bin"
 
-bash tools/smart-organizer/smart-organizer.sh --dry-run --once --dedupe-hardlink "$TEST_DIR" >/dev/null 2>&1 || true
+rc=0
+bash tools/smart-organizer/smart-organizer.sh --dry-run --once --dedupe-hardlink "$TEST_DIR" >/dev/null 2>&1 || rc=$?
+if ((rc != 0)); then
+    echo "note: organizer exited $rc on this smoke run; the assertions below judge behavior" >&2
+fi
 
 # Check that dry-run showed hard-link actions
-output=$(bash tools/smart-organizer/smart-organizer.sh --dry-run --once --dedupe-hardlink "$TEST_DIR" 2>&1 || true)
+rc=0
+output=$(bash tools/smart-organizer/smart-organizer.sh --dry-run --once --dedupe-hardlink "$TEST_DIR" 2>&1) || rc=$?
+if ((rc != 0)); then
+    echo "note: dedupe run exited $rc; grepping whatever output it produced" >&2
+fi
 if echo "$output" | grep -q "Would hard-link"; then
     log_test "PASS" "Hard-link deduplication detects duplicates"
 else
