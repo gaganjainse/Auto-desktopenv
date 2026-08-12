@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Comprehensive test suite for shesha-desktop
+# Comprehensive test suite for shesh-desktop
 # Tests syntax, help output, dry-run behavior, and functional correctness
 #
 
@@ -8,7 +8,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR"
-TEST_RESULTS=()
 FAILED=0
 
 log_test() {

@@ -9,6 +9,8 @@
 # =============================================================================
 
 RECOVERY_DIR="${HOME}/.local/share/smart-organizer/recovery"
+# consumed by lib/report.sh (sourced-lib consumption is invisible to SC2034)
+# shellcheck disable=SC2034
 RECOVERY_MANIFEST="${RECOVERY_DIR}/.manifest"
 
 # =============================================================================
@@ -400,7 +402,8 @@ detect_project_name() {
 
 get_project_dest() {
     local filepath="$1"
-    local filename="$(basename "$filepath")"
+    local filename
+    filename="$(basename "$filepath")"
     local project_name
 
     project_name=$(detect_project_name "$filename")
@@ -452,7 +455,8 @@ get_dynamic_dest() {
 
 get_file_destination() {
     local filepath="$1"
-    local filename="$(basename "$filepath")"
+    local filename
+    filename="$(basename "$filepath")"
     local ext="${filename##*.}"
     ext="${ext,,}"
 
@@ -526,7 +530,8 @@ get_category_dir() {
 
 get_file_category() {
     local filepath="$1"
-    local filename="$(basename "$filepath")"
+    local filename
+    filename="$(basename "$filepath")"
     local ext="${filename##*.}"
     ext="${ext,,}" # lowercase
 
@@ -545,6 +550,8 @@ get_file_category() {
 
     # Check path-based rules first
     for pattern in "${!PATH_RULES[@]}"; do
+        # pattern is a glob BY DESIGN (do not quote RHS)
+        # shellcheck disable=SC2053
         if [[ "$filepath" == $pattern ]]; then
             echo "${PATH_RULES[$pattern]}"
             return 0
@@ -574,9 +581,10 @@ get_file_category() {
 
 is_protected() {
     local filepath="$1"
-    local filename="$(basename "$filepath")"
-
+    local filename
+    filename="$(basename "$filepath")"
     for pattern in "${PROTECTED_PATTERNS[@]}"; do
+        # shellcheck disable=SC2053
         if [[ "$filename" == $pattern ]]; then
             return 0
         fi
@@ -650,7 +658,9 @@ safe_delete() {
     local recovery_dir="${HOME}/.local/share/smart-organizer/recovery"
     mkdir -p "$recovery_dir"
 
-    local recovery_name="$(date +%Y%m%d-%H%M%S)-$(basename "$target")"
+    local recovery_name
+
+    recovery_name="$(date +%Y%m%d-%H%M%S)-$(basename "$target")"
     local size
     size=$(file_size_mb "$target")
     mv "$target" "${recovery_dir}/${recovery_name}"

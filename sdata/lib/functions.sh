@@ -443,7 +443,7 @@ function install_cmds(){
     *)
       printf "WARNING\n"
       printf "No method found to install package providing the commands:\n"
-      printf "  $@\n"
+      printf "  %s\n" "$@"
       printf "Please install by yourself.\n"
       ;;
   esac

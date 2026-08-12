@@ -9,7 +9,9 @@
 STY_RED='\e[31m'
 STY_RST='\e[00m'
 
-cd "$(dirname "$0")";export base="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+base="$(pwd)"
+export base
 output_file=diagnose.result;rm -f "$output_file"
 export LANG=C;export LC_ALL=C
 case $(whoami) in
@@ -51,7 +53,7 @@ _check_distro() {
   lsb_release -a || cat /etc/os-release || cat /etc/lsb-release
 }
 _check_venv() {
-  source $(eval echo $ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate
+  source "$(eval echo "$ILLOGICAL_IMPULSE_VIRTUAL_ENV")/bin/activate"
   which python
   deactivate
 }
@@ -96,7 +98,7 @@ x _check_quickshell_version
 x _check_PKGBUILD_version
 
 e "Finished. Output saved as \"$output_file\"."
-if ! command -v curl 2>&1 >>/dev/null ;then echo "\"curl\" not found, pastebin upload unavailable.";exit;fi
+if ! command -v curl >/dev/null 2>&1 ;then echo "\"curl\" not found, pastebin upload unavailable.";exit;fi
 echo "(Optional) Do you agree to upload the file \"$output_file\" to the online pastebin (https://0x0.st)?"
 echo "Notes:"
 echo "1. It is a public service and the logfile will be expired in 15 days."

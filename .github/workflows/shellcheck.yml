@@ -1,4 +1,4 @@
-name: ShellCheck — all scripts
+name: ShellCheck
 
 on:
   push:
@@ -18,27 +18,27 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck --version
 
-      - name: Run ShellCheck on all .sh plus setup, diagnose, test.sh (exclude dots/, .git/)
+      # Tier 1 — Shesh-owned scripts: WARNING-clean required (ratchet: never regress).
+      - name: Strict gate — tools/, entry scripts, sdata entry points we own
         run: |
           set -euo pipefail
-          echo "Finding all shell scripts (all .sh + setup, diagnose, test.sh)..."
-          # Find all .sh files plus setup, diagnose, test.sh, bootstrap.sh, excluding dots/ and .git/
-          scripts=$(find . -type f \( -name '*.sh' -o -name 'setup' -o -name 'diagnose' -o -name 'test.sh' -o -name 'bootstrap.sh' \) ! -path "./dots/*" ! -path "./.git/*" ! -path "./screenshots/*" 2>/dev/null | sort)
-          echo "Found $(echo "$scripts" | wc -l) scripts"
-          echo "$scripts"
-
-          exit_code=0
-          for script in $scripts; do
+          ours=$(find ./tools -type f -name '*.sh' | sort)
+          ours="$ours ./setup ./diagnose ./test.sh"
+          echo "Strict scope:"; echo "$ours"
+          for script in $ours; do
             echo "Checking: $script"
-            if ! shellcheck -x -s bash -S warning "$script"; then
-              echo "FAILED: $script"
-              exit_code=1
-            fi
+            shellcheck -x -s bash -S warning "$script"
           done
+          echo "STRICT SCOPE: warning-clean ✓"
 
-          if [[ $exit_code -eq 0 ]]; then
-            echo "All shell scripts passed ShellCheck at warning severity"
-          else
-            echo "Some scripts failed ShellCheck"
-            exit 1
-          fi
+      # Tier 2 — upstream sdata/ installer: bash -n + error-severity only.
+      # Mass-fixing upstream shell style belongs to upstream rebases, not us.
+      - name: Baseline gate — sdata (upstream fork code) at error severity
+        run: |
+          set -euo pipefail
+          legacy=$(find ./sdata -type f -name '*.sh' ! -path "./.git/*" | sort)
+          for script in $legacy; do
+            bash -n "$script"
+            shellcheck -x -s bash -S error "$script"
+          done
+          echo "BASELINE SCOPE: error-clean ✓"

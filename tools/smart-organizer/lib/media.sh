@@ -56,7 +56,8 @@ organize_file() {
             local target_dir
             target_dir=$(get_category_dir "$category")
             if [[ -n "$target_dir" ]]; then
-                local dest="${target_dir}/$(basename "$filepath")"
+                local dest
+                dest="${target_dir}/$(basename "$filepath")"
                 safe_move "$filepath" "$dest"
             fi
             ;;

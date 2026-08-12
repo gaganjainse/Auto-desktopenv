@@ -167,11 +167,11 @@ decide_action() {
 # Folder merge/split heuristics
 # =============================================================================
 
-# Find folders that are candidates for merging
-# Candidates: folders with same name pattern, or similar content
+# Find folders that are candidates for merging (exact-name duplicates).
+# Content/name similarity scoring lives in shesh-files' Python classifier —
+# this shell view intentionally stays exact-match only.
 find_merge_candidates() {
     local dir="$1"
-    local threshold="${2:-0.8}"
 
     if [[ ! -d "$dir" ]]; then
         return 0
