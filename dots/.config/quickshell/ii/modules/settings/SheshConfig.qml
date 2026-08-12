@@ -5,18 +5,18 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 
-// Shesha settings — local AI body (Brain + Mind + Soma).
+// Shesh settings — local AI body (Brain + Mind + Soma).
 // Toggles here write to the shell config; systemd units read the same values.
 ContentPage {
     forceWidth: true
 
     ContentSection {
         icon: "psychology_alt"
-        title: Translation.tr("Shesha")
+        title: Translation.tr("Shesh")
 
         ConfigSwitch {
             buttonIcon: "power_settings_new"
-            text: Translation.tr("Enable Shesha")
+            text: Translation.tr("Enable Shesh")
             checked: Config.options.shesha.enabled
             onCheckedChanged: Config.options.shesha.enabled = checked
             StyledToolTip {
@@ -30,7 +30,7 @@ ContentPage {
             checked: Config.options.shesha.voiceWakeWord
             onCheckedChanged: Config.options.shesha.voiceWakeWord = checked
             StyledToolTip {
-                text: Translation.tr("Answer to \"Hey Shesha\" via Newelle (local, no cloud)")
+                text: Translation.tr("Answer to \"Hey Shesh\" via Newelle (local, no cloud)")
             }
         }
     }
@@ -87,7 +87,7 @@ ContentPage {
             stepSize: 5
             onValueChanged: Config.options.shesha.organizerConfidence = value
             StyledToolTip {
-                text: Translation.tr("Below this confidence, Shesha asks before moving a file")
+                text: Translation.tr("Below this confidence, Shesh asks before moving a file")
             }
         }
     }
@@ -150,7 +150,7 @@ ContentPage {
             uniform: false
             StyledText {
                 Layout.fillWidth: true
-                text: Translation.tr("Every action Shesha takes is recorded in an append-only audit log. Destructive actions always ask for confirmation.")
+                text: Translation.tr("Every action Shesh takes is recorded in an append-only audit log. Destructive actions always ask for confirmation.")
                 wrapMode: Text.WordWrap
             }
         }
