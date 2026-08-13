@@ -29,7 +29,8 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends \
-            libdbus-1-dev libcairo2-dev libgirepository1.0-dev pkg-config
+            libdbus-1-dev libcairo2-dev libgirepository1.0-dev pkg-config \
+            libwayland-dev wayland-protocols  # pywayland metadata needs wayland.xml
 
       - name: Recompile the lock from requirements.in (all latest compatible)
         run: |
