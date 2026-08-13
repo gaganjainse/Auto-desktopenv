@@ -6,6 +6,7 @@ import QtQuick.Controls
 
 RippleButton {
     id: root
+    accessibleName: root.buttonText
     property string buttonIcon
     property alias iconSize: iconWidget.iconSize
 
@@ -33,6 +34,7 @@ RippleButton {
         }
         StyledSwitch {
             id: switchWidget
+            accessibleName: root.buttonText
             down: root.down
             Layout.fillWidth: false
             checked: root.checked

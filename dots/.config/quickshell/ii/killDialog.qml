@@ -85,6 +85,7 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignRight
 
             RippleButton {
+                accessibleName: Translation.tr("Always kill")
                 colBackground: Appearance.colors.colLayer2
                 contentItem: StyledText {
                     text: Translation.tr("Always")
@@ -96,6 +97,7 @@ ApplicationWindow {
                 }
             }
             RippleButton {
+                accessibleName: Translation.tr("Yes, kill")
                 colBackground: Appearance.colors.colLayer2
                 contentItem: StyledText {
                     text: Translation.tr("Yes")
@@ -106,6 +108,7 @@ ApplicationWindow {
                 }
             }
             RippleButton {
+                accessibleName: Translation.tr("No, cancel")
                 colBackground: Appearance.colors.colLayer2
                 contentItem: StyledText {
                     text: Translation.tr("No")
@@ -147,6 +150,7 @@ ApplicationWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.right
                 RippleButton {
+                    accessibleName: Translation.tr("Close dialog")
                     buttonRadius: Appearance.rounding.full
                     implicitWidth: 35
                     implicitHeight: 35
