@@ -5,7 +5,7 @@ import Quickshell
 import qs.modules.common
 
 /**
- * Shesh — applies the user's settings (Config.options.sesha) to the system.
+ * Shesh — applies the user's settings (Config.options.shesh) to the system.
  *
  * Toggles translate to `systemctl --user` unit state and hyprctl visual state.
  * All effects are idempotent and safe to re-run; the service only acts when a
@@ -44,6 +44,35 @@ Singleton {
         systemctl(Config.options.shesh.autoPowerProfile && on ? "enable --now" : "disable --now",
                   "shesh-power.service");
         applyPowerVisuals();
+        applyMcp();
+    }
+
+    // Rebuild ~/.config/shesh/mcp/*.json from the MCP toggles + channel.
+    function applyMcp() {
+        if (!Config.options.shesh.enabled) {
+            return; // master switch off: leave the generated config untouched
+        }
+        const m = Config.options.shesh.mcp;
+        const names = [];
+        const pairs = [
+            [m.audit, "shesh-audit"], [m.backup, "shesh-backup"],
+            [m.calendar, "shesh-calendar"], [m.containers, "shesh-containers"],
+            [m.ebpf, "shesh-ebpf"], [m.harness, "shesh-harness"],
+            [m.mcpBundle, "shesh-mcp-bundle"], [m.media, "shesh-media"],
+            [m.memory, "shesh-memory"], [m.messaging, "shesh-messaging"],
+            [m.mind, "shesh-mind"], [m.secrets, "shesh-secrets"],
+            [m.shell, "shesh-shell"], [m.skills, "shesh-skills"],
+            [m.system, "shesh-system"],
+        ];
+        for (let i = 0; i < pairs.length; i++) {
+            if (pairs[i][0]) names.push(pairs[i][1]);
+        }
+        const channel = Config.options.shesh.channel || "canary";
+        const script = `${Directories.home}/src/shesh-ecosystem/scripts/generate_mcp_config.py`;
+        Quickshell.execDetached(["bash", "-c",
+            `if [ -f "$1" ]; then exec python3 "$1" --channel "$2" --servers "$3"; ` +
+            `else echo "shesh: generate_mcp_config.py not found at $1 (run install-shesh-stack.sh)" >&2; fi`,
+            "shesh-mcp-apply", script, channel, names.join(",")]);
     }
 
     // React to every option under shesh.*

@@ -143,6 +143,142 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "tune"
+        title: Translation.tr("Channel")
+
+        StyledComboBox {
+            id: channelSelector
+            buttonIcon: "stream"
+            textRole: "displayName"
+            enabled: Config.options.shesh.enabled
+            model: [
+                { displayName: Translation.tr("Stable (releases only)"), value: "stable" },
+                { displayName: Translation.tr("Canary (recommended)"), value: "canary" },
+                { displayName: Translation.tr("Devel (bleeding edge)"), value: "devel" }
+            ]
+            currentIndex: {
+                const i = model.findIndex(m => m.value === Config.options.shesh.channel)
+                return i !== -1 ? i : 1
+            }
+            onActivated: index => Config.options.shesh.channel = model[index].value
+            StyledToolTip {
+                text: Translation.tr("Which component set the MCP servers and models are drawn from")
+            }
+        }
+    }
+
+    ContentSection {
+        icon: "hub"
+        title: Translation.tr("MCP servers")
+
+        ConfigSwitch {
+            buttonIcon: "verified"
+            text: Translation.tr("Audit (governance log)")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.audit
+            onCheckedChanged: Config.options.shesh.mcp.audit = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "key"
+            text: Translation.tr("Secrets")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.secrets
+            onCheckedChanged: Config.options.shesh.mcp.secrets = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "memory"
+            text: Translation.tr("Memory")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.memory
+            onCheckedChanged: Config.options.shesh.mcp.memory = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "psychology"
+            text: Translation.tr("Mind (model routing)")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.mind
+            onCheckedChanged: Config.options.shesh.mcp.mind = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "terminal"
+            text: Translation.tr("Shell")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.shell
+            onCheckedChanged: Config.options.shesh.mcp.shell = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "developer_board"
+            text: Translation.tr("System (power/GPU)")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.system
+            onCheckedChanged: Config.options.shesh.mcp.system = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "perm_media"
+            text: Translation.tr("Media")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.media
+            onCheckedChanged: Config.options.shesh.mcp.media = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "chat"
+            text: Translation.tr("Messaging (Telegram/Signal)")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.messaging
+            onCheckedChanged: Config.options.shesh.mcp.messaging = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "event"
+            text: Translation.tr("Calendar")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.calendar
+            onCheckedChanged: Config.options.shesh.mcp.calendar = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "backup"
+            text: Translation.tr("Backup")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.backup
+            onCheckedChanged: Config.options.shesh.mcp.backup = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "view_in_ar"
+            text: Translation.tr("Containers")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.containers
+            onCheckedChanged: Config.options.shesh.mcp.containers = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "monitor_heart"
+            text: Translation.tr("eBPF tracing")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.ebpf
+            onCheckedChanged: Config.options.shesh.mcp.ebpf = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "auto_awesome"
+            text: Translation.tr("Skills")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.skills
+            onCheckedChanged: Config.options.shesh.mcp.skills = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "inventory_2"
+            text: Translation.tr("MCP bundle")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.mcpBundle
+            onCheckedChanged: Config.options.shesh.mcp.mcpBundle = checked
+        }
+        ConfigSwitch {
+            buttonIcon: "device_hub"
+            text: Translation.tr("Harness (skills marketplace)")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.mcp.harness
+            onCheckedChanged: Config.options.shesh.mcp.harness = checked
+        }
+    }
+
+    ContentSection {
         icon: "verified"
         title: Translation.tr("Governance")
 

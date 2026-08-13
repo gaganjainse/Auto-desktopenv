@@ -164,7 +164,7 @@ Singleton {
             // ── Shesh: the local AI body (Brain + Mind + Soma) ──────────────
             // These options drive the MCP servers, automations, and voice agent
             // without editing code. Managed by the Shesh settings page.
-            property JsonObject sesha: JsonObject {
+            property JsonObject shesh: JsonObject {
                 property bool enabled: true               // master switch for Shesh automations
                 property bool voiceWakeWord: true         // "Hey Shesh" via Newelle
                 property bool realtimeOrganizer: true     // sm-watcher + classifier
@@ -176,6 +176,24 @@ Singleton {
                 property string codeModel: "qwen2.5-coder:3b"
                 property string visionModel: "moondream2"
                 property string cloudTier: "off"          // off | opt-in (never default)
+                property string channel: "canary"         // stable | canary | devel — gates MCP + models
+                property JsonObject mcp: JsonObject {
+                    property bool audit: true
+                    property bool backup: true
+                    property bool calendar: true
+                    property bool containers: true
+                    property bool ebpf: true
+                    property bool harness: true
+                    property bool mcpBundle: true
+                    property bool media: true
+                    property bool memory: true
+                    property bool messaging: true
+                    property bool mind: true
+                    property bool secrets: true
+                    property bool shell: true
+                    property bool skills: true
+                    property bool system: true
+                }
             }
 
             property JsonObject background: JsonObject {

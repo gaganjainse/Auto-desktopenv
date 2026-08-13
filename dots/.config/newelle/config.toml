@@ -9,7 +9,7 @@ ollama_url = "http://localhost:11434"
 
 [voice]
 enabled = true
-wake_word = "hey sesha"
+wake_word = "hey shesh"
 stt_backend = "faster_whisper"
 stt_model = "base.en"          # ~145MB; English, fast. Use "small.en" if CPU allows.
 tts_backend = "piper"
@@ -30,7 +30,7 @@ allow_read = [
 allow_write = [
   "~/Downloads",
   "~/Documents/Inbox",
-  "~/.local/share/sesha",
+  "~/.local/share/shesh",
 ]
 ask_before = ["~/"]
 deny = [
