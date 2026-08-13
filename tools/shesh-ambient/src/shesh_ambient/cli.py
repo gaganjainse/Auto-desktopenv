@@ -9,10 +9,12 @@ Commands:
 System probing is via subprocess; every probe fails open to safe defaults so
 a tick can never crash the session.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
+import pathlib
 import subprocess
 import sys
 import time
@@ -64,9 +66,14 @@ def probe_context() -> Context:
             break
 
     # fullscreen
-    fs = _sh(["bash", "-c",
-              "hyprctl activewindow -j 2>/dev/null | grep -o '\"fullscreen\":[0-9]*' "
-              "| cut -d: -f2 | head -1"]).strip()
+    fs = _sh(
+        [
+            "bash",
+            "-c",
+            "hyprctl activewindow -j 2>/dev/null | grep -o '\"fullscreen\":[0-9]*' "
+            "| cut -d: -f2 | head -1",
+        ]
+    ).strip()
     ctx.fullscreen = fs == "1"
 
     # AC / battery
@@ -104,14 +111,19 @@ def tick(args: argparse.Namespace) -> int:
             state.last_run[job.name] = time.time()
     if not args.dry_run:
         state.save(STATE_DIR / "jobs.json")
-    print(json.dumps({
-        "ran": [j.name for j in runplan.to_run],
-        "deferred": runplan.deferred,
-        "skipped": runplan.skipped,
-        "busy": ctx.busy,
-        "on_ac": ctx.on_ac,
-        "idle_s": ctx.idle_seconds,
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "ran": [j.name for j in runplan.to_run],
+                "deferred": runplan.deferred,
+                "skipped": runplan.skipped,
+                "busy": ctx.busy,
+                "on_ac": ctx.on_ac,
+                "idle_s": ctx.idle_seconds,
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -126,20 +138,41 @@ def offer(_args: argparse.Namespace) -> int:
         pstate.snoozed_until = data.get("snoozed_until", 0)
 
     if should_offer(ctx, pstate, now=time.time()):
-        chosen = pick_offer(ctx, pstate)
+        # Data-aware proactivity: gather real facts (git, backup, downloads,
+        # disk) so the offer line is concrete, never a static guess. Each fact
+        # is optional — unavailable sources fall back to the default detail.
+        from .sources import gather_facts
+
+        home = pathlib.Path.home()
+        repo_candidate = home / "src" / "shesh-ecosystem"
+        facts = gather_facts(
+            repo=str(repo_candidate) if repo_candidate.is_dir() else None,
+            state_dir=str(home / ".local" / "share" / "shesh"),
+            downloads_dir=str(home / "Downloads"),
+        )
+        chosen = pick_offer(ctx, pstate, facts=facts)
         if chosen:
             mark_offered(pstate, chosen, now=time.time())
             pf.parent.mkdir(parents=True, exist_ok=True)
-            pf.write_text(json.dumps({
-                "last_offer_ts": pstate.last_offer_ts,
-                "offered_today": list(pstate.offered_today),
-                "snoozed_until": pstate.snoozed_until,
-            }, indent=2))
-            print(json.dumps({
-                "offer": chosen.title,
-                "detail": chosen.detail,
-                "action": chosen.action,
-            }))
+            pf.write_text(
+                json.dumps(
+                    {
+                        "last_offer_ts": pstate.last_offer_ts,
+                        "offered_today": list(pstate.offered_today),
+                        "snoozed_until": pstate.snoozed_until,
+                    },
+                    indent=2,
+                )
+            )
+            print(
+                json.dumps(
+                    {
+                        "offer": chosen.title,
+                        "detail": chosen.detail,
+                        "action": chosen.action,
+                    }
+                )
+            )
             return 0
     print(json.dumps({"offer": None, "busy": ctx.busy, "pause": not ctx.natural_pause}))
     return 0

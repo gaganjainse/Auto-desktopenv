@@ -8,19 +8,21 @@ offer from a prioritized list. Offers are throttled so the agent never nags
 This is intentionally small and local-first. It does not call the LLM on every
 keystroke — it only fires at genuine pauses.
 """
+
 from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
 
 from .policy import Context
+from .sources import Facts  # noqa: F401  (type only, avoids cycle)
 
 
 @dataclass
 class Offer:
-    title: str          # one line shown in the overlay
-    detail: str         # optional second line
-    action: str         # a shesh command / MCP tool call
+    title: str  # one line shown in the overlay
+    detail: str  # optional second line
+    action: str  # a shesh command / MCP tool call
     priority: int = 50  # higher = more eager to show
 
 
@@ -29,7 +31,7 @@ class ProactivityState:
     last_offer_ts: float = 0.0
     offered_today: set = field(default_factory=set)
     snoozed_until: float = 0.0
-    min_interval_s: int = 1800   # at most one offer every 30 min
+    min_interval_s: int = 1800  # at most one offer every 30 min
     offers_per_day: int = 3
 
 
@@ -58,8 +60,13 @@ def pick_offer(
     state: ProactivityState,
     candidates: list[Offer] | None = None,
     rng: random.Random | None = None,
+    facts: Facts | None = None,
 ) -> Offer | None:
-    """Return one offer appropriate to the moment, or None to stay quiet."""
+    """Return one offer appropriate to the moment, or None to stay quiet.
+
+    When real facts are provided, the chosen offer's detail line is replaced
+    with a concrete one (real counts/ages) instead of the static default.
+    """
     candidates = candidates or DEFAULT_OFFERS
     rng = rng or random.Random()
 
@@ -70,7 +77,14 @@ def pick_offer(
     pool.sort(key=lambda o: o.priority, reverse=True)
     # Usually pick from the top 3, sometimes a lower one for variety.
     top = pool[:3]
-    return rng.choice(top)
+    offer = rng.choice(top)
+    if facts is not None:
+        from .sources import detail_for
+
+        detail = detail_for(offer.action, facts)
+        if detail:
+            return Offer(offer.title, detail, offer.action, offer.priority)
+    return offer
 
 
 def mark_offered(state: ProactivityState, offer: Offer, now: float) -> None:
@@ -88,8 +102,7 @@ def reset_day(state: ProactivityState) -> None:
 
 def offer_from_signal(sig) -> Offer:
     """Convert a signals.Signal into an Offer."""
-    return Offer(title=sig.title, detail=sig.detail, action=sig.action,
-                priority=sig.priority)
+    return Offer(title=sig.title, detail=sig.detail, action=sig.action, priority=sig.priority)
 
 
 def candidates_with_signals(candidates, live_signals) -> list:
