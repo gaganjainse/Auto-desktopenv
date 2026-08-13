@@ -38,7 +38,7 @@ Singleton {
         const on = Config.options.shesh.enabled;
         systemctl(on ? "enable --now" : "disable --now", "shesh-mcp.target");
         systemctl(Config.options.shesh.realtimeOrganizer && on ? "enable --now" : "disable --now",
-                  "smart-organizer-watch.service");
+                  "smart-organizer.service");
         systemctl(Config.options.shesh.autoBackup && on ? "enable --now" : "disable --now",
                   "backup.timer");
         systemctl(Config.options.shesh.autoPowerProfile && on ? "enable --now" : "disable --now",

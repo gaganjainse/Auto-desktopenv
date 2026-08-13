@@ -1,10 +1,24 @@
 [Unit]
-Description=Sesha MCP servers (system, shell, files)
-Documentation=https://github.com/gaganjainse/Auto-desktopenv
+Description=Shesh MCP servers (Brain/Mind/Soma)
+Documentation=https://github.com/gaganjainse/shesh-ecosystem
 After=graphical-session.target
-Wants=shesh-system-control-mcp.service
-Wants=shesh-files-mcp.service
+Wants=shesh-audit-mcp.service
+Wants=shesh-secrets-mcp.service
+Wants=shesh-brain-mcp.service
+Wants=shesh-mind-mcp.service
 Wants=shesh-shell-mcp.service
+Wants=shesh-system-mcp.service
+Wants=shesh-media-mcp.service
+Wants=shesh-messaging-mcp.service
+Wants=shesh-calendar-mcp.service
+Wants=shesh-backup-mcp.service
+Wants=shesh-containers-mcp.service
+Wants=shesh-ebpf-mcp.service
+Wants=shesh-skills-mcp.service
+Wants=shesh-mcp-bundle-mcp.service
+Wants=shesh-memory-mcp.service
+Wants=shesh-orchestrator-mcp.service
+Wants=shesh-harness-mcp.service
 
 [Install]
 WantedBy=graphical-session.target

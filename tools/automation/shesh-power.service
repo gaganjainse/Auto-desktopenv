@@ -5,7 +5,9 @@ After=graphical-session.target
 
 [Service]
 Type=oneshot
-# Triggered by udev rules via systemd-run; also usable manually:
-#   systemctl --user start shesh-power.service
-ExecStart=%h/.local/bin/shesh-power ac
+# Detect current state (defaults to AC if the sysfs node is absent).
+ExecStart=/bin/bash -c '[ "$(cat /sys/class/power_supply/AC/online 2>/dev/null || echo 1)" = "1" ] && powerprofilesctl set performance || powerprofilesctl set power-saver'
 RemainAfterExit=no
+
+[Install]
+WantedBy=default.target

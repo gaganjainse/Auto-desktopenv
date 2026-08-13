@@ -421,6 +421,16 @@ function setup_nvidia_mux(){
     *)
       printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
       ;;
+
+    grub)
+      if [[ -f /etc/default/grub ]] && ! grep -q "nvidia-drm.modeset=1" /etc/default/grub; then
+        v sudo sed -i 's/^\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"$/\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"/' /etc/default/grub
+        if command_exists grub-mkconfig; then
+          v sudo grub-mkconfig -o /boot/grub/grub.cfg
+        fi
+      fi
+      ;;
+
   esac
 
   if [[ "$NEEDS_INITRAMFS_REBUILD" -eq 1 ]]; then
