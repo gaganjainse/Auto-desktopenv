@@ -1,0 +1,11 @@
+[Unit]
+Description=Shesh soma MCP server: shesh-files-mcp
+After=network-online.target
+
+[Service]
+ExecStart=shesh-files-mcp
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

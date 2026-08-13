@@ -166,11 +166,14 @@ clone_repo() {
     if [[ -d "${install_dir}/.git" ]]; then
         log_info "Repository exists, pulling latest..."
         if ! git -C "${install_dir}" pull --ff-only; then
+            log_warn "pull failed — continuing with existing checkout"
+        else
+            git -C "${install_dir}" submodule update --init --recursive
             log_warn "git pull --ff-only failed for ${install_dir} (local changes or offline?) — continuing with the existing checkout"
         fi
     else
-        log_info "Cloning repository..."
-        git clone "${repo_url}" "${install_dir}"
+        log_info "Cloning repository (with submodules)..."
+        git clone --recurse-submodules "${repo_url}" "${install_dir}"
     fi
     log_ok "Repository ready at ${install_dir}"
 }
