@@ -45,6 +45,7 @@ Singleton {
                   "shesh-power.service");
         applyPowerVisuals();
         applyMcp();
+        applyPolicy();
     }
 
     // Rebuild ~/.config/shesh/mcp/*.json from the MCP toggles + channel.
@@ -73,6 +74,22 @@ Singleton {
             `if [ -f "$1" ]; then exec python3 "$1" --channel "$2" --servers "$3"; ` +
             `else echo "shesh: generate_mcp_config.py not found at $1 (run install-shesh-stack.sh)" >&2; fi`,
             "shesh-mcp-apply", script, channel, names.join(",")]);
+    }
+
+    // Write ~/.config/shesh/policy.json from the Governance page, then bounce
+    // the audit server so it re-loads the policy. Uses the venv python when the
+    // full stack is installed, else system python3 with a here-doc.
+    function applyPolicy() {
+        if (!Config.options.shesh.enabled) return;
+        const verdict = Config.options.shesh.policy.defaultVerdict;
+        const protect = Config.options.shesh.policy.protectPaths ? "true" : "false";
+        const dir = `${Directories.home}/.config/shesh`;
+        // Heredoc writes the exact JSON load_policy() expects; then bounce the
+        // audit server so it re-loads the policy.
+        const cmd = `mkdir -p "${dir}" && cat > "${dir}/policy.json" <<EOF\n` +
+            `{\n  "version": 1,\n  "default_verdict": "${verdict}",\n  "protected_paths": ${protect}\n}\nEOF`;
+        Quickshell.execDetached(["bash", "-c", cmd]);
+        systemctl("restart", "shesh-audit-mcp.service");
     }
 
     // React to every option under shesh.*

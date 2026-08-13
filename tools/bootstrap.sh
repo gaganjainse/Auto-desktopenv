@@ -1,221 +1,176 @@
 #!/usr/bin/env bash
+# shesh-desktop Bootstrap — ONE command installs everything.
 #
-# shesh-desktop Bootstrap — generic, idempotent, with skip flags
-# One-command installer for CachyOS/Arch + Hyprland (illogical-impulse look + CachyOS performance)
-# Usage:
 #   bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
-#   bash <(curl -s ...) -- --skip-ai --skip-nvidia --dry-run --device msi-sword-cachyos
+#   bash <(curl -s .../bootstrap.sh) -- --skip-ai --device msi-sword-cachyos
+#
+# What it does (idempotent; safe to re-run):
+#   1. Preflight (not root, sudo present, network, Arch/CachyOS check)
+#   2. System update + base tooling (pacman)
+#   3. Clone shesh-desktop to ~/Workspace/shesh-desktop (recurse submodules)
+#   4. Run `./setup install --force` — end-4 dots + Hyprland + Quickshell +
+#      NVIDIA/MUX + power/zram + Ollama/models/Newelle (the desktop's own AI bits)
+#   5. Apply the device profile (sysctl/udev/144Hz) via tools/apply-profile.sh
+#   6. Install the Shesh MCP stack (shesh-core + memory/orchestrator/harness/…) +
+#      MCP client configs + systemd units via the ecosystem installer
+#   7. Verification + reboot note
 #
 # Flags:
-#   --skip-ai       Skip AI stack (Ollama, models, Newelle)
-#   --skip-nvidia   Skip NVIDIA/MUX setup
-#   --skip-zram     Skip ZRAM config
-#   --skip-power    Skip power management
-#   --dry-run       Don't execute, only print what would be done
-#   --device NAME   Device profile (e.g., msi-sword-cachyos, generic)
-#   --help          Show help
-
+#   --skip-ai       skip Ollama/models/voice + the ecosystem MCP stack
+#   --skip-nvidia   skip NVIDIA/MUX setup
+#   --skip-power    skip power management (incl. zram)
+#   --dry-run       print every step, run nothing
+#   --device NAME   msi-sword-cachyos | generic | auto (default auto-detect)
+#   --help
 set -euo pipefail
 
-# Source common lib if available
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "$SCRIPT_DIR/lib/common.sh" ]]; then
-    source "$SCRIPT_DIR/lib/common.sh"
-else
-    # Fallback colors/logging if common.sh not found
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[0;34m'
-    NC='\033[0m'
-    log_info() { echo -e "${BLUE}[BOOT]${NC} $*"; }
-    log_ok() { echo -e "${GREEN}[OK]${NC}   $*"; }
-    log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
-    log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
-fi
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
+log_info(){ echo -e "${BLUE}[BOOT]${NC} $*"; }
+log_ok()  { echo -e "${GREEN}[OK]${NC}   $*"; }
+log_warn(){ echo -e "${YELLOW}[WARN]${NC} $*"; }
+log_err() { echo -e "${RED}[FATAL]${NC} $*" >&2; }
 
-# Defaults
-SKIP_AI=0
-SKIP_NVIDIA=0
-SKIP_ZRAM=0
-SKIP_POWER=0
-DRY_RUN=0
-DEVICE="auto"
+SKIP_AI=0; SKIP_NVIDIA=0; SKIP_POWER=0; DRY=0; DEVICE="auto"
 
 usage() {
-    cat <<USAGE
-shesh-desktop Bootstrap — generic installer
+  cat <<'EOF'
+shesh-desktop Bootstrap — one command installs the whole desktop + Shesh stack.
 
-Usage:
-  $0 [options]
-
-Options:
-  --skip-ai       Skip AI stack (Ollama, Newelle, models)
-  --skip-nvidia   Skip NVIDIA/MUX setup
-  --skip-zram     Skip ZRAM config
-  --skip-power    Skip power management
-  --dry-run       Don't execute, only print what would be done
-  --device NAME   Device profile (auto, msi-sword-cachyos, generic)
-  --help          Show this help
-
-Examples:
-  $0 --skip-ai --dry-run
-  $0 --device msi-sword-cachyos --skip-nvidia
-  bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh) -- --skip-ai
-
-Device profiles:
-  - msi-sword-cachyos: MSI Sword 16 HX B14VEKG-210IN — 1920x1200@144, RTX 4050 6GB, 16GB DDR5
-  - generic: Generic Arch/CachyOS — no device-specific tweaks
-
-Idempotent: safe to re-run, skips already done steps.
-USAGE
+  --skip-ai       skip Ollama/models/voice + the ecosystem MCP stack
+  --skip-nvidia   skip NVIDIA/MUX setup
+  --skip-power    skip power management (incl. zram)
+  --dry-run       print every step, run nothing
+  --device NAME   msi-sword-cachyos | generic | auto (default auto-detect)
+  --help
+EOF
 }
 
-# Parse args
+# allow the `bash <(curl ...) -- <flags>` invocation form
+[[ "${1:-}" == "--" ]] && shift
+
 while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --skip-ai)
-            SKIP_AI=1
-            shift
-            ;;
-        --skip-nvidia)
-            SKIP_NVIDIA=1
-            shift
-            ;;
-        --skip-zram)
-            SKIP_ZRAM=1
-            shift
-            ;;
-        --skip-power)
-            SKIP_POWER=1
-            shift
-            ;;
-        --dry-run)
-            DRY_RUN=1
-            shift
-            ;;
-        --device)
-            DEVICE="$2"
-            shift 2
-            ;;
-        --help | -h)
-            usage
-            exit 0
-            ;;
-        *)
-            log_warn "Unknown arg $1 — ignoring"
-            shift
-            ;;
-    esac
+  case "$1" in
+    --skip-ai) SKIP_AI=1; shift;;
+    --skip-nvidia) SKIP_NVIDIA=1; shift;;
+    --skip-power) SKIP_POWER=1; shift;;
+    --dry-run) DRY=1; shift;;
+    --device) DEVICE="$2"; shift 2;;
+    --help|-h) usage; exit 0;;
+    *) log_warn "unknown arg $1 — ignoring"; shift;;
+  esac
 done
 
-# Auto-detect device if auto
 if [[ "$DEVICE" == "auto" ]]; then
-    if grep -qi "Sword 16 HX" /sys/class/dmi/id/product_name 2>/dev/null || grep -qi "B14VEKG" /sys/class/dmi/id/product_name 2>/dev/null; then
-        DEVICE="msi-sword-cachyos"
-    else
-        DEVICE="generic"
-    fi
+  if grep -qiE "Sword 16 HX|B14VEKG" /sys/class/dmi/id/product_name 2>/dev/null; then
+    DEVICE="msi-sword-cachyos"
+  else
+    DEVICE="generic"
+  fi
 fi
 
+INSTALL_DIR="${HOME}/Workspace/shesh-desktop"
+ECO_URL="https://raw.githubusercontent.com/gaganjainse/shesh-ecosystem/main/tools/install-shesh-stack.sh"
+
+run() { if [[ $DRY -eq 1 ]]; then log_info "[dry-run] $*"; else "$@"; fi; }
+
 preflight() {
-    echo ""
-    log_info "========================================"
-    log_info " shesh-desktop Bootstrap"
-    log_info " Device: $DEVICE"
-    log_info " Flags: skip-ai=$SKIP_AI skip-nvidia=$SKIP_NVIDIA skip-zram=$SKIP_ZRAM skip-power=$SKIP_POWER dry-run=$DRY_RUN"
-    log_info "========================================"
-    echo ""
-
-    if [[ $EUID -eq 0 ]]; then
-        log_error "Do NOT run this as root. Run as normal user with sudo available."
-        exit 1
-    fi
-
-    if ! command -v sudo >/dev/null 2>&1; then
-        log_error "sudo is required but not found."
-        exit 1
-    fi
-
-    if ! ping -c 1 archlinux.org >/dev/null 2>&1; then
-        log_error "No network connectivity."
-        exit 1
-    fi
-    log_ok "Network reachable"
-    log_info "OS: $(grep -oP '^NAME=\K.*' /etc/os-release 2>/dev/null | tr -d '\"' || echo Unknown)"
-    log_info "Target user: $(whoami)"
-    log_info "Device profile: $DEVICE — 1920x1200@144 RTX 4050 6GB 16GB DDR5 (if msi-sword-cachyos)"
+  log_info "=== Preflight ==="
+  log_info "device=$DEVICE skip-ai=$SKIP_AI skip-nvidia=$SKIP_NVIDIA skip-power=$SKIP_POWER dry-run=$DRY"
+  [[ $EUID -eq 0 ]] && { log_err "do NOT run as root — run as your normal user (sudo will be used)"; exit 1; }
+  command -v sudo >/dev/null 2>&1 || { log_err "sudo is required"; exit 1; }
+  curl -s -o /dev/null -m 8 https://archlinux.org/ || { log_err "no network (https://archlinux.org unreachable)"; exit 1; }
+  if ! grep -qiE 'arch|cachyos' /etc/os-release; then
+    log_warn "not Arch/CachyOS detected — continuing, but some steps assume pacman"
+  fi
+  log_ok "preflight passed ($(whoami)@$(hostname))"
 }
 
 install_prerequisites() {
-    log_info "=== Installing Prerequisites ==="
-    if [[ "$DRY_RUN" == "1" ]]; then
-        log_info "[dry-run] Would update system and install prerequisites"
-        return 0
-    fi
-    sudo pacman -Syu --noconfirm
-    sudo pacman -S --noconfirm --needed git curl wget base-devel
-    log_ok "Prerequisites installed"
+  log_info "=== System update + base tooling ==="
+  run sudo pacman -Syu --noconfirm
+  run sudo pacman -S --noconfirm --needed git curl wget base-devel
+  log_ok "prerequisites ready"
 }
 
-clone_repo() {
-    log_info "=== Cloning Repository ==="
-    local repo_url="https://github.com/gaganjainse/shesh-desktop.git"
-    local install_dir="${HOME}/Workspace/shesh-desktop"
-    mkdir -p "${HOME}/Workspace"
-    if [[ -d "${install_dir}/.git" ]]; then
-        log_info "Repository exists, pulling latest..."
-        if ! git -C "${install_dir}" pull --ff-only; then
-            log_warn "pull failed — continuing with existing checkout"
-        else
-            git -C "${install_dir}" submodule update --init --recursive
-            log_warn "git pull --ff-only failed for ${install_dir} (local changes or offline?) — continuing with the existing checkout"
-        fi
-    else
-        log_info "Cloning repository (with submodules)..."
-        git clone --recurse-submodules "${repo_url}" "${install_dir}"
-    fi
-    log_ok "Repository ready at ${install_dir}"
+clone_desktop() {
+  log_info "=== Clone shesh-desktop ==="
+  if [[ -d "$INSTALL_DIR/.git" ]]; then
+    run git -C "$INSTALL_DIR" pull --ff-only && run git -C "$INSTALL_DIR" submodule update --init --recursive
+  else
+    run mkdir -p "$(dirname "$INSTALL_DIR")"
+    run git clone --recurse-submodules "https://github.com/gaganjainse/shesh-desktop.git" "$INSTALL_DIR"
+  fi
+  log_ok "shesh-desktop ready at $INSTALL_DIR"
 }
 
-run_installer() {
-    log_info "=== Running Main Installer ==="
-    local install_dir="${HOME}/Workspace/shesh-desktop"
-    if [[ ! -f "${install_dir}/setup" ]]; then
-        log_error "Installer not found at ${install_dir}/setup"
-        exit 1
-    fi
-    cd "${install_dir}"
-    local args=("install" "--device" "$DEVICE")
-    [[ "$SKIP_AI" == "1" ]] && args+=("--skip-ai")
-    [[ "$SKIP_NVIDIA" == "1" ]] && args+=("--skip-nvidia")
-    [[ "$SKIP_ZRAM" == "1" ]] && args+=("--skip-zram")
-    [[ "$SKIP_POWER" == "1" ]] && args+=("--skip-power")
-    [[ "$DRY_RUN" == "1" ]] && args+=("--dry-run")
-    log_info "Running: ./setup ${args[*]}"
-    if [[ "$DRY_RUN" == "1" ]]; then
-        echo "[dry-run] Would run: ./setup ${args[*]}"
-    else
-        ./setup "${args[@]}"
-    fi
+run_setup() {
+  log_info "=== end-4 dots + Hyprland + hardware setup (non-interactive) ==="
+  if [[ $DRY -eq 0 && ! -f "$INSTALL_DIR/setup" ]]; then
+    log_err "setup not found at $INSTALL_DIR/setup"; exit 1
+  fi
+  local env_prefix=()
+  [[ $SKIP_NVIDIA -eq 1 ]] && env_prefix+=(SKIP_NVIDIA_SETUP=true)
+  [[ $SKIP_AI -eq 1 ]]     && env_prefix+=(SKIP_AI_STACK=true)
+  [[ $SKIP_POWER -eq 1 ]]  && env_prefix+=(SKIP_POWER_SETUP=true)
+  if [[ $DRY -eq 1 ]]; then
+    log_info "[dry-run] (cd $INSTALL_DIR && env ${env_prefix[*]} ./setup install --force)"
+  else
+    (cd "$INSTALL_DIR" && env "${env_prefix[@]}" ./setup install --force)
+  fi
+  log_ok "desktop setup done"
+}
+
+apply_profile() {
+  log_info "=== Device profile ($DEVICE) ==="
+  local prof="$INSTALL_DIR/tools/apply-profile.sh"
+  if [[ $DRY -eq 1 ]]; then
+    log_info "[dry-run] bash $prof --device $DEVICE"
+    return 0
+  fi
+  [[ -f "$prof" ]] || { log_warn "apply-profile.sh missing — skipping (profile is optional tuning)"; return 0; }
+  bash "$prof" --device "$DEVICE"
+  log_ok "device profile applied"
+}
+
+install_stack() {
+  log_info "=== Shesh MCP stack (shesh-core + services + MCP config + units) ==="
+  local flags=(--no-sysupgrade)
+  [[ $SKIP_AI -eq 1 ]] && flags+=(--skip-ai)
+  if [[ $DRY -eq 1 ]]; then
+    log_info "[dry-run] bash <(curl -s $ECO_URL) ${flags[*]}"
+  else
+    bash <(curl -s "$ECO_URL") "${flags[@]}"
+  fi
+  log_ok "Shesh stack installed"
+}
+
+verify() {
+  log_info "=== Verification ==="
+  if [[ $DRY -eq 1 ]]; then
+    log_info "[dry-run] verification skipped"; return 0
+  fi
+  local fails=0
+  command -v hyprctl >/dev/null 2>&1 && log_ok "hyprctl present" || { log_warn "hyprctl missing (expected until first Hyprland session)"; fails=$((fails+1)); }
+  command -v ollama >/dev/null 2>&1 && log_ok "ollama present" || { [[ $SKIP_AI -eq 1 ]] && log_ok "ollama skipped (--skip-ai)" || { log_warn "ollama missing"; fails=$((fails+1)); }; }
+  command -v shesh-audit-mcp >/dev/null 2>&1 && log_ok "shesh-audit-mcp present" || { [[ $SKIP_AI -eq 1 ]] && log_ok "MCP stack skipped (--skip-ai)" || { log_warn "shesh-audit-mcp missing (MCP stack may not have installed)"; fails=$((fails+1)); }; }
+  [[ $fails -gt 0 ]] && { log_warn "$fails verification warning(s) — see above"; } || log_ok "verification clean"
 }
 
 main() {
-    preflight
-    install_prerequisites
-    clone_repo
-    run_installer
-    echo ""
-    log_ok "========================================"
-    log_ok " Bootstrap Complete — Device: $DEVICE"
-    log_ok "========================================"
-    log_info "Reboot and select Hyprland at login."
-    log_info "After reboot:"
-    log_info "  - Test MUX: sudo msi-mux-switcher status"
-    log_info "  - Test GPU: prime-run glxinfo | grep NVIDIA || nvidia-run glxinfo"
-    log_info "  - Test AI: ollama run qwen2.5:3b (if not --skip-ai)"
-    log_info "  - Test organizer: smart-organizer --dry-run"
-    echo ""
+  preflight
+  install_prerequisites
+  clone_desktop
+  run_setup
+  apply_profile
+  install_stack
+  verify
+  echo
+  log_ok "=== Bootstrap complete (device: $DEVICE) ==="
+  log_info "Reboot, pick Hyprland at the login screen, then:"
+  log_info "  - Settings → Shesh → flip toggles (they rewrite ~/.config/shesh/mcp/*.json)"
+  log_info "  - Verify: hyprctl monitors   (expect 1920x1200@144 on eDP-1)"
+  log_info "  - Voice:  'Hey Shesh' (Newelle, local models)"
+  echo
 }
 
 main "$@"

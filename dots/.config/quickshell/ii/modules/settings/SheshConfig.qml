@@ -282,11 +282,42 @@ ContentPage {
         icon: "verified"
         title: Translation.tr("Governance")
 
+        StyledComboBox {
+            id: policyVerdictSelector
+            buttonIcon: "gavel"
+            textRole: "displayName"
+            enabled: Config.options.shesh.enabled
+            model: [
+                { displayName: Translation.tr("Ask before acting (recommended)"), value: "confirm" },
+                { displayName: Translation.tr("Allow everything (read-only + confirm only)"), value: "allow" },
+                { displayName: Translation.tr("Deny everything by default"), value: "deny" }
+            ]
+            currentIndex: {
+                const i = model.findIndex(m => m.value === Config.options.shesh.policy.defaultVerdict)
+                return i !== -1 ? i : 0
+            }
+            onActivated: index => Config.options.shesh.policy.defaultVerdict = model[index].value
+            StyledToolTip {
+                text: Translation.tr("What happens when an agent action doesn't match an explicit rule")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "shield_lock"
+            text: Translation.tr("Protect secrets & job data")
+            enabled: Config.options.shesh.enabled
+            checked: Config.options.shesh.policy.protectPaths
+            onCheckedChanged: Config.options.shesh.policy.protectPaths = checked
+            StyledToolTip {
+                text: Translation.tr("Hard-deny any action touching .ssh, .gnupg, Vaults, or job folders")
+            }
+        }
+
         ConfigRow {
             uniform: false
             StyledText {
                 Layout.fillWidth: true
-                text: Translation.tr("Every action Shesh takes is recorded in an append-only audit log. Destructive actions always ask for confirmation.")
+                text: Translation.tr("Every action Shesh takes is recorded in an append-only audit log (~/.local/share/shesh/audit/events.jsonl). Policy file: ~/.config/shesh/policy.json. Changes restart the audit server.")
                 wrapMode: Text.WordWrap
             }
         }

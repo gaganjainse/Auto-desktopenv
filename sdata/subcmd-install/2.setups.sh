@@ -339,6 +339,10 @@ fi
 #####################################################################################
 # NVIDIA + MUX Setup for CachyOS
 function setup_nvidia_mux(){
+  [[ "${SKIP_NVIDIA_SETUP:-}" == "true" ]] && {
+    printf "${STY_YELLOW}[$0]: SKIP_NVIDIA_SETUP=true — skipping NVIDIA/MUX setup${STY_RST}\n"
+    return 0
+  }
   if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
     printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping NVIDIA setup${STY_RST}\n"
     return 0
@@ -504,6 +508,10 @@ v setup_nvidia_mux
 #####################################################################################
 # AI/ML Stack Setup
 function setup_ai_stack() {
+  [[ "${SKIP_AI_STACK:-}" == "true" ]] && {
+    log_info "SKIP_AI_STACK=true — skipping AI stack (CUDA/Ollama/Newelle/models)"
+    return 0
+  }
   [[ "${OS_GROUP_ID}" != "arch" ]] && {
     log_warning "AI stack setup is CachyOS/Arch only — skipping"
     return 0
@@ -638,6 +646,10 @@ v setup_ai_stack
 #####################################################################################
 # Power Management Setup
 function setup_power_management(){
+  [[ "${SKIP_POWER_SETUP:-}" == "true" ]] && {
+    printf "${STY_YELLOW}[$0]: SKIP_POWER_SETUP=true — skipping power management (incl. zram)${STY_RST}\n"
+    return 0
+  }
   if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]]; then
     printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping power management${STY_RST}\n"
     return 0

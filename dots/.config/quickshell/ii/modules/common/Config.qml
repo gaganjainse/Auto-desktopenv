@@ -177,6 +177,10 @@ Singleton {
                 property string visionModel: "moondream2"
                 property string cloudTier: "off"          // off | opt-in (never default)
                 property string channel: "canary"         // stable | canary | devel — gates MCP + models
+                property JsonObject policy: JsonObject {
+                    property string defaultVerdict: "confirm"  // allow | confirm | deny
+                    property bool protectPaths: true           // deny job/secret/vault paths
+                }
                 property JsonObject mcp: JsonObject {
                     property bool audit: true
                     property bool backup: true
