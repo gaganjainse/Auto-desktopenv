@@ -1,5 +1,5 @@
 build
-pillow
+pillow>=12.3.0  # CVE floor: <12.3.0 carries piled advisories (dependabot security runs 2026-08-12)
 setuptools-scm
 wheel
 pywayland
