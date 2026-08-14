@@ -17,6 +17,9 @@ on:
       - '.github/workflows/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   functional-tests:
     runs-on: ubuntu-latest
