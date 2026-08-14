@@ -1,0 +1,17 @@
+# Shesh Ollama auth proxy — API key required.
+# The key comes from the systemd unit's EnvironmentFile (~/.config/shesh/ollama/env),
+# so this file itself contains NO secret and can be world-readable.
+{
+	admin off
+}
+
+:11435 {
+	@unauthorized not header X-API-Key {env.OLLAMA_API_KEY}
+	respond @unauthorized 401 {"error":"unauthorized"}
+
+	reverse_proxy 127.0.0.1:11434 {
+		# NDJSON streaming: flush immediately, no buffering, long timeouts.
+		flush_interval -1
+		header_up Host localhost:11434
+	}
+}

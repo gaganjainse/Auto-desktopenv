@@ -70,6 +70,8 @@ fi
 
 INSTALL_DIR="${HOME}/Workspace/shesh-desktop"
 ECO_URL="https://raw.githubusercontent.com/gaganjainse/shesh-ecosystem/main/tools/install-shesh-stack.sh"
+# Pinned SHA256 of install-shesh-stack.sh — update when that script changes (see its repo).
+ECO_SHA256="5207940e1b4621658541d49e22b55ed0dcb27172ce3f8a8d9a53247581fe4caf"
 
 run() { if [[ $DRY -eq 1 ]]; then log_info "[dry-run] $*"; else "$@"; fi; }
 
@@ -137,10 +139,24 @@ install_stack() {
   local flags=(--no-sysupgrade)
   [[ $SKIP_AI -eq 1 ]] && flags+=(--skip-ai)
   if [[ $DRY -eq 1 ]]; then
-    log_info "[dry-run] bash <(curl -s $ECO_URL) ${flags[*]}"
-  else
-    bash <(curl -s "$ECO_URL") "${flags[@]}"
+    log_info "[dry-run] bash <(curl -s $ECO_URL) ${flags[*]}   (sha256 pinned: $ECO_SHA256)"
+    return 0
   fi
+  # SHA-pinned: fetch to a temp file, verify against the pinned digest, then run.
+  local tmp
+  tmp="$(mktemp)"
+  trap 'rm -f "$tmp"' RETURN
+  curl -fsSL "$ECO_URL" -o "$tmp"
+  local got
+  got="$(sha256sum "$tmp" | cut -d' ' -f1)"
+  if [[ "$got" != "$ECO_SHA256" ]]; then
+    log_err "install-shesh-stack.sh checksum mismatch"
+    log_err "  expected $ECO_SHA256"
+    log_err "  got      $got"
+    exit 1
+  fi
+  log_ok "install-shesh-stack.sh checksum verified"
+  bash "$tmp" "${flags[@]}"
   log_ok "Shesh stack installed"
 }
 

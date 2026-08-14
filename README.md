@@ -3,7 +3,7 @@
 ![Hyprland](https://img.shields.io/badge/Hyprland-0.55-58e1ff?style=for-the-badge)
 ![Quickshell](https://img.shields.io/badge/Quickshell-QML-7c3aed?style=for-the-badge)
 ![OS](https://img.shields.io/badge/OS-CachyOS-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge) ![CI](https://img.shields.io/github/actions/workflow/status/gaganjainse/shesh-desktop/arch-test.yml?style=for-the-badge&label=CI)
 
 - **License:** GPL-3.0-or-later (same as upstream end-4/dots-hyprland)
 - **Owner:** Gagan Jain ([@gaganjainse](https://github.com/gaganjainse))
