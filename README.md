@@ -5,6 +5,11 @@
 ![OS](https://img.shields.io/badge/OS-CachyOS-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)
 
+- **License:** GPL-3.0-or-later (same as upstream end-4/dots-hyprland)
+- **Owner:** Gagan Jain ([@gaganjainse](https://github.com/gaganjainse))
+- **Target:** CachyOS · Hyprland ≥0.55 · Quickshell (MSI Sword 16 HX)
+
+
 **Forked from [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)**
 
 Usability-first Hyprland dotfiles with automated desktop environment setup for Arch-based systems.
@@ -144,3 +149,8 @@ See [`LICENSE`](LICENSE). Third-party components retain their own licenses; see
 
 Security posture and vulnerability reporting: [canonical ecosystem security
 policy](https://github.com/gaganjainse/shesh-ecosystem/blob/main/SECURITY.md).
+
+## Status
+
+CI green. Security: [SECURITY.md](SECURITY.md). Compiled reading:
+[shesh-docs](https://github.com/gaganjainse/shesh-docs).
