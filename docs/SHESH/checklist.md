@@ -68,7 +68,7 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 - [ ] Newelle 1.4.5 native + Ollama models
 - [ ] 3 MCP servers (✅ system/smart-organizer/hyprland added; test in Newelle)
 - [ ] config.toml uses stdio (✅ fixed)
-- [ ] shesh audit log + policy.toml + `sesha` CLI
+- [ ] shesh audit log + policy.toml + `shesh` CLI
 - [ ] Quickshell overlay
 - [ ] Newelle starts on login (user service)
 - [ ] voice acceptance test in 06 §10 passes offline

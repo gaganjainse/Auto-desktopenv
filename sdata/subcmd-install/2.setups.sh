@@ -598,44 +598,14 @@ function setup_ai_stack() {
   v ollama pull nomic-embed-text
   v ollama pull moondream2
 
-  # ── 7 & 8. Install MCP servers that ACTUALLY EXIST (no dead units) ────────
-  local mcp_dir="${REPO_ROOT}/tools/shesh/mcp_servers"
-  local unit_dest="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-  local mcp_server installed=()
-  shopt -s nullglob
-  for mcp_file in "${mcp_dir}"/*.py; do
-    mcp_server="$(basename "${mcp_file}" .py)"
-    v install -Dm755 "${mcp_file}" "${BIN_DIR}/shesh-${mcp_server//_/-}-mcp"
-    cat > "${unit_dest}/shesh-${mcp_server//_/-}-mcp.service" << EOF
-[Unit]
-Description=Shesh MCP Server: ${mcp_server}
-After=graphical-session.target
-
-[Service]
-Type=simple
-ExecStart=${venv}/bin/python ${BIN_DIR}/shesh-${mcp_server//_/-}-mcp
-Restart=on-failure
-RestartSec=5s
-TimeoutStartSec=15
-TimeoutStopSec=10
-
-[Install]
-WantedBy=graphical-session.target
-EOF
-    installed+=("${mcp_server}")
-  done
-  shopt -u nullglob
-  if (( ${#installed[@]} == 0 )); then
-    log_warning "No MCP servers found in ${mcp_dir}"
-  fi
-
-  v systemctl --user daemon-reload
-  for mcp_server in "${installed[@]}"; do
-    v systemctl --user enable --now "shesh-${mcp_server//_/-}-mcp.service"
-  done
-  log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + MCP servers: ${installed[*]}) installed"
+  # ── 7 & 8. MCP servers now ship via the ecosystem installer ───────────────
+  # ADR-0019 folded the desktop's tools/shesh/mcp_servers/*.py into shesh-core.
+  # The real shesh-*-mcp console scripts + systemd user units are installed by
+  # tools/install-shesh-stack.sh (run by bootstrap.sh after `setup install`).
+  log_info "MCP servers install via install-shesh-stack.sh (shesh-core); nothing to install here"
+  log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + models) installed"
   log_info   "Launch Newelle → Settings → Models → Add Ollama → phi4-mini"
-  log_info   "Settings → MCP → Add server → path: shesh-system-control-mcp"
+  log_info   "MCP servers arrive from the ecosystem stack installer (shesh-*-mcp)"
 }
 
 showfun setup_ai_stack

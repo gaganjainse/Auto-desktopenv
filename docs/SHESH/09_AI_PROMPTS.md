@@ -215,7 +215,7 @@ re-running completed steps. If it's a known issue from docs/SHESH/01_AUDIT.md, c
 ### 7.3 Before rebasing on upstream end-4
 ```
 I want to merge upstream end-4/dots-hyprland main into my fork. List the files/areas I've diverged
-in (sdata installer additions, tools/, dots/.config/newelle, dots/.config/sesha, profiles/) and give
+in (sdata installer additions, tools/, dots/.config/newelle, dots/.config/shesh, profiles/) and give
 a safe rebase strategy: commit my changes, fetch upstream, merge with strategy-option, and resolve
 conflicts preferring upstream for dots/ shell/Quickshell but keeping my sdata/tools/profiles. Provide
 exact git commands and a checklist to test after merge.

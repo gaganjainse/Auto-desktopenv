@@ -11,8 +11,8 @@
 
 Each tool is a small, composable component exposed to Shesh over MCP/IPC — not a monolith.
 
-### 1.1 `sesha` CLI — the one command
-A Python/CLI entrypoint (`~/.local/bin/sesha`) that unifies control:
+### 1.1 `shesh` CLI — the one command
+A Python/CLI entrypoint (`~/.local/bin/shesh`) that unifies control:
 ```
 shesh status            # GPU/power/battery/services/last audit events
 shesh organize [path]   # trigger smart-organizer

@@ -42,15 +42,8 @@ deny = [
 ]
 
 # MCP servers — STDIO transport (Newelle 1.4.5 supports STDIO on native installs).
-# The venv is created by setup_ai_stack; bin names are shesh-<name>-mcp.
+# These are the shesh-core console scripts installed by
+# tools/install-shesh-stack.sh into ~/.local/bin/shesh-*-mcp (ADR-0019).
 [mcp.system_control]
-command = "~/.local/state/shesh/.venv/bin/python"
-args = ["~/.local/bin/shesh-system-control-mcp"]
-
-[mcp.smart_organizer]
-command = "~/.local/state/shesh/.venv/bin/python"
-args = ["~/.local/bin/shesh-smart-organizer-mcp"]
-
-[mcp.hyprland_control]
-command = "~/.local/state/shesh/.venv/bin/python"
-args = ["~/.local/bin/shesh-hyprland-control-mcp"]
+command = "~/.local/bin/shesh-system-mcp"
+args = []

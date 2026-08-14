@@ -37,12 +37,16 @@ undo_nvidia_mux() {
 undo_ai_stack() {
   printf "${STY_CYAN}[$0]: Undoing AI stack${STY_RST}\n"
 
-  # Stop/disable user units we created (only if systemctl --user works)
+  # Stop/disable user units the ecosystem installer created (only if
+  # systemctl --user works). The real unit names are shesh-*-mcp.service
+  # (shesh-core console scripts, ADR-0019) — the old desktop-specific
+  # shesh-{system-control,smart-organizer,hyprland-control}-mcp units no
+  # longer exist.
   if command_exists systemctl && [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
-    for u in shesh-system-control-mcp.service shesh-smart-organizer-mcp.service \
-             shesh-hyprland-control-mcp.service; do
-      v systemctl --user disable --now "$u" 2>/dev/null || true
-      v rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$u"
+    for u in "${XDG_CONFIG_HOME:-$HOME/.config}"/systemd/user/shesh-*-mcp.service; do
+      [[ -e "$u" ]] || continue
+      v systemctl --user disable --now "$(basename "$u")" ||         log_warning "could not disable $(basename "$u") (already gone?)"
+      v rm -f "$u"
     done
     v systemctl --user daemon-reload
   fi
@@ -52,11 +56,11 @@ undo_ai_stack() {
   v rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}"/sm-watcher
 
   # Remove the Shesh venv (state, not config)
-  v rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/sesha"
+  v rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/shesh"
 
   # Disable (do NOT uninstall) Ollama — it may be used by other things.
   if command_exists systemctl; then
-    v sudo systemctl disable --now ollama.service 2>/dev/null || true
+    v sudo systemctl disable --now ollama.service 2>/dev/null ||       log_warning "ollama.service not active (already disabled)"
   fi
   printf "${STY_YELLOW}[$0]: Ollama and Newelle packages were left installed; remove with your package manager if desired.${STY_RST}\n"
 }

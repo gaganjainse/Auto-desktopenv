@@ -107,7 +107,7 @@ ollama_url = "http://localhost:11434"
 
 [voice]
 enabled = true
-wake_word = "hey sesha"
+wake_word = "hey shesh"
 stt_backend = "faster_whisper"
 stt_model = "base.en"          # ~145 MB, fast, English. Use "small.en" if CPU allows.
 tts_backend = "piper"
@@ -120,7 +120,7 @@ embedding_model = "nomic-embed-text"
 [permissions]
 # Newelle 1.3.5+ file permission system
 allow_read  = ["~/Documents/Personal", "~/Downloads", "~/Notes", "~/Projects/personal"]
-allow_write = ["~/Downloads", "~/Documents/Inbox", "~/.local/share/sesha"]
+allow_write = ["~/Downloads", "~/Documents/Inbox", "~/.local/share/shesh"]
 ask_before  = ["~/"]           # anything else prompts
 deny        = ["~/Documents/Job", "~/Projects/job", "~/Vaults", "~/.ssh", "~/.gnupg"]
 ```
@@ -225,7 +225,7 @@ paths = ["~/Documents/Job", "~/Projects/job", "~/Vaults", "~/.ssh", "~/.gnupg"]
 # safe to run without asking
 tools = ["get_system_status", "last_moves", "switch_workspace", "get_active_window"]
 ```
-A `sesha` CLI wraps queries:
+A `shesh` CLI wraps queries:
 ```bash
 shesh log --since 1h          # what did Shesh do
 shesh undo                    # undo the last reversible action
