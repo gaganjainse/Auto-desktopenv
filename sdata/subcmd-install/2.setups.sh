@@ -382,8 +382,8 @@ function setup_nvidia_mux(){
     systemd-boot)
       local entry_file
       while IFS= read -r entry_file; do
-        if [[ -n "$entry_file" ]] && ! grep -q "nvidia-drm.modeset=1" "$entry_file"; then
-          v sudo sed -i 's|^\(options .*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
+        if [[ -n "$entry_file" ]] && ! grep -q "nvidia_drm.modeset=1" "$entry_file"; then
+          v sudo sed -i 's|^\(options .*\)|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
         fi
       done < <(find /boot/loader/entries -maxdepth 1 -name '*.conf' 2>/dev/null)
       ;;
@@ -391,23 +391,22 @@ function setup_nvidia_mux(){
       local limine_cfg=""
       limine_cfg="$(detect_limine_config)" || true
 
-      if [[ -n "$limine_cfg" ]] && ! grep -q "nvidia-drm.modeset=1" "$limine_cfg"; then
+      if [[ -n "$limine_cfg" ]] && ! grep -q "nvidia_drm.modeset=1" "$limine_cfg"; then
         if grep -Eq '^KERNEL_CMDLINE\[default\]=' "$limine_cfg"; then
-          v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cfg"
-          NEEDS_INITRAMFS_REBUILD=1
+          v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cfg"
         elif grep -Eq '^kernel_cmdline[[:space:]]*=' "$limine_cfg"; then
-          v sudo sed -i 's|^\(kernel_cmdline[[:space:]]*=.*\)|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cfg"
+          v sudo sed -i 's|^\(kernel_cmdline[[:space:]]*=.*\)|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cfg"
         else
           printf "  WARNING: Could not recognize Limine cmdline format in $limine_cfg\n"
         fi
       fi
       ;;
     grub)
-      if [[ -f /etc/default/grub ]] && ! grep -q "nvidia-drm.modeset=1" /etc/default/grub; then
+      if [[ -f /etc/default/grub ]] && ! grep -q "nvidia_drm.modeset=1" /etc/default/grub; then
         if grep -Eq '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
-          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
+          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
         elif grep -Eq '^GRUB_CMDLINE_LINUX=' /etc/default/grub; then
-          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX=.*\)"|\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
+          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX=.*\)"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
         fi
       fi
       if command_exists grub-mkconfig; then
@@ -422,16 +421,7 @@ function setup_nvidia_mux(){
       printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
       ;;
 
-    grub)
-      if [[ -f /etc/default/grub ]] && ! grep -q "nvidia-drm.modeset=1" /etc/default/grub; then
-        v sudo sed -i 's/^\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"$/\1 nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"/' /etc/default/grub
-        if command_exists grub-mkconfig; then
-          v sudo grub-mkconfig -o /boot/grub/grub.cfg
-        fi
-      fi
-      ;;
-
-  esac
+esac
 
   if [[ "$NEEDS_INITRAMFS_REBUILD" -eq 1 ]]; then
     if command_exists limine-mkinitcpio; then

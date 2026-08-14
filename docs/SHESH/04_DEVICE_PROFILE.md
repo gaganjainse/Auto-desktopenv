@@ -118,7 +118,13 @@ For Hyprland/Wayland stability on NVIDIA:
 ```
 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1
 ```
-The installer already patches systemd-boot/grub/limine — verify it added exactly these (no duplicates).
+
+**Bootloader: Limine** (your choice — Calamares default; see INSTALLATION_GUIDE §4.3).
+The installer's `setup_nvidia_mux` patches the Limine cmdline in
+`/boot/limine.conf` (`KERNEL_CMDLINE[default]=`) automatically and idempotently
+(re-checks before appending). systemd-boot and grub are also handled, so the
+installer stays correct regardless of what the ISO ships.
+Verify it added exactly these (no duplicates).
 **Do not** add `nvidia-drm.modeset=1` (wrong separator) — it must be `nvidia_drm.modeset=1`.
 
 ### Environment (iGPU primary, dGPU offload)
