@@ -36,6 +36,11 @@ One-command fresh install:
 bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
 ```
 
+📖 **Before you start:** read the offline install references —
+[INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) (BIOS → CachyOS → desktop, step by step) and
+[PREBOOT_INSTRUCTIONS.md](PREBOOT_INSTRUCTIONS.md) (everything to do before booting the USB).
+Compiled fleet docs: [shesh-docs](https://github.com/gaganjainse/shesh-docs).
+
 ## Quick Start
 
 ### Fresh Install (CachyOS/Arch)
