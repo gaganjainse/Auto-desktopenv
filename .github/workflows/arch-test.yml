@@ -10,9 +10,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: arch-test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   arch-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
       image: archlinux:latest
     steps:
