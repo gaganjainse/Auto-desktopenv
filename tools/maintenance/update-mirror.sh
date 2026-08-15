@@ -68,7 +68,12 @@ do_repo_add() {
   local db="$MIRROR_DIR/$REPO_NAME.db.tar.zst"
   # repo-add needs an explicit file list; glob is fine (all in one dir).
   # shellcheck disable=SC2086
-  maybe_run repo-add -q "$db" "$MIRROR_DIR"/*.pkg.tar.* 2>/dev/null || true
+  # An empty mirror is a valid state; any other failure must be visible.
+  if ! maybe_run repo-add -q "$db" "$MIRROR_DIR"/*.pkg.tar.* 2>&1; then
+    if compgen -G "$MIRROR_DIR/*.pkg.tar.*" >/dev/null; then
+      log "warning: repo-add failed with packages present"
+    fi
+  fi
   [ "$DRY_RUN" = true ] && log "dry-run: repo-add $db <packages>"
 }
 
@@ -125,8 +130,8 @@ do_status() {
 
 case "${1:-help}" in
   sync)
-    shift || true
-    case "${1:-}" in --dry-run) DRY_RUN=true; shift || true ;; esac
+    [ "$#" -gt 0 ] && shift
+    case "${1:-}" in --dry-run) DRY_RUN=true; [ "$#" -gt 0 ] && shift ;; esac
     do_fetch "$@"
     do_repo_add
     do_prune
@@ -136,7 +141,7 @@ case "${1:-help}" in
     fi
     ;;
   prune)
-    shift || true
+    [ "$#" -gt 0 ] && shift
     case "${1:-}" in --dry-run) DRY_RUN=true ;; esac
     do_prune
     ;;

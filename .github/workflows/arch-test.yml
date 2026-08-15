@@ -49,6 +49,8 @@ jobs:
 
       - name: Dry-run setup --help
         run: |
-          chmod +x setup diagnose test.sh || true
-          ./setup --help || true
-          ./diagnose --help || true
+          chmod +x setup diagnose test.sh
+          # --help must succeed. Masking the exit code here meant a script
+          # that failed to parse still reported a green run.
+          ./setup --help
+          ./diagnose --help

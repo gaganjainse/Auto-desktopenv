@@ -61,16 +61,27 @@ remove_git_identity() {
   sed -i '/# job-mode: work identity for work paths/,$d' "$HOME/.config/git/config" 2>/dev/null || true
 }
 
+# A unit that is absent or already stopped is the desired end state, not a
+# failure. Anything else is reported: `|| true` would hide a real fault.
+_ignore_missing_unit() {  # _ignore_missing_unit <action> <unit>
+  local action="$1" unit="$2" rc=0 out
+  out=$(systemctl --user "$action" "$unit" 2>&1) || rc=$?
+  if [ "$rc" -ne 0 ] && ! printf '%s' "$out" | grep -qiE 'not loaded|not found|no such'; then
+    printf 'warning: systemctl %s %s failed (rc=%s): %s\n' \
+      "$action" "$unit" "$rc" "$out" >&2
+  fi
+}
+
 stop_personal_sync() {
   for unit in "${PERSONAL_SYNC_UNITS[@]}"; do
-    systemctl --user stop "$unit" 2>/dev/null || true
-    systemctl --user disable "$unit" 2>/dev/null || true
+    _ignore_missing_unit stop "$unit"
+    _ignore_missing_unit disable "$unit"
   done
 }
 
 start_personal_sync() {
   for unit in "${PERSONAL_SYNC_UNITS[@]}"; do
-    systemctl --user enable --now "$unit" 2>/dev/null || true
+    _ignore_missing_unit "enable --now" "$unit"
   done
 }
 
@@ -78,7 +89,10 @@ switch_theme() {
   # Apply via the Hyprland theme wrapper if present; else no-op (mode env
   # still records the intent and other tools can read it).
   if command -v shesh-theme >/dev/null 2>&1; then
-    shesh-theme set "$work_theme" 2>/dev/null || true
+    if ! shesh-theme set "$work_theme" 2>&1; then
+      printf 'warning: shesh-theme set %s failed; intent recorded anyway\n' \
+        "$work_theme" >&2
+    fi
   fi
 }
 
