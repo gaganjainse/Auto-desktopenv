@@ -6,9 +6,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: dump-github-context-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   dump_github_context:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Dump github context
         run: echo "$GITHUB_CONTEXT"

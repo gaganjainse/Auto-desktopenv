@@ -7,9 +7,13 @@ on:
 permissions:
   issues: write
 
+concurrency:
+  group: auto-close-issue-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   detect-and-close:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Detect checked "ticked without reading" checkbox, comment, close and lock
         env:

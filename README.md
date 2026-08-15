@@ -143,10 +143,10 @@ shesh-desktop/
 
 ## Documentation
 
-- [Setup Guide](docs/SETUP.md)
+- [Setup Guide](setup)
 - [Smart Organizer](tools/smart-organizer/README.md)
 - [MUX Switcher](tools/mux-switcher/README.md)
-- [Directory Organization](docs/DIRECTORY-ORGANIZATION.md)
+- [Directory organisation](docs/SHESH/03_DISK_STRUCTURE.md)
 
 ## License
 
