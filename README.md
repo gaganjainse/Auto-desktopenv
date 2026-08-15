@@ -9,16 +9,16 @@
 - **Owner:** Gagan Jain ([@gaganjainse](https://github.com/gaganjainse))
 - **Target:** CachyOS · Hyprland ≥0.55 · Quickshell (MSI Sword 16 HX)
 
-
 **Forked from [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)**
 
 Usability-first Hyprland dotfiles with automated desktop environment setup for Arch-based systems.
 
-## What's Added Beyond Upstream
+## What's added beyond upstream
 
 This fork extends the upstream illogical-impulse dotfiles with:
 
-### 🧠 Smart Organizer
+### Smart organizer
+
 Systemwide intelligent file organization and cleanup:
 - Automatic file classification by type, extension, and path
 - Cache, trash, and bloat cleanup with age-based rules
@@ -29,71 +29,85 @@ Systemwide intelligent file organization and cleanup:
 - Dry-run mode for safety
 - Protected paths and files safeguard
 
-### 🎮 MSI MUX Switcher
+### MSI MUX switcher
+
 GPU MUX switch control for MSI laptops:
 - Switch between hybrid and dGPU-only modes
 - Automatic detection of MSI hardware
 - Status checking and display manager restart
 
-### 🚀 Online Bootstrap
+### Online bootstrap
+
 One-command fresh install:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
 ```
-
-📖 **Before you start:** read the offline install references —
+ **Before you start:** read the offline install references —
 [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) (BIOS → CachyOS → desktop, step by step) and
 [PREBOOT_INSTRUCTIONS.md](PREBOOT_INSTRUCTIONS.md) (everything to do before booting the USB).
 Compiled fleet docs: [shesh-docs](https://github.com/gaganjainse/shesh-docs).
 
-## Quick Start
+## Quick start
+### Fresh install (CachyOS/Arch)
 
-### Fresh Install (CachyOS/Arch)
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
 ```
 
-### Manual Install
+### Manual install
+
 ```bash
 # Clone repo
+
 git clone https://github.com/gaganjainse/shesh-desktop.git
 cd shesh-desktop
 
 # Run installer
+
 ./setup install
 ```
 
-### Smart Organizer
+### Smart organizer
+
 ```bash
 # Dry run
+
 smart-organizer --dry-run
 
 # Clean system
+
 smart-organizer --clean system
 
 # Organize downloads
+
 smart-organizer --organize ~/Downloads
 
 # Watch mode
+
 smart-organizer --watch
 
 # As systemd service
+
 systemctl --user enable --now smart-organizer
 ```
 
-### MUX Switcher
+### MUX switcher
+
 ```bash
 # Check status
+
 sudo mux-switcher status
 
 # Switch to hybrid
+
 sudo mux-switcher hybrid
 
 # Switch to dGPU only
+
 sudo mux-switcher dgpu
 ```
 
-## Supported Hardware
+## Supported hardware
 
 - **MSI Sword 16 HX B14VEKG** (tested)
 - Intel Core i7-14700HX (20C/28T, x86-64-v4)
@@ -102,7 +116,7 @@ sudo mux-switcher dgpu
 
 Other MSI laptops with MUX switch should work. Check `sudo mux-switcher status`.
 
-## Directory Structure
+## Directory structure
 
 ```
 shesh-desktop/
