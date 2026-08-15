@@ -49,6 +49,12 @@ jobs:
 
       - name: Dry-run setup --help
         run: |
-          chmod +x setup diagnose test.sh || true
-          ./setup --help || true
-          ./diagnose --help || true
+          chmod +x setup diagnose test.sh
+          # setup refuses to run as root and the container is root, so the
+          # original `|| true` was masking a legitimate refusal as well as any
+          # real parse error. Run the help path unprivileged instead, so a
+          # genuine failure still fails the job.
+          useradd -m ci 2>/dev/null || id ci >/dev/null
+          chmod -R a+rX .
+          su ci -c './setup --help'
+          su ci -c './diagnose --help'
