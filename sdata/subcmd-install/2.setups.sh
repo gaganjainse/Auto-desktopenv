@@ -1,6 +1,8 @@
 # This script is meant to be sourced.
 # It's not for directly running.
 
+# Use the audited local installer revision supplied with this PR.
+
 die() {
   printf "${STY_RED}FATAL: %s${STY_RST}\n" "$*"
   exit 1
@@ -17,9 +19,8 @@ require_cmd() {
   done
 }
 
-# Detect an AUR helper. CachyOS 260628 ships Shelly; paru is preferred for
-# scripting (stable pacman-compatible flags) and is installed if missing.
-# Caches result in AUR_HELPER; never expands empty into a command call.
+# Detect an AUR helper. Prefer an already installed helper; install paru only
+# when no helper is present. Empty helpers are never expanded as commands.
 detect_aur_helper() {
   local h
   for h in paru shelly yay; do
@@ -32,7 +33,8 @@ if [[ -z "${AUR_HELPER:-}" ]]; then
   AUR_HELPER="$(detect_aur_helper)"
   if [[ -z "$AUR_HELPER" ]] && command_exists pacman; then
     log_info "No AUR helper found; installing paru for scripting stability"
-    v sudo pacman -S --noconfirm --needed paru && AUR_HELPER=paru
+    v sudo pacman -S --noconfirm --needed paru
+    AUR_HELPER=paru
   fi
 fi
 readonly AUR_HELPER="${AUR_HELPER:-}"
@@ -49,28 +51,18 @@ aur_install() {
 }
 
 detect_bootloader() {
-  if [[ -d /boot/loader/entries ]]; then
-    printf 'systemd-boot'
-    return 0
-  fi
-
+  if [[ -d /boot/loader/entries ]]; then printf 'systemd-boot'; return 0; fi
   if [[ -f /etc/default/limine ]] || [[ -f /boot/limine.conf ]] || [[ -f /boot/EFI/limine.conf ]]; then
-    printf 'limine'
-    return 0
+    printf 'limine'; return 0
   fi
-
-  if [[ -f /etc/default/grub ]] || command_exists grub-mkconfig; then
-    printf 'grub'
-    return 0
-  fi
-
+  if [[ -f /etc/default/grub ]] || command_exists grub-mkconfig; then printf 'grub'; return 0; fi
   printf 'unknown'
 }
 
 detect_limine_config() {
   local c
   for c in /etc/default/limine /boot/limine.conf /boot/EFI/limine.conf; do
-    [[ -f "$c" ]] && { printf '%s' "$c"; return 0; }
+    if [[ -f "$c" ]]; then printf '%s' "$c"; return 0; fi
   done
   return 1
 }
@@ -84,15 +76,13 @@ function prepare_systemd_user_service(){
   fi
 }
 
-
 #####################################################################################
-# These python packages are installed using uv into the venv (virtual environment). Once the folder of the venv gets deleted, they are all gone cleanly. So it's considered as setups, not dependencies.
+# Python packages are installed into the managed virtual environment by upstream.
 showfun install-python-packages
 v install-python-packages
 
 function setup_user_group(){
-  if [[ -z $(getent group i2c) ]] && [[ "${OS_GROUP_ID:-unknown}" != "fedora" ]]; then
-    # On Fedora this is not needed. Tested with desktop computer with NVIDIA video card.
+  if [[ -z "$(getent group i2c)" ]] && [[ "${OS_GROUP_ID:-unknown}" != "fedora" ]]; then
     x sudo groupadd i2c
   fi
 
@@ -107,116 +97,113 @@ showfun setup_user_group
 v setup_user_group
 
 if command_exists systemctl; then
-  # For Fedora, uinput is required for the virtual keyboard to function, and udev rules enable input group users to utilize it.
   if [[ "${OS_GROUP_ID:-}" == "fedora" ]]; then
     v bash -c "echo uinput | sudo tee /etc/modules-load.d/uinput.conf"
     v bash -c 'echo SUBSYSTEM==\"misc\", KERNEL==\"uinput\", MODE=\"0660\", GROUP=\"input\" | sudo tee /etc/udev/rules.d/99-uinput.rules'
   else
     v bash -c "echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf"
   fi
-  # TODO: find a proper way for enable Nix installed ydotool. When running `systemctl --user enable ydotool, it errors "Failed to enable unit: Unit ydotool.service does not exist".
   if [[ ! "${INSTALL_VIA_NIX:-false}" == true ]]; then
     if [[ "${OS_GROUP_ID:-}" == "fedora" ]]; then
       v prepare_systemd_user_service
     fi
-    # When ${DBUS_SESSION_BUS_ADDRESS:-} and $XDG_RUNTIME_DIR are empty, it commonly means that the current user has been logged in with `su - user` or `ssh user@hostname`. In such case `systemctl --user enable <service>` is not usable. It should be `sudo systemctl --machine=$(whoami)@.host --user enable <service>` instead.
     if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
-      v systemctl --user enable ydotool --now
+      if ! systemctl --user enable ydotool --now; then
+        log_error "Failed to enable ydotool user service"
+        exit 1
+      fi
     else
-      v sudo systemctl --machine=$(whoami)@.host --user enable ydotool --now
+      if ! sudo systemctl --machine="$(whoami)@.host" --user enable ydotool --now; then
+        log_error "Failed to enable ydotool through the user manager"
+        exit 1
+      fi
     fi
   fi
-  v sudo systemctl enable bluetooth --now
+  if ! sudo systemctl enable bluetooth --now; then
+    log_error "Failed to enable bluetooth.service"
+    exit 1
+  fi
 elif command_exists openrc; then
   v bash -c "echo 'modules=i2c-dev' | sudo tee -a /etc/conf.d/modules"
   v sudo rc-update add modules boot
   v sudo rc-update add ydotool default
   v sudo rc-update add bluetooth default
-
   x sudo rc-service ydotool start
   x sudo rc-service bluetooth start
 else
-  printf "${STY_RED}"
-  printf "====================INIT SYSTEM NOT FOUND====================\n"
-  printf "${STY_RST}"
-  pause
+  die "No supported init system found"
 fi
 
 if [[ "${OS_GROUP_ID:-unknown}" == "gentoo" ]]; then
-  v sudo chown -R $(whoami):$(whoami) ~/.local/
+  v sudo chown -R "$(whoami):$(whoami)" ~/.local/
 fi
 
 #####################################################################################
-# MSI MUX Switcher
+# MSI MUX Switcher — model-specific helper, opt-in hardware phase.
 function setup_mux_switcher(){
   local mux_dir="${REPO_ROOT}/tools/mux-switcher"
   local mux_bin="${BIN_DIR}/msi-mux-switcher"
   local py_script="${mux_dir}/msi-mux-switcher.py"
 
   if [[ ! -f "$py_script" ]]; then
-    printf "${STY_YELLOW}[$0]: msi-mux-switcher Python tool not found at $py_script${STY_RST}\n"
+    log_warning "msi-mux-switcher helper missing at $py_script"
     return 0
   fi
 
-  if grep -qi "MSI" /sys/class/dmi/id/sys_vendor 2>/dev/null || \
-     grep -qi "MSI" /sys/class/dmi/id/product_name 2>/dev/null; then
-    printf "${STY_CYAN}[$0]: MSI laptop detected, setting up MUX switcher${STY_RST}\n"
+  local product_name=""
+  if [[ -r /sys/class/dmi/id/product_name ]]; then
+    product_name="$(cat /sys/class/dmi/id/product_name)"
+  fi
+
+  if [[ "$product_name" =~ ^Sword[[:space:]]16[[:space:]]HX[[:space:]]B14VEKG ]]; then
+    log_info "MSI Sword 16 HX B14VEKG detected; installing model-specific MUX helper"
     v mkdir -p "${BIN_DIR}"
     v ln -sf "${py_script}" "$mux_bin"
     v chmod +x "$mux_bin"
-    printf "${STY_GREEN}[$0]: MUX switcher installed at $mux_bin${STY_RST}\n"
-    printf "  Run: sudo msi-mux-switcher status\n"
-    printf "  Run: sudo msi-mux-switcher hybrid\n"
-    printf "  Run: sudo msi-mux-switcher dgpu\n"
-    printf "  Run: sudo msi-mux-switcher igpu\n"
+    log_success "MUX helper installed at $mux_bin"
   else
-    printf "${STY_YELLOW}[$0]: Not an MSI laptop, skipping MUX switcher${STY_RST}\n"
+    log_info "Model-specific MUX helper not applicable; detected product: ${product_name:-unknown}"
   fi
 }
 
 showfun setup_mux_switcher
 v setup_mux_switcher
 
-
-
 #####################################################################################
 # Smart Organizer
 if [[ ! "${SKIP_SMART_ORGANIZER:-}" == true ]]; then
   function setup_smart_organizer(){
-  local organizer_dir="${REPO_ROOT}/tools/smart-organizer"
-  local organizer_bin="${BIN_DIR}/smart-organizer"
+    local organizer_dir="${REPO_ROOT}/tools/smart-organizer"
+    local organizer_bin="${BIN_DIR}/smart-organizer"
 
-  if [[ ! -d "$organizer_dir" ]]; then
-    printf "${STY_YELLOW}[$0]: smart-organizer not found at $organizer_dir${STY_RST}\n"
-    return 0
-  fi
+    if [[ ! -d "$organizer_dir" ]]; then
+      log_warning "smart-organizer not found at $organizer_dir"
+      return 0
+    fi
 
-  printf "${STY_CYAN}[$0]: Setting up Smart Organizer${STY_RST}\n"
-  v mkdir -p "${BIN_DIR}"
-  v ln -sf "${organizer_dir}/smart-organizer.sh" "$organizer_bin"
-  v chmod +x "$organizer_bin"
+    log_info "Setting up Smart Organizer"
+    v mkdir -p "${BIN_DIR}"
+    v ln -sf "${organizer_dir}/smart-organizer.sh" "$organizer_bin"
+    v chmod +x "$organizer_bin"
 
-  local backup_dir="${REPO_ROOT}/tools/backup"
-  local maintenance_dir="${REPO_ROOT}/tools/maintenance"
-  if [[ -f "${backup_dir}/backup.sh" ]]; then
-    v ln -sf "${backup_dir}/backup.sh" "${BIN_DIR}/backup.sh"
-    v chmod +x "${BIN_DIR}/backup.sh"
-  fi
-  if [[ -f "${maintenance_dir}/maintenance.sh" ]]; then
-    v ln -sf "${maintenance_dir}/maintenance.sh" "${BIN_DIR}/maintenance.sh"
-    v chmod +x "${BIN_DIR}/maintenance.sh"
-  fi
+    local backup_dir="${REPO_ROOT}/tools/backup"
+    local maintenance_dir="${REPO_ROOT}/tools/maintenance"
+    if [[ -f "${backup_dir}/backup.sh" ]]; then
+      v ln -sf "${backup_dir}/backup.sh" "${BIN_DIR}/backup.sh"
+      v chmod +x "${BIN_DIR}/backup.sh"
+    fi
+    if [[ -f "${maintenance_dir}/maintenance.sh" ]]; then
+      v ln -sf "${maintenance_dir}/maintenance.sh" "${BIN_DIR}/maintenance.sh"
+      v chmod +x "${BIN_DIR}/maintenance.sh"
+    fi
 
-  # Install default configuration
-  v mkdir -p "${CONFIG_DIR}/smart-organizer"
-  if [[ ! -f "${CONFIG_DIR}/smart-organizer/smart-organizer.conf" ]]; then
-    v cp "${organizer_dir}/smart-organizer.conf" "${CONFIG_DIR}/smart-organizer/smart-organizer.conf"
-    printf "${STY_GREEN}[$0]: Default config installed to ${CONFIG_DIR}/smart-organizer/smart-organizer.conf${STY_RST}\n"
-  fi
+    v mkdir -p "${CONFIG_DIR}/smart-organizer"
+    if [[ ! -f "${CONFIG_DIR}/smart-organizer/smart-organizer.conf" ]]; then
+      v cp "${organizer_dir}/smart-organizer.conf" "${CONFIG_DIR}/smart-organizer/smart-organizer.conf"
+    fi
 
-  # Install systemd user service for watch mode
-  v mkdir -p "${CONFIG_DIR}/systemd/user"
-  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.service' << EOFSERVICE
+    v mkdir -p "${CONFIG_DIR}/systemd/user"
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.service' << EOFSERVICE
 [Unit]
 Description=Smart Organizer Watch Service
 After=network.target
@@ -231,8 +218,7 @@ RestartSec=10
 WantedBy=default.target
 EOFSERVICE"
 
-  # Install systemd user timer for periodic runs
-  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer-timer.service' << EOFSERVICE
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer-timer.service' << EOFSERVICE
 [Unit]
 Description=Smart Organizer Oneshot
 After=network.target
@@ -242,7 +228,7 @@ Type=oneshot
 ExecStart=${BIN_DIR}/smart-organizer --once
 EOFSERVICE"
 
-  v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.timer' << EOFSERVICE
+    v bash -c "cat > '${CONFIG_DIR}/systemd/user/smart-organizer.timer' << EOFSERVICE
 [Unit]
 Description=Smart Organizer Timer
 Requires=smart-organizer-timer.service
@@ -257,13 +243,8 @@ Persistent=true
 WantedBy=timers.target
 EOFSERVICE"
 
-   v systemctl --user daemon-reload
-  v systemctl --user enable --now smart-organizer.service || true
-  v systemctl --user enable --now smart-organizer.timer || true
-
-  # Install backup timer
-  if [[ -f "${BIN_DIR}/backup.sh" ]]; then
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.service' << EOFSERVICE
+    if [[ -f "${BIN_DIR}/backup.sh" ]]; then
+      v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.service' << EOFSERVICE
 [Unit]
 Description=Backup Script Oneshot
 After=network.target
@@ -272,8 +253,7 @@ After=network.target
 Type=oneshot
 ExecStart=${BIN_DIR}/backup.sh
 EOFSERVICE"
-
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.timer' << EOFSERVICE
+      v bash -c "cat > '${CONFIG_DIR}/systemd/user/backup.timer' << EOFSERVICE
 [Unit]
 Description=Backup Timer
 Requires=backup.service
@@ -286,13 +266,10 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOFSERVICE"
+    fi
 
-  v systemctl --user enable --now backup.timer || true
-  fi
-
-  # Install maintenance timer
-  if [[ -f "${BIN_DIR}/maintenance.sh" ]]; then
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.service' << EOFSERVICE
+    if [[ -f "${BIN_DIR}/maintenance.sh" ]]; then
+      v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.service' << EOFSERVICE
 [Unit]
 Description=Maintenance Script Oneshot
 After=network.target
@@ -301,8 +278,7 @@ After=network.target
 Type=oneshot
 ExecStart=${BIN_DIR}/maintenance.sh --auto
 EOFSERVICE"
-
-    v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.timer' << EOFSERVICE
+      v bash -c "cat > '${CONFIG_DIR}/systemd/user/maintenance.timer' << EOFSERVICE
 [Unit]
 Description=Maintenance Timer
 Requires=maintenance.service
@@ -315,115 +291,165 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOFSERVICE"
+    fi
 
-  v systemctl --user enable --now maintenance.timer || true
-  fi
+    # A fresh TTY/no-DE install does not have a user D-Bus manager yet.
+    # Install units now; enable them when a real user session exists.
+    if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" && -n "${XDG_RUNTIME_DIR:-}" ]]; then
+      x systemctl --user daemon-reload
+      x systemctl --user enable smart-organizer.service --now
+      x systemctl --user enable smart-organizer.timer --now
+      [[ ! -f "${BIN_DIR}/backup.sh" ]] || x systemctl --user enable backup.timer --now
+      [[ ! -f "${BIN_DIR}/maintenance.sh" ]] || x systemctl --user enable maintenance.timer --now
+    else
+      log_info "No user session; Smart Organizer, backup, and maintenance units are installed but not enabled yet."
+    fi
+  }
 
-  v systemctl --user daemon-reload
-
-  printf "${STY_GREEN}[$0]: Smart Organizer installed successfully!${STY_RST}\n"
-  printf "  Run: smart-organizer --dry-run\n"
-  printf "  Run: smart-organizer --clean system\n"
-  printf "  Watch service: systemctl --user status smart-organizer\n"
-  printf "  Timer service: systemctl --user list-timers | grep smart-organizer\n"
-  printf "  Backup timer: systemctl --user list-timers | grep backup\n"
-  printf "  Maintenance timer: systemctl --user list-timers | grep maintenance\n"
-}
-
-showfun setup_smart_organizer
+  showfun setup_smart_organizer
   v setup_smart_organizer
 fi
 
-
-
 #####################################################################################
-# NVIDIA + MUX Setup for CachyOS
+# NVIDIA + MUX Setup for CachyOS — opt-in because it mutates boot/initramfs state.
 function setup_nvidia_mux(){
-  [[ "${SKIP_NVIDIA_SETUP:-}" == "true" ]] && {
-    printf "${STY_YELLOW}[$0]: SKIP_NVIDIA_SETUP=true — skipping NVIDIA/MUX setup${STY_RST}\n"
-    return 0
-  }
-  if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]] && [[ "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
-    printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping NVIDIA setup${STY_RST}\n"
+  if [[ "${ENABLE_SHESH_HARDWARE_TUNING:-false}" != "true" ]]; then
+    log_info "Shesh hardware tuning deferred. Set ENABLE_SHESH_HARDWARE_TUNING=true only after plain Hyprland is verified."
     return 0
   fi
-
+  if [[ "${SKIP_NVIDIA_SETUP:-}" == "true" ]]; then
+    log_info "SKIP_NVIDIA_SETUP=true — skipping NVIDIA/MUX setup"
+    return 0
+  fi
+  if [[ "${OS_GROUP_ID:-unknown}" != "arch" && "${OS_GROUP_ID:-unknown}" != "cachyos" ]]; then
+    log_warning "Not Arch/CachyOS; skipping NVIDIA setup"
+    return 0
+  fi
+  if ! command_exists lspci; then die "lspci is required for hardware detection"; fi
   if ! lspci | grep -qi "nvidia"; then
-    printf "${STY_YELLOW}[$0]: No NVIDIA GPU detected, skipping NVIDIA setup${STY_RST}\n"
+    log_info "No NVIDIA GPU detected; skipping NVIDIA setup"
     return 0
   fi
 
-  printf "${STY_CYAN}[$0]: Setting up NVIDIA drivers + MUX support${STY_RST}\n"
-
-  # Install NVIDIA DKMS drivers
-  printf "  Installing NVIDIA packages...\n"
+  log_info "Installing NVIDIA + MUX support for the detected system"
   local kernel_headers_pkgs=()
   while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && kernel_headers_pkgs+=("${pkg}-headers")
-  done < <(pacman -Q 2>/dev/null | awk '/^linux-/{print $1}' | grep -vE '^(linux-firmware|linux-api-headers|linux-docs|linux-source|linux-tools|linux-headers)' | sed 's/-headers$//' || true)
+  done < <(pacman -Q 2>/dev/null | awk '/^linux-/{print $1}' | grep -vE '^(linux-firmware|linux-api-headers|linux-docs|linux-source|linux-tools|linux-headers)' | sed 's/-headers$//')
 
-  v sudo pacman -S --noconfirm --needed \
-    nvidia-dkms "${kernel_headers_pkgs[@]}" nvidia-utils lib32-nvidia-utils \
-    nvidia-prime
+  v sudo pacman -S --noconfirm --needed nvidia-dkms "${kernel_headers_pkgs[@]}" nvidia-utils lib32-nvidia-utils nvidia-prime
 
-  # Configure mkinitcpio for hybrid graphics
   printf "  Configuring mkinitcpio for Intel + NVIDIA hybrid...\n"
-  NEEDS_INITRAMFS_REBUILD=0
+  local needs_initramfs_rebuild=0
+  local nvidia_modules="i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm"
+
+  patch_mkinitcpio_modules(){
+    local file="$1"
+    sudo python3 - "$file" "$nvidia_modules" <<'PYEOF'
+import pathlib, re, sys
+path = pathlib.Path(sys.argv[1])
+mods = sys.argv[2].split()
+text = path.read_text()
+def rewrite(match):
+    inner = match.group(1)
+    for mod in mods:
+        inner = re.sub(r'\b' + re.escape(mod) + r'\b', '', inner)
+    inner = ' '.join(mods) + (' ' + inner.strip() if inner.strip() else '')
+    return 'MODULES=(' + inner + ')'
+new = re.sub(r'^MODULES=\(([^)]*)\)', rewrite, text, flags=re.MULTILINE)
+if new != text:
+    path.write_text(new)
+PYEOF
+  }
+
   if [[ -f /etc/mkinitcpio.conf ]]; then
-    v sudo sed -i -E 's/\b(i915|nvidia|nvidia_modeset|nvidia_uvm|nvidia_drm)\b//g; s/^MODULES=\(/MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-    NEEDS_INITRAMFS_REBUILD=1
+    v patch_mkinitcpio_modules /etc/mkinitcpio.conf
+    needs_initramfs_rebuild=1
+  fi
+  if [[ -d /etc/mkinitcpio.conf.d ]]; then
+    for dropin in /etc/mkinitcpio.conf.d/*.conf; do
+      [[ -f "$dropin" ]] || continue
+      if grep -q '^MODULES=' "$dropin"; then
+        v patch_mkinitcpio_modules "$dropin"
+        needs_initramfs_rebuild=1
+      fi
+    done
   fi
 
-  # Configure bootloader kernel parameters (detect bootloader first)
-  printf "  Configuring boot parameters for NVIDIA...\n"
-  BOOTLOADER="$(detect_bootloader)"
+  if (( needs_initramfs_rebuild )); then
+    if ! grep -rq 'i915' /etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/ 2>/dev/null; then
+      die "i915 was not present after mkinitcpio patch; refusing to rebuild initramfs"
+    fi
+  fi
 
-  case "$BOOTLOADER" in
+  printf "  Configuring NVIDIA kernel parameters...\n"
+  local bootloader="$(detect_bootloader)"
+  case "$bootloader" in
     systemd-boot)
-      local entry_file
+      local entry_file found_entry=0
       while IFS= read -r entry_file; do
-        if [[ -n "$entry_file" ]] && ! grep -q "nvidia_drm.modeset=1" "$entry_file"; then
-          v sudo sed -i 's|^\(options .*\)|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
+        [[ -n "$entry_file" ]] || continue
+        found_entry=1
+        if ! grep -q 'nvidia_drm.modeset=1' "$entry_file"; then
+          sudo sed -i 's|^\(options .*\)|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$entry_file"
         fi
-      done < <(find /boot/loader/entries -maxdepth 1 -name '*.conf' 2>/dev/null)
+      done < <(find /boot/loader/entries -maxdepth 1 -name '*.conf' -print 2>/dev/null)
+      (( found_entry )) || die 'systemd-boot selected but no loader entry was found'
       ;;
     limine)
       local limine_cfg=""
-      limine_cfg="$(detect_limine_config)" || true
-
-      if [[ -n "$limine_cfg" ]] && ! grep -q "nvidia_drm.modeset=1" "$limine_cfg"; then
-        if grep -Eq '^KERNEL_CMDLINE\[default\]=' "$limine_cfg"; then
-          v sudo sed -i 's|^\(KERNEL_CMDLINE\[default\]=.*\)"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' "$limine_cfg"
-        elif grep -Eq '^kernel_cmdline[[:space:]]*=' "$limine_cfg"; then
-          v sudo sed -i 's|^\(kernel_cmdline[[:space:]]*=.*\)|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1|' "$limine_cfg"
-        else
-          printf "  WARNING: Could not recognize Limine cmdline format in $limine_cfg\n"
-        fi
+      if ! limine_cfg="$(detect_limine_config)"; then limine_cfg=""; fi
+      [[ -n "$limine_cfg" ]] || die 'Limine selected but no supported configuration file was found'
+      local nv_params='nvidia-drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1'
+      if grep -q 'nvidia_drm.modeset=1' "$limine_cfg"; then
+        log_info "Limine NVIDIA parameters already present in $limine_cfg"
+      elif grep -Eq '^KERNEL_CMDLINE\[default\]=' "$limine_cfg"; then
+        sudo sed -i "s|^\(KERNEL_CMDLINE\[default\]=.*\)\"|\1 ${nv_params}\"|" "$limine_cfg"
+      elif grep -Eq '^[[:space:]]*kernel_cmdline[[:space:]]*=' "$limine_cfg"; then
+        sudo python3 - "$limine_cfg" "$nv_params" <<'PYEOF'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1]); params = sys.argv[2]
+text = p.read_text()
+def add(match):
+    line = match.group(0).rstrip()
+    return (line[:-1] + ' ' + params + '"') if line.endswith('"') else (line + ' ' + params)
+p.write_text(re.sub(r'^[^\S\n]*kernel_cmdline[^\S\n]*=.*', add, text, flags=re.MULTILINE))
+PYEOF
+      elif grep -Eq '^[[:space:]]+cmdline[[:space:]]*:' "$limine_cfg"; then
+        sudo python3 - "$limine_cfg" "$nv_params" <<'PYEOF'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1]); params = sys.argv[2]
+text = p.read_text()
+p.write_text(re.sub(r'^[^\S\n]+cmdline[^\S\n]*:.*', lambda m: m.group(0).rstrip() + ' ' + params, text, flags=re.MULTILINE))
+PYEOF
+      else
+        die "Unsupported Limine cmdline format in $limine_cfg"
       fi
+      grep -q 'nvidia_drm.modeset=1' "$limine_cfg" || die "Limine NVIDIA parameter patch could not be verified"
       ;;
     grub)
-      if [[ -f /etc/default/grub ]] && ! grep -q "nvidia_drm.modeset=1" /etc/default/grub; then
+      [[ -f /etc/default/grub ]] || die 'GRUB detected but /etc/default/grub is missing'
+      if ! grep -q 'nvidia_drm.modeset=1' /etc/default/grub; then
         if grep -Eq '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
-          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
+          sudo sed -i 's|^\(GRUB_CMDLINE_LINUX_DEFAULT=.*\)\"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1\"|' /etc/default/grub
         elif grep -Eq '^GRUB_CMDLINE_LINUX=' /etc/default/grub; then
-          v sudo sed -i 's|^\(GRUB_CMDLINE_LINUX=.*\)"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1"|' /etc/default/grub
+          sudo sed -i 's|^\(GRUB_CMDLINE_LINUX=.*\)\"|\1 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1\"|' /etc/default/grub
+        else
+          die 'GRUB configuration has no supported kernel command-line variable'
         fi
       fi
-      if command_exists grub-mkconfig; then
-        if [[ -d /boot/grub ]]; then
-          v sudo grub-mkconfig -o /boot/grub/grub.cfg
-        elif [[ -d /boot/efi/EFI/grub ]]; then
-          v sudo grub-mkconfig -o /boot/efi/EFI/grub/grub.cfg
-        fi
+      if [[ -d /boot/grub ]]; then
+        v sudo grub-mkconfig -o /boot/grub/grub.cfg
+      elif [[ -d /boot/efi/EFI/grub ]]; then
+        v sudo grub-mkconfig -o /boot/efi/EFI/grub/grub.cfg
+      else
+        die 'GRUB detected but no grub.cfg output directory found'
       fi
       ;;
-    *)
-      printf "  WARNING: unknown bootloader, skipping boot parameter configuration\n"
-      ;;
+    *) die 'Unsupported or unknown bootloader; refusing NVIDIA bootloader mutation';;
+  esac
 
-esac
-
-  if [[ "$NEEDS_INITRAMFS_REBUILD" -eq 1 ]]; then
+  if (( needs_initramfs_rebuild )); then
     if command_exists limine-mkinitcpio; then
       v sudo limine-mkinitcpio
     else
@@ -431,60 +457,26 @@ esac
     fi
   fi
 
-  # Create udev rules for stable GPU device paths
-  printf "  Creating udev rules for stable GPU paths...\n"
-  local igpu_pci
-  local dgpu_pci
-  igpu_pci=$(lspci -D -d ::0300 | grep -i "intel" | head -n1 | awk '{print $1}' || true)
-  dgpu_pci=$(lspci -D -d ::0300 | grep -i "nvidia" | head -n1 | awk '{print $1}' || true)
+  local igpu_pci="" dgpu_pci="" line
+  if line="$(lspci -D -d ::0300 | grep -i 'intel' | head -n1)"; then igpu_pci="${line%% *}"; fi
+  if line="$(lspci -D -d ::0300 | grep -i 'nvidia' | head -n1)"; then dgpu_pci="${line%% *}"; fi
 
   if [[ -n "$igpu_pci" ]]; then
-    v sudo tee /etc/udev/rules.d/igpu-device-path.rules << 'EOF'
-KERNEL=="card*", KERNELS=="__IGPU_PCI__", SUBSYSTEM=="drm", SUBSYSTEMS=="pci", SYMLINK+="dri/igpu"
+    sudo tee /etc/udev/rules.d/igpu-device-path.rules >/dev/null <<EOF
+KERNEL=="card*", KERNELS=="$igpu_pci", SUBSYSTEM=="drm", SUBSYSTEMS=="pci", SYMLINK+="dri/igpu"
 EOF
-    v sudo sed -i "s|__IGPU_PCI__|${igpu_pci}|g" /etc/udev/rules.d/igpu-device-path.rules
   fi
-
   if [[ -n "$dgpu_pci" ]]; then
-    v sudo tee /etc/udev/rules.d/dgpu-device-path.rules << 'EOF'
-KERNEL=="card*", KERNELS=="__DGPU_PCI__", SUBSYSTEM=="drm", SUBSYSTEMS=="pci", SYMLINK+="dri/dgpu"
+    sudo tee /etc/udev/rules.d/dgpu-device-path.rules >/dev/null <<EOF
+KERNEL=="card*", KERNELS=="$dgpu_pci", SUBSYSTEM=="drm", SUBSYSTEMS=="pci", SYMLINK+="dri/dgpu"
 EOF
-    v sudo sed -i "s|__DGPU_PCI__|${dgpu_pci}|g" /etc/udev/rules.d/dgpu-device-path.rules
   fi
+  sudo udevadm control --reload-rules
+  sudo udevadm trigger
 
-  v sudo udevadm control --reload-rules
-  v sudo udevadm trigger
-
-  # Create Hyprland mode-specific configs
-  printf "  Creating Hyprland GPU mode configs...\n"
-  v mkdir -p "${HOME}/.config/hypr/config/modes"
-
-  v bash -c "cat > '${HOME}/.config/hypr/config/modes/hybrid.lua' << 'EOFCONFIG'
--- Hybrid mode: Intel iGPU primary, NVIDIA offload
-env = AQ_DRM_DEVICES, /dev/dri/igpu:/dev/dri/dgpu
-env = LIBVA_DRIVER_NAME, nvidia
-env = __GLX_VENDOR_LIBRARY_NAME, nvidia
-EOFCONFIG"
-
-  v bash -c "cat > '${HOME}/.config/hypr/config/modes/dgpu.lua' << 'EOFCONFIG'
--- dGPU mode: NVIDIA direct via MUX
-env = AQ_DRM_DEVICES, /dev/dri/dgpu
-env = LIBVA_DRIVER_NAME, nvidia
-env = __GLX_VENDOR_LIBRARY_NAME, nvidia
-env = GBM_BACKEND, nvidia-drm
-EOFCONFIG"
-
-  v bash -c "cat > '${HOME}/.config/hypr/config/modes/igpu.lua' << 'EOFCONFIG'
--- iGPU mode: Intel only, NVIDIA powered off
-env = AQ_DRM_DEVICES, /dev/dri/igpu
-env = LIBVA_DRIVER_NAME, iHD
-env = __GLX_VENDOR_LIBRARY_NAME, mesa
-EOFCONFIG"
-
-  # Create nvidia-run wrapper script
-  printf "  Creating nvidia-run wrapper...\n"
-  v sudo tee /usr/local/bin/nvidia-run << 'EOFSCRIPT'
+  sudo tee /usr/local/bin/nvidia-run >/dev/null <<'EOFSCRIPT'
 #!/bin/bash
+set -euo pipefail
 export __NV_PRIME_RENDER_OFFLOAD=1
 export __GLX_VENDOR_LIBRARY_NAME=nvidia
 export __VK_LAYER_NV_optimus=NVIDIA_only
@@ -493,161 +485,113 @@ export LIBVA_DRIVER_NAME=nvidia
 export WLR_NO_HARDWARE_CURSORS=1
 exec "$@"
 EOFSCRIPT
-  v sudo chmod +x /usr/local/bin/nvidia-run
-
-  printf "${STY_GREEN}[$0]: NVIDIA + MUX setup completed${STY_RST}\n"
-  printf "  Reboot required for changes to take effect\n"
-  printf "  Run: sudo msi-mux-switcher status\n"
+  sudo chmod +x /usr/local/bin/nvidia-run
+  log_success 'NVIDIA + MUX setup completed; reboot required before testing.'
 }
 
 showfun setup_nvidia_mux
 v setup_nvidia_mux
 
-
-
 #####################################################################################
 # AI/ML Stack Setup
 function setup_ai_stack() {
   [[ "${SKIP_AI_STACK:-}" == "true" ]] && {
-    log_info "SKIP_AI_STACK=true — skipping AI stack (CUDA/Ollama/Newelle/models)"
+    log_info 'SKIP_AI_STACK=true — skipping AI stack'
     return 0
   }
-  [[ "${OS_GROUP_ID}" != "arch" ]] && {
-    log_warning "AI stack setup is CachyOS/Arch only — skipping"
-    return 0
-  }
-
-  command_exists nvidia-smi || {
-    log_warning "No NVIDIA GPU detected — skipping AI stack"
+  [[ "${OS_GROUP_ID:-unknown}" == 'arch' || "${OS_GROUP_ID:-unknown}" == 'cachyos' ]] || {
+    log_warning 'AI stack is supported only on Arch/CachyOS; skipping'
     return 0
   }
 
-  # ── 1. Check CUDA version (faster-whisper requires CUDA 12+) ──────────────
+  if ! command_exists nvidia-smi; then
+    log_warning 'NVIDIA driver is not currently available (nvidia-smi missing); skipping CUDA/Ollama/Newelle AI setup.'
+    log_warning 'After hardware tuning is deliberately enabled and verified, rerun the setup for the AI phase.'
+    return 0
+  fi
+
   local cuda_ver
-  cuda_ver=$(nvcc --version 2>/dev/null | grep -oP 'release \K[0-9]+' || echo "0")
+  cuda_ver=$(nvcc --version 2>/dev/null | grep -oP 'release \K[0-9]+' || printf '0')
   if (( cuda_ver < 12 )); then
-    log_warning "CUDA < 12 detected. Installing cuda + cudnn..."
     v sudo pacman -S --noconfirm --needed cuda cudnn
   fi
-
-  # ── 2. Install Ollama (target: v0.32.6+) ──────────────────────────────────
-  if ! command_exists ollama; then
-    v sudo pacman -S --noconfirm --needed ollama
-  fi
-
-  local ollama_ver ollama_maj ollama_min
-  ollama_ver=$(ollama --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -n1 || echo "0.0")
-  IFS=. read -r ollama_maj ollama_min <<<"$ollama_ver"
-  if (( ollama_maj < 0 || (ollama_maj == 0 && ollama_min < 32) )); then
-    log_warning "Ollama < 0.32 detected (have $ollama_ver) — agent mode not available"
-    log_warning "Update via: sudo pacman -Syu ollama"
-  fi
+  if ! command_exists ollama; then v sudo pacman -S --noconfirm --needed ollama; fi
   v sudo systemctl enable --now ollama.service
 
-  # ── 3. Install Newelle 1.4.5 (native, NOT Flatpak) ────────────────────────
-  # Flatpak Newelle is sandbox-limited; native install is required for:
-  # - MCP server connections to localhost
-  # - Wake word access to microphone
-  # - File permission system access outside ~/.var/
   if ! command_exists newelle; then
     aur_install newelle
-  else
-    log_info "Newelle already installed — verify it is >=1.4.5"
-    log_info "Check: newelle --version"
   fi
 
-  # ── 4. Python venv for MCP servers + STT + TTS ────────────────────────────
   local venv="${XDG_STATE_HOME:-$HOME/.local/state}/shesh/.venv"
   v uv venv "$venv"
-
-  # Install all pinned dependencies
   v uv pip install --python "$venv/bin/python" \
-    "faster-whisper>=1.2.0"  \
-    "piper-tts"              \
-    "chromadb>=1.5.9"        \
-    "mcp[cli]>=1.0"          \
-    "fastmcp>=0.1"           \
-    "tomli-w>=1.0"           \
-    "pydantic>=2.0"          \
-    "httpx>=0.27"
+    'faster-whisper>=1.2.0' 'piper-tts' 'chromadb>=1.5.9' 'mcp[cli]>=1.0' \
+    'fastmcp>=0.1' 'tomli-w>=1.0' 'pydantic>=2.0' 'httpx>=0.27'
 
-  # ── 5. Build Rust sm-watcher binary ───────────────────────────────────────
   if command_exists cargo; then
     local watcher_dir="${REPO_ROOT}/tools/smart-organizer/watcher-rs"
     if [[ -d "$watcher_dir" ]]; then
-      log_info "Building Rust smart-organizer watcher..."
-      (cd "$watcher_dir" && cargo build --release) && \
-        v install -Dm755 "${watcher_dir}/target/release/sm-watcher" "${BIN_DIR}/sm-watcher"
-      log_success "sm-watcher binary installed to ${BIN_DIR}/sm-watcher"
+      (cd "$watcher_dir" && cargo build --release)
+      v install -Dm755 "${watcher_dir}/target/release/sm-watcher" "${BIN_DIR}/sm-watcher"
     fi
   else
-    log_warning "cargo not found — sm-watcher will use Python watchfiles fallback"
-    v uv pip install --python "$venv/bin/python" "watchfiles>=0.24"
+    v uv pip install --python "$venv/bin/python" 'watchfiles>=0.24'
   fi
 
-  # ── 6. Pull ONLY 6GB VRAM-safe Ollama models ─────────────────────────────
-  log_header "Pulling Ollama models (RTX 4050, 6GB VRAM)"
-  log_info "Primary brain:    phi4-mini    (~3.2GB Q4)"
-  log_info "Code assistant:   qwen2.5-coder:3b (~2.8GB Q4)"
-  log_info "Embeddings/RAG:   nomic-embed-text (<0.5GB)"
-  log_info "Vision/screenshots: moondream2  (~2.5GB)"
-  log_warning "NOT pulling: qwen3:14b, llava:13b, mistral:7b — overflow 6GB VRAM"
-
+  log_info 'Pulling 6GB-VRAM-safe models'
   v ollama pull phi4-mini
   v ollama pull qwen2.5-coder:3b
   v ollama pull nomic-embed-text
   v ollama pull moondream2
-
-  # ── 7 & 8. MCP servers now ship via the ecosystem installer ───────────────
-  # ADR-0019 folded the desktop's tools/shesh/mcp_servers/*.py into shesh-core.
-  # The real shesh-*-mcp console scripts + systemd user units are installed by
-  # tools/install-shesh-stack.sh (run by bootstrap.sh after `setup install`).
-  log_info "MCP servers install via install-shesh-stack.sh (shesh-core); nothing to install here"
-  log_success "AI stack (Newelle 1.4.5 + Ollama v0.32.6+ + models) installed"
-  log_info   "Launch Newelle → Settings → Models → Add Ollama → phi4-mini"
-  log_info   "MCP servers arrive from the ecosystem stack installer (shesh-*-mcp)"
+  log_success 'AI stack installed'
 }
-
 showfun setup_ai_stack
 v setup_ai_stack
-
-
 
 #####################################################################################
 # Power Management Setup
 function setup_power_management(){
   [[ "${SKIP_POWER_SETUP:-}" == "true" ]] && {
-    printf "${STY_YELLOW}[$0]: SKIP_POWER_SETUP=true — skipping power management (incl. zram)${STY_RST}\n"
+    log_info 'SKIP_POWER_SETUP=true — skipping power management'
     return 0
   }
-  if [[ "${OS_GROUP_ID:-unknown}" != "arch" ]]; then
-    printf "${STY_YELLOW}[$0]: Not Arch/CachyOS, skipping power management${STY_RST}\n"
+  [[ "${OS_GROUP_ID:-unknown}" == 'arch' || "${OS_GROUP_ID:-unknown}" == 'cachyos' ]] || {
+    log_warning 'Power management is supported only on Arch/CachyOS; skipping'
     return 0
-  fi
-  printf "${STY_CYAN}[$0]: Setting up power management${STY_RST}\n"
+  }
 
   v sudo pacman -S --noconfirm --needed power-profiles-daemon
   v sudo systemctl enable --now power-profiles-daemon.service
-    v sudo systemctl enable --now sddm
-  v powerprofilesctl set balanced || true
+  if systemctl list-unit-files sddm.service >/dev/null 2>&1; then
+    if ! sudo systemctl enable --now sddm; then
+      log_error 'sddm.service is installed but could not be enabled'
+      return 1
+    fi
+  fi
+  if ! powerprofilesctl set balanced; then
+    log_error 'Unable to select balanced power profile'
+    return 1
+  fi
 
-  # ZRAM: size = half of RAM, zstd, capped at 16G. Idempotent.
   local mem_kb mem_gb zram_gb
   mem_kb=$(awk '/MemTotal/{print $2}' /proc/meminfo)
   mem_gb=$(( mem_kb / 1024 / 1024 ))
-  zram_gb=$(( mem_gb / 2 )); (( zram_gb > 16 )) && zram_gb=16
-  printf "  Detected %sGB RAM — configuring %sGB zram0 (zstd)\n" "$mem_gb" "$zram_gb"
-  v sudo install -Dm644 /dev/stdin /etc/systemd/zram-generator.conf << EOFZRAM
+  zram_gb=$(( mem_gb / 2 ))
+  (( zram_gb > 16 )) && zram_gb=16
+  (( zram_gb < 1 )) && zram_gb=1
+
+  sudo install -Dm644 /dev/stdin /etc/systemd/zram-generator.conf <<EOFZRAM
 # managed-by=shesh-desktop
 [zram0]
 zram-size = ${zram_gb} GiB
 compression-algorithm = zstd
 EOFZRAM
   v sudo systemctl daemon-reload
-  v sudo systemctl enable --now systemd-zram-setup@zram0.service || true
-
-  printf "${STY_GREEN}[$0]: Power management configured${STY_RST}\n"
+  if ! sudo systemctl enable --now systemd-zram-setup@zram0.service; then
+    log_error 'Failed to enable systemd-zram-setup@zram0.service'
+    return 1
+  fi
+  log_success "Power management configured with ${zram_gb}GiB zram"
 }
-
 showfun setup_power_management
 v setup_power_management
