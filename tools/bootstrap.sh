@@ -72,21 +72,50 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Source profile detection library
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/profile-detect.sh"
-
-if [[ "$DEVICE" == "auto" ]]; then
-    DEVICE="$(detect_profile)"
+# Source the profile-detection library.
+#
+# This script is documented as `bash <(curl ...)`, where BASH_SOURCE is a
+# /dev/fd entry and has no directory to resolve siblings against: the source
+# line looked for /dev/fd/lib/profile-detect.sh and the run died before the
+# first step. Fall back to fetching the library when there is no local copy.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)"
+PROFILE_LIB="${SCRIPT_DIR:-}/lib/profile-detect.sh"
+if [[ -n "$SCRIPT_DIR" && -r "$PROFILE_LIB" ]]; then
+  # shellcheck source=/dev/null
+  source "$PROFILE_LIB"
+else
+  RAW_BASE="${SHESH_RAW_BASE:-https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main}"
+  _tmp_lib="$(mktemp)"
+  if curl -fsSL "$RAW_BASE/tools/lib/profile-detect.sh" -o "$_tmp_lib"; then
+    # shellcheck source=/dev/null
+    source "$_tmp_lib"
+    rm -f "$_tmp_lib"
+  else
+    rm -f "$_tmp_lib"
+    log_err "could not obtain tools/lib/profile-detect.sh (no local copy, fetch failed)"
+    exit 1
+  fi
 fi
 
-# Validate device profile exists (with fallback to generic)
-if ! profile_exists "$DEVICE"; then
-    log_warn "Profile '$DEVICE' not found, falling back to generic"
-    DEVICE="generic"
+if [[ "$DEVICE" == "auto" ]]; then
+    # detect_profile returns 1 when it falls back to generic, which is a
+    # result and not an error. Under `set -e` the bare call aborted the run
+    # before the first step, with no output at all on a non-matching machine.
+    DEVICE="$(detect_profile || true)"
+    [[ -n "$DEVICE" ]] || DEVICE="generic"
+fi
+
+# Validate the profile, but only once the repository is on disk.
+#
+# profile_exists resolves profiles/ relative to the library's own location. In
+# the documented `bash <(curl ...)` form the library is fetched to a temporary
+# file, so that path points nowhere and every profile looks missing. There is
+# also no `generic` profile in the repository, so the old fallback could not
+# succeed and the run aborted before cloning anything. The real check happens
+# in apply_profile(), after clone_desktop() has put profiles/ on disk.
+if declare -F profile_exists >/dev/null && [[ -d "${INSTALL_DIR:-}/profiles" ]]; then
     if ! profile_exists "$DEVICE"; then
-        log_err "No generic profile found either"
-        exit 1
+        log_warn "profile '$DEVICE' not found on disk; continuing and letting apply_profile decide"
     fi
 fi
 
@@ -275,21 +304,50 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Source profile detection library
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/profile-detect.sh"
-
-if [[ "$DEVICE" == "auto" ]]; then
-    DEVICE="$(detect_profile)"
+# Source the profile-detection library.
+#
+# This script is documented as `bash <(curl ...)`, where BASH_SOURCE is a
+# /dev/fd entry and has no directory to resolve siblings against: the source
+# line looked for /dev/fd/lib/profile-detect.sh and the run died before the
+# first step. Fall back to fetching the library when there is no local copy.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)"
+PROFILE_LIB="${SCRIPT_DIR:-}/lib/profile-detect.sh"
+if [[ -n "$SCRIPT_DIR" && -r "$PROFILE_LIB" ]]; then
+  # shellcheck source=/dev/null
+  source "$PROFILE_LIB"
+else
+  RAW_BASE="${SHESH_RAW_BASE:-https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main}"
+  _tmp_lib="$(mktemp)"
+  if curl -fsSL "$RAW_BASE/tools/lib/profile-detect.sh" -o "$_tmp_lib"; then
+    # shellcheck source=/dev/null
+    source "$_tmp_lib"
+    rm -f "$_tmp_lib"
+  else
+    rm -f "$_tmp_lib"
+    log_err "could not obtain tools/lib/profile-detect.sh (no local copy, fetch failed)"
+    exit 1
+  fi
 fi
 
-# Validate device profile exists (with fallback to generic)
-if ! profile_exists "$DEVICE"; then
-    log_warn "Profile '$DEVICE' not found, falling back to generic"
-    DEVICE="generic"
+if [[ "$DEVICE" == "auto" ]]; then
+    # detect_profile returns 1 when it falls back to generic, which is a
+    # result and not an error. Under `set -e` the bare call aborted the run
+    # before the first step, with no output at all on a non-matching machine.
+    DEVICE="$(detect_profile || true)"
+    [[ -n "$DEVICE" ]] || DEVICE="generic"
+fi
+
+# Validate the profile, but only once the repository is on disk.
+#
+# profile_exists resolves profiles/ relative to the library's own location. In
+# the documented `bash <(curl ...)` form the library is fetched to a temporary
+# file, so that path points nowhere and every profile looks missing. There is
+# also no `generic` profile in the repository, so the old fallback could not
+# succeed and the run aborted before cloning anything. The real check happens
+# in apply_profile(), after clone_desktop() has put profiles/ on disk.
+if declare -F profile_exists >/dev/null && [[ -d "${INSTALL_DIR:-}/profiles" ]]; then
     if ! profile_exists "$DEVICE"; then
-        log_err "No generic profile found either"
-        exit 1
+        log_warn "profile '$DEVICE' not found on disk; continuing and letting apply_profile decide"
     fi
 fi
 
