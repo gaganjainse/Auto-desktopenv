@@ -8,8 +8,8 @@
 -- with "argument must be a table".
 
 -- Force the internal panel to its native 144 Hz mode. If 144 isn't advertised,
--- replace with hl.config({ monitor = "eDP-1,highrr,auto,1" }) for auto-high-refresh.
-hl.config({ monitor = "eDP-1,1920x1200@144,0x0,1" })
+-- replace with hl.monitor({ output = "eDP-1", mode = "highrr,auto" }) for auto-high-refresh.
+hl.monitor({ output = "eDP-1", mode = "1920x1200@144", position = "0x0" })
 
 -- Default to the iGPU driving the compositor (better battery); dGPU via prime-run.
 -- Do NOT set AQ_DRM_DEVICES unless needed — Hyprland picks the correct GPU by default.

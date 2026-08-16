@@ -54,10 +54,10 @@ If anything differs, update `profile.conf` before running setup.
 In `dots/.config/hypr/custom/general.lua` (user override, update-friendly):
 ```lua
 -- Force the internal panel to its native 144 Hz mode
-hl.config({ monitor = "eDP-1,1920x1200@144,0x0,1" })
+hl.monitor({ output = "eDP-1", mode = "1920x1200@144", position = "0x0" })
 
 -- If Hyprland doesn't advertise 144, use highrr auto-detection:
--- hl.config({ monitor = "eDP-1,highrr,auto,1" })
+-- hl.monitor({ output = "eDP-1", mode = "highrr,auto" })
 
 -- VRR only if the panel supports it (most Sword 16 FHD+ panels do NOT have Adaptive-Sync;
 -- verify with `hyprctl monitors` / `wlr-randr`. Leave off if unsupported to avoid glitches.)
