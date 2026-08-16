@@ -26,10 +26,8 @@ Reboot required after switching.
 """
 
 import argparse
-import fcntl
 import logging
 import os
-import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -118,19 +116,13 @@ class MSIMUXSwitcher:
         return True
 
     def _get_mux_var_path(self) -> Path:
-        """Get path to MUX UEFI variable."""
-        # UEFI variable files are named: VarName-GUID
-        # The GUID format uses dashes, not the standard format
-        var_filename = f"{self.MUX_VAR_NAME}-{self.MUX_VAR_GUID.replace('-', '_')}"
-        var_path = self.uefi_path / var_filename
+        """Get path to MUX UEFI variable.
 
-        # Try alternate naming if not found
-        if not var_path.exists():
-            # Some systems use different GUID formatting
-            alt_filename = f"{self.MUX_VAR_NAME}-{self.MUX_VAR_GUID}"
-            var_path = self.uefi_path / alt_filename
-
-        return var_path
+        efivarfs stores each variable as a file named <VarName>-<GUID> with the
+        GUID in its standard dashed form, e.g. MsiDCVarData-
+        DD96BAAF-145E-4F56-B1CF-193256298E99.
+        """
+        return self.uefi_path / f"{self.MUX_VAR_NAME}-{self.MUX_VAR_GUID}"
 
     def _read_uefi_var(self, var_path: Path) -> bytes | None:
         """Read UEFI variable value."""
@@ -144,37 +136,20 @@ class MSIMUXSwitcher:
             return None
 
     def _write_uefi_var(self, var_path: Path, data: bytes) -> bool:
-        """
-        Write UEFI variable value.
+        """Write UEFI variable value.
 
-        UEFI variables are immutable by default on some systems.
-        We need to remove the immutable flag first.
+        efivarfs does not support the immutable attribute (the FS_IOC_SETFLAGS
+        ioctl is a no-op here), so no chattr dance is needed. Attributes (the
+        first 4 bytes of the existing variable) are preserved.
         """
         try:
-            # Remove immutable flag if set
-            try:
-                fcntl.ioctl(
-                    var_path.open("rb"),
-                    0x40086601,  # FS_IOC_SETFLAGS
-                    struct.pack("Q", 0),  # Clear immutable flag
-                )
-            except OSError:
-                pass  # flag absent means already clear — best-effort by design
-
-            # Read existing data to preserve attributes
             existing = var_path.read_bytes()
             attributes = existing[:4]
-
-            # Write new data with preserved attributes
-            new_data = attributes + data
-            var_path.write_bytes(new_data)
-
+            var_path.write_bytes(attributes + data)
             log.info(f"Wrote UEFI variable: {data.hex()}")
             return True
         except OSError as e:
             log.error(f"Failed to write UEFI variable: {e}")
-            log.error("You may need to:")
-            log.error(f"  sudo chattr -i {var_path}")
             return False
 
     def _ec_read_byte(self, addr: int) -> int:
