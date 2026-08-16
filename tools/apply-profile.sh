@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # apply-profile.sh — apply a shesh-desktop device profile (idempotent).
 #
-# Applies the parts of profiles/<device>/ that the end-4 installer does NOT
+# This script applies the parts of profiles/<device>/ that the end-4 installer does NOT
 # already do. mkinitcpio (hybrid GPU modules) and zram/power-profiles are
 # handled by `setup install` itself (setup_nvidia_mux / setup_power_management),
 # so they are intentionally NOT re-applied here — one source of truth each.
@@ -13,6 +13,10 @@
 #
 # Usage:
 #   bash tools/apply-profile.sh [--device shesh|generic|auto] [--dry-run]
+#
+# The device is auto-detected from system DMI info by default.
+# Use --device to override: shesh | generic | auto
+
 set -euo pipefail
 
 GREEN='\033[0;32m'; BLUE='\033[0;34m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -21,26 +25,35 @@ info(){ echo -e "${BLUE}[..]${NC}   $*"; }
 warn(){ echo -e "${YELLOW}[!!]${NC}   $*"; }
 die() { echo -e "${RED}[FATAL]${NC} $*" >&2; exit 1; }
 
+# Source profile detection library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/profile-detect.sh"
+
 DEVICE="auto"; DRY=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --device) DEVICE="$2"; shift 2;;
     --dry-run) DRY=1; shift;;
-    -h|--help) sed -n '2,18p' "$0"; exit 0;;
+    -h|--help) sed -n '2,20p' "$0"; exit 0;;
     *) shift;;
   esac
 done
 
+# Auto-detect device if not specified
 if [[ "$DEVICE" == "auto" ]]; then
-  if grep -qi "Sword 16 HX\|B14VEKG" /sys/class/dmi/id/product_name 2>/dev/null; then
-    DEVICE="shesh"
-  else
-    DEVICE="generic"
-  fi
+    DEVICE="$(detect_profile)"
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFILE_DIR="$SCRIPT_DIR/profiles/$DEVICE"
+# Validate profile exists
+if ! profile_exists "$DEVICE"; then
+    warn "Profile '$DEVICE' not found, falling back to generic"
+    DEVICE="generic"
+    if ! profile_exists "$DEVICE"; then
+        die "No generic profile found either"
+    fi
+fi
+
+PROFILE_DIR="$(get_profile_dir "$DEVICE")"
 
 run() { if [[ $DRY -eq 1 ]]; then info "[dry-run] $*"; else "$@"; fi; }
 
