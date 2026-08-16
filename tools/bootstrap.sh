@@ -49,7 +49,7 @@ shesh-desktop Bootstrap — one command installs the whole desktop + Shesh stack
   --skip-ai       skip Ollama/models/voice + the ecosystem MCP stack
   --skip-nvidia   skip NVIDIA/MUX setup
   --skip-power    skip power management (incl. zram)
-#   --skip-stack    skip the Shesh MCP stack entirely (it is optional)
+  --skip-stack    skip the Shesh MCP stack entirely (it is optional)
   --dry-run       print every step, run nothing
   --device NAME   shesh | generic | auto (default auto-detect)
   --help
@@ -96,6 +96,7 @@ INSTALL_DIR="${HOME}/Workspace/shesh-desktop"
 # degrades to a warning (skip) instead of aborting the whole bootstrap.
 ECO_URL="${SHESH_STACK_URL:-https://raw.githubusercontent.com/gaganjainse/shesh-ecosystem/main/tools/install-shesh-stack.sh}"
 # Pinned SHA256 of install-shesh-stack.sh. Override with SHESH_STACK_SHA256.
+# A mismatch (or a failed download) skips the stack rather than failing hard.
 ECO_SHA256="${SHESH_STACK_SHA256:-1ccefd55c22cc981990da46215008940118f41d219549c4045097b0f0f47af8a}"
 
 run() { if [[ $DRY -eq 1 ]]; then log_info "[dry-run] $*"; else "$@"; fi; }
@@ -162,25 +163,41 @@ install_stack() {
   local flags=(--no-sysupgrade)
   [[ $SKIP_AI -eq 1 ]] && flags+=(--skip-ai)
   if [[ $DRY -eq 1 ]]; then
-    log_info "[dry-run] bash <(curl -s $ECO_URL) ${flags[*]}   (sha256 pinned: $ECO_SHA256)"
+    log_info "[dry-run] fetch $ECO_URL (sha256 pinned: ${ECO_SHA256:-(none)}) then: bash <installer> ${flags[*]}"
     return 0
   fi
-  # SHA-pinned: fetch to a temp file, verify against the pinned digest, then run.
-  local tmp
-  tmp="$(mktemp)"
-  trap 'rm -f "$tmp"' RETURN
-  curl -fsSL "$ECO_URL" -o "$tmp"
-  local got
-  got="$(sha256sum "$tmp" | cut -d' ' -f1)"
-  if [[ "$got" != "$ECO_SHA256" ]]; then
-    log_err "install-shesh-stack.sh checksum mismatch"
-    log_err "  expected $ECO_SHA256"
-    log_err "  got      $got"
-    exit 1
+  if [[ $SKIP_STACK -eq 1 ]]; then
+    log_warn "skipping MCP stack (--skip-stack)"; return 0
   fi
-  log_ok "install-shesh-stack.sh checksum verified"
+  # SHA-pinned: fetch to a temp file, verify against the pinned digest, then run.
+  # A missing file (404) or digest mismatch must NOT abort the bootstrap — it only
+  # skips the OPTIONAL MCP stack, leaving the desktop itself fully installed.
+  local tmp; tmp="$(mktemp)"
+  if ! curl -fsSL "$ECO_URL" -o "$tmp" 2>/tmp/kilo/iss.err; then
+    log_warn "could not download Shesh stack installer: $ECO_URL"
+    log_warn "$(cat /tmp/kilo/iss.err 2>/dev/null | tr -d '\n')"
+    log_warn "SKIPPING MCP stack — desktop is fully installed. Re-run later with SHESH_STACK_URL set."
+    rm -f "$tmp" /tmp/kilo/iss.err
+    return 0
+  fi
+  if [[ -n "$ECO_SHA256" ]]; then
+    local got; got="$(sha256sum "$tmp" | cut -d' ' -f1)"
+    if [[ "$got" != "$ECO_SHA256" ]]; then
+      log_warn "install-shesh-stack.sh checksum mismatch"
+      log_warn "  expected $ECO_SHA256"
+      log_warn "  got      $got"
+      log_warn "SKIPPING MCP stack to avoid running unverified code. Update the pin or set SHESH_STACK_SHA256."
+      rm -f "$tmp" /tmp/kilo/iss.err
+      return 0
+    fi
+    log_ok "install-shesh-stack.sh checksum verified"
+  else
+    log_warn "no SHA256 pin set (SHESH_STACK_SHA256) — running unverified installer from $ECO_URL"
+  fi
   bash "$tmp" "${flags[@]}"
-  log_ok "Shesh stack installed"
+  local rc=$?
+  rm -f "$tmp" /tmp/kilo/iss.err
+  [[ $rc -eq 0 ]] && log_ok "Shesh stack installed" || log_warn "Shesh stack installer exited $rc"
 }
 
 verify() {
@@ -195,7 +212,36 @@ verify() {
   [[ $fails -gt 0 ]] && { log_warn "$fails verification warning(s) — see above"; } || log_ok "verification clean"
 }
 
+setup_sudo() {
+  # Optional non-interactive sudo for headless / no-DE installs (no TTY).
+  # Provide BOOTSTRAP_SUDO_PASSWORD, or pre-set SUDO_ASKPASS yourself.
+  # We drop a `sudo` wrapper + askpass helper on PATH so child processes
+  # (./setup, makepkg, yay) also authenticate without a TTY.
+  if [[ -n "${SUDO_ASKPASS:-}" ]]; then
+    sudo() { command sudo -A "$@"; }
+    export SUDO_ASKPASS
+    log_info "using provided SUDO_ASKPASS for non-interactive sudo"
+    return 0
+  fi
+  if [[ -n "${BOOTSTRAP_SUDO_PASSWORD:-}" ]]; then
+    local dir; dir="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/shesh-sudo.XXXXXX")"
+    local ap="$dir/askpass.sh"
+    printf '#!/usr/bin/env bash\necho "%s"\n' "$BOOTSTRAP_SUDO_PASSWORD" > "$ap"
+    chmod 700 "$ap"
+    local sw="$dir/sudo"
+    printf '#!/usr/bin/env bash\nexec /usr/bin/sudo -A "$@"\n' > "$sw"
+    chmod 700 "$sw"
+    SUDO_ASKPASS="$ap"
+    export SUDO_ASKPASS PATH="$dir:$PATH"
+    sudo() { command sudo -A "$@"; }
+    log_info "headless sudo enabled (BOOTSTRAP_SUDO_PASSWORD)"
+    return 0
+  fi
+  log_info "interactive sudo — run from a TTY, or set BOOTSTRAP_SUDO_PASSWORD for headless"
+}
+
 main() {
+  setup_sudo
   preflight
   install_prerequisites
   clone_desktop
