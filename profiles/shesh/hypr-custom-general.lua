@@ -1,4 +1,4 @@
--- profiles/msi-sword-cachyos/hypr-custom-general.lua
+-- profiles/shesh/hypr-custom-general.lua
 -- Copy/symlink to ~/.config/hypr/custom/general.lua OR append its content.
 -- MSI Sword 16 HX B14VEKG: 1920x1200 @ 144Hz internal panel (eDP-1).
 -- SEE: docs/SHESH/04_DEVICE_PROFILE.md

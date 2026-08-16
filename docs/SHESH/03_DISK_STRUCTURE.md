@@ -231,7 +231,7 @@ The repo already uses the `dots/` tree + `setup` (rsync/cp with auto-backup). Re
 - Adopt a **bare git repo / GNU stow** approach for anything you want to version precisely:
   `git init --bare $HOME/.cfg` (the "bare dotfiles" pattern) so `~` is never itself a git repo.
 - Keep machine-specific overrides in `~/.config/hypr/custom/*.lua` (already provided) and in
-  `profiles/msi-sword-cachyos/` for system-level files.
+  `profiles/shesh/` for system-level files.
 - Never commit `Vaults/`, `.ssh/`, `*.kdbx`, cloud tokens, or Newelle/LLM API keys. Add to a global
   `.gitignore` (the repo `.gitignore` should include `.env`, `*.secret`, `config.toml` with keys).
 - Symlink `~/.config` into the repo's `dots/.config` via the installer; keep an `INSTALLED_LISTFILE`

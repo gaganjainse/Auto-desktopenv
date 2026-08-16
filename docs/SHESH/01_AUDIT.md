@@ -162,7 +162,7 @@ which are 🔴 and block a clean install.
 Multiple files and the entire PDF plan assume a **2560×1600 "QHD+"** panel and an **RTX 4070 8 GB**.
 Your actual SKU (`B14VEKG-210IN`) is **1920×1200 FHD+ @ 144 Hz** with **RTX 4050 6 GB**. Any
 `monitor=eDP-1,2560x1600@144` line will fall back to a lower/default mode. Any model pulled for an
-8 GB budget (qwen3:14b, llava:13b) will OOM. **Action:** create one `profiles/msi-sword-cachyos/profile.conf`
+8 GB budget (qwen3:14b, llava:13b) will OOM. **Action:** create one `profiles/shesh/profile.conf`
 as the single source of these values and source it everywhere; never hardcode resolution/VRAM.
 
 ### NEW-B 🟠 No `hyprland_control` / `smart_organizer` MCP servers (also N-04) — agent can't actually control the desktop
@@ -237,7 +237,7 @@ device/automation/AI layers become a genuine, upstream-beating advantage rather 
 6. Fix the license (README → GPL-3, fill `MIT.txt` placeholders) (MED-16).
 7. Expand ShellCheck to all scripts + add Arch container CI (MED-12/13) so the above can't regress.
 8. Create `tools/lib/common.sh` and source it (HIGH-01/02, MED-01/02).
-9. Create `profiles/msi-sword-cachyos/` with the **correct** 1920×1200/6 GB values (NEW-A).
+9. Create `profiles/shesh/` with the **correct** 1920×1200/6 GB values (NEW-A).
 10. Fix bootstrap `--skip-*` flags and generic framing (HIGH-08).
 
 Each of these is expanded into copy-paste-ready code/prompts in `02_ROADMAP.md` and `09_AI_PROMPTS.md`.

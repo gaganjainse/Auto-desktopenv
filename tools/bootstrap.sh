@@ -2,7 +2,7 @@
 # shesh-desktop Bootstrap — ONE command installs everything.
 #
 #   bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
-#   bash <(curl -s .../bootstrap.sh) -- --skip-ai --device msi-sword-cachyos
+#   bash <(curl -s .../bootstrap.sh) -- --skip-ai --device shesh
 #
 # What it does (idempotent; safe to re-run):
 #   1. Preflight (not root, sudo present, network, Arch/CachyOS check)
@@ -21,7 +21,7 @@
 #   --skip-power    skip power management (incl. zram)
 #   --skip-stack    skip the Shesh MCP stack entirely (it is optional)
 #   --dry-run       print every step, run nothing
-#   --device NAME   msi-sword-cachyos | generic | auto (default auto-detect)
+#   --device NAME   shesh | generic | auto (default auto-detect)
 #   --help
 #
 # Headless / no-DE installs (no TTY for sudo):
@@ -51,7 +51,7 @@ shesh-desktop Bootstrap — one command installs the whole desktop + Shesh stack
   --skip-power    skip power management (incl. zram)
   --skip-stack    skip the Shesh MCP stack entirely (it is optional)
   --dry-run       print every step, run nothing
-  --device NAME   msi-sword-cachyos | generic | auto (default auto-detect)
+  --device NAME   shesh | generic | auto (default auto-detect)
   --help
 EOF
 }
@@ -74,7 +74,7 @@ done
 
 if [[ "$DEVICE" == "auto" ]]; then
   if grep -qiE "Sword 16 HX|B14VEKG" /sys/class/dmi/id/product_name 2>/dev/null; then
-    DEVICE="msi-sword-cachyos"
+    DEVICE="shesh"
   else
     DEVICE="generic"
   fi

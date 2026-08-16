@@ -10,7 +10,7 @@
 ## 1. Hardware facts (canonical)
 
 ```ini
-# profiles/msi-sword-cachyos/profile.conf
+# profiles/shesh/profile.conf
 DEVICE_VENDOR="Micro-Star International Co., Ltd."
 DEVICE_PRODUCT_NAME="Sword 16 HX B14VEKG"   # /sys/class/dmi/id/product_name
 DEVICE_MATCH_REGEX="Sword 16 HX"
@@ -92,7 +92,7 @@ Your `msi-mux-switcher.py` is the right tool; do **not** use `supergfxctl` (ASUS
 for non-ASUS). For runtime (no-reboot) PRIME offload, use `prime-run`/`nvidia-run`; for full MUX
 switching the tool writes ACPI/UEFI variables and prompts for reboot.
 
-### Required kernel/module config (`profiles/msi-sword-cachyos/mkinitcpio.fragment`)
+### Required kernel/module config (`profiles/shesh/mkinitcpio.fragment`)
 ```
 MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)
 ```

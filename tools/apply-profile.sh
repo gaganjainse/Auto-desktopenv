@@ -12,7 +12,7 @@
 #   hypr-custom-general.lua     -> ~/.config/hypr/custom/general.lua (append, idempotent)
 #
 # Usage:
-#   bash tools/apply-profile.sh [--device msi-sword-cachyos|generic|auto] [--dry-run]
+#   bash tools/apply-profile.sh [--device shesh|generic|auto] [--dry-run]
 set -euo pipefail
 
 GREEN='\033[0;32m'; BLUE='\033[0;34m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -33,7 +33,7 @@ done
 
 if [[ "$DEVICE" == "auto" ]]; then
   if grep -qi "Sword 16 HX\|B14VEKG" /sys/class/dmi/id/product_name 2>/dev/null; then
-    DEVICE="msi-sword-cachyos"
+    DEVICE="shesh"
   else
     DEVICE="generic"
   fi
