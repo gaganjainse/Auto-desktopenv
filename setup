@@ -10,6 +10,12 @@ source ./sdata/lib/dist-determine.sh
 prevent_sudo_or_root
 set -e
 
+# Hardware/bootloader mutation is opt-in. The safe default installs the desktop
+# without touching NVIDIA modules, initramfs, or bootloader kernel parameters.
+if [[ "${ENABLE_SHESH_HARDWARE_TUNING:-false}" != "true" ]]; then
+  export SKIP_NVIDIA_SETUP=true
+fi
+
 #####################################################################################
 showhelp_global(){
 printf "${STY_CYAN}NOTE:
@@ -38,7 +44,7 @@ Subcommands:
   virtmon        (For dev only) Create virtual monitors for testing multi-monitors.
   checkdeps      (For dev only) Check whether pkgs exist in AUR or repos of Arch.
 
-  help           Show this help message.
+  help           Show this help message and exit.
 
 For each <subcommand>, use -h for details:
   $0 <subcommand> -h
@@ -46,90 +52,56 @@ For each <subcommand>, use -h for details:
 ${STY_BOLD}${STY_CYAN}Access ${STY_UNDERLINE}https://ii.clsty.link${STY_RST} ${STY_BOLD}${STY_CYAN}for documentation about illogical-impulse.${STY_RST}
 "
 }
-case $1 in
-  # Global help
-  ""|help|--help|-h)showhelp_global;exit;;
-  # Correct subcommand
+case ${1:-} in
+  ""|help|--help|-h) showhelp_global; exit;;
   install|uninstall|exp-update|exp-merge|resetfirstrun|checkdeps|virtmon|smart-organizer)
     SUBCMD_NAME=$1
     SUBCMD_DIR=./sdata/subcmd-$1
     shift;;
-  # Correct subcommand but not using ./sdata/subcmd-$1
   install-deps|install-setups|install-files)
     sudo_init_keepalive
     trap sudo_stop_keepalive EXIT INT TERM
     SUBCMD_NAME=$1
     SUBCMD_DIR=./sdata/subcmd-install
     shift;;
-  # Wrong subcommand
-  *)printf "${STY_RED}Unknown subcommand \"$1\".${STY_RST}\n";showhelp_global;exit 1;;
+  *) printf "${STY_RED}Unknown subcommand \"$1\".${STY_RST}\n"; showhelp_global; exit 1;;
 esac
-#####################################################################################
-if [[ -f "${SUBCMD_DIR}/options.sh" ]];
-  then source "${SUBCMD_DIR}/options.sh"
+
+if [[ -f "${SUBCMD_DIR}/options.sh" ]]; then
+  source "${SUBCMD_DIR}/options.sh"
 fi
+
 case ${SUBCMD_NAME} in
   install)
-    for function in "${print_os_group_id_functions[@]}"; do
-      $function
-    done
+    for function in "${print_os_group_id_functions[@]}"; do $function; done
     pause
-    # Initialize sudo keepalive for the entire install process
     sudo_init_keepalive
-    # Set trap to cleanup when this subcommand exits
     trap sudo_stop_keepalive EXIT INT TERM
-    if [[ "${SKIP_ALLGREETING}" != true ]]; then
-      source ${SUBCMD_DIR}/0.greeting.sh
-    fi
-    if [[ "${SKIP_ALLDEPS}" != true ]]; then
-      source ${SUBCMD_DIR}/1.deps-router.sh
-    fi
-    if [[ "${SKIP_ALLSETUPS}" != true ]]; then
-      source ${SUBCMD_DIR}/2.setups.sh
-    fi
-    if [[ "${SKIP_ALLFILES}" != true ]]; then
-      source ${SUBCMD_DIR}/3.files.sh
-    fi
+    if [[ "${SKIP_ALLGREETING:-}" != true ]]; then source "${SUBCMD_DIR}/0.greeting.sh"; fi
+    if [[ "${SKIP_ALLDEPS:-}" != true ]]; then source "${SUBCMD_DIR}/1.deps-router.sh"; fi
+    if [[ "${SKIP_ALLSETUPS:-}" != true ]]; then source "${SUBCMD_DIR}/2.setups.sh"; fi
+    if [[ "${SKIP_ALLFILES:-}" != true ]]; then source "${SUBCMD_DIR}/3.files.sh"; fi
     ;;
   install-deps)
-    for function in "${print_os_group_id_functions[@]}"; do
-      $function
-    done
+    for function in "${print_os_group_id_functions[@]}"; do $function; done
     pause
-    # Initialize sudo keepalive for dependency installation
     sudo_init_keepalive
-    # Set trap to cleanup when this subcommand exits
     trap sudo_stop_keepalive EXIT INT TERM
-    if [[ "${SKIP_ALLDEPS}" != true ]]; then
-      source ${SUBCMD_DIR}/1.deps-router.sh
-    fi
+    if [[ "${SKIP_ALLDEPS:-}" != true ]]; then source "${SUBCMD_DIR}/1.deps-router.sh"; fi
     ;;
   install-setups)
-    for function in "${print_os_group_id_functions[@]}"; do
-      $function
-    done
+    for function in "${print_os_group_id_functions[@]}"; do $function; done
     pause
-    # Initialize sudo keepalive for setup steps
     sudo_init_keepalive
-    # Set trap to cleanup when this subcommand exits
     trap sudo_stop_keepalive EXIT INT TERM
-    if [[ "${SKIP_ALLSETUPS}" != true ]]; then
-      source ${SUBCMD_DIR}/2.setups.sh
-    fi
+    if [[ "${SKIP_ALLSETUPS:-}" != true ]]; then source "${SUBCMD_DIR}/2.setups.sh"; fi
     ;;
   install-files)
     sudo_init_keepalive
     trap sudo_stop_keepalive EXIT INT TERM
-    for function in "${print_os_group_id_functions[@]}"; do
-      $function
-    done
+    for function in "${print_os_group_id_functions[@]}"; do $function; done
     pause
-    if [[ "${SKIP_ALLFILES}" != true ]]; then
-      source ${SUBCMD_DIR}/3.files.sh
-    fi
+    if [[ "${SKIP_ALLFILES:-}" != true ]]; then source "${SUBCMD_DIR}/3.files.sh"; fi
     ;;
-  *)
-    source ${SUBCMD_DIR}/0.run.sh
-    exit
-    ;;
+  *) source "${SUBCMD_DIR}/0.run.sh"; exit;;
 esac
