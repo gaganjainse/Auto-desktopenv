@@ -54,14 +54,14 @@ If anything differs, update `profile.conf` before running setup.
 In `dots/.config/hypr/custom/general.lua` (user override, update-friendly):
 ```lua
 -- Force the internal panel to its native 144 Hz mode
-hl.config("monitor", [=[eDP-1,1920x1200@144,0x0,1]=])
+hl.config({ monitor = "eDP-1,1920x1200@144,0x0,1" })
 
 -- If Hyprland doesn't advertise 144, use highrr auto-detection:
--- hl.config("monitor", [[eDP-1,highrr,auto,1]])
+-- hl.config({ monitor = "eDP-1,highrr,auto,1" })
 
 -- VRR only if the panel supports it (most Sword 16 FHD+ panels do NOT have Adaptive-Sync;
 -- verify with `hyprctl monitors` / `wlr-randr`. Leave off if unsupported to avoid glitches.)
-hl.config("misc:vrr", "0")
+hl.config({ misc = { vrr = 0 } })
 ```
 
 For external HDMI 2.1 displays, add per-monitor lines; the RTX 4050 can drive 4K120 over HDMI 2.1.
@@ -70,10 +70,12 @@ For external HDMI 2.1 displays, add per-monitor lines; the RTX 4050 can drive 4K
 In `custom/general.lua`, prefer short, ease-out curves (Caelestia/end-4 style). At 144 Hz a 120–180 ms
 animation is 17–26 frames — silky without feeling sluggish:
 ```lua
-hl.config("decoration:blur:enabled", true)
-hl.config("decoration:blur:size", 8)
-hl.config("decoration:blur:passes", 3)
-hl.config("decoration:shadow:enabled", true)
+hl.config({
+    decoration = {
+        blur = { enabled = true, size = 8, passes = 3 },
+        shadow = { enabled = true }
+    }
+})
 -- on battery, Shesh flips blur size/passes down via a power profile rule
 ```
 **On battery**, reduce blur passes and disable window shadows (the iGPU draws them); this is a real
