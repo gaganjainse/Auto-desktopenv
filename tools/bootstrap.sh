@@ -1,296 +1,196 @@
 #!/usr/bin/env bash
-# shesh-desktop Bootstrap — ONE command installs everything.
+# shesh-desktop Bootstrap — safe, staged installer for Arch/CachyOS.
 #
-#   bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
-#   bash <(curl -s .../bootstrap.sh) -- --skip-ai --device shesh
-#
-# What it does (idempotent; safe to re-run):
-#   1. Preflight (not root, sudo present, network, Arch/CachyOS check)
-#   2. System update + base tooling (pacman)
-#   3. Clone shesh-desktop to ~/Workspace/shesh-desktop (recurse submodules)
-#   4. Run `./setup install --force` — end-4 dots + Hyprland + Quickshell +
-#      NVIDIA/MUX + power/zram + Ollama/models/Newelle (the desktop's own AI bits)
-#   5. Apply the device profile (sysctl/udev/144Hz) via tools/apply-profile.sh
-#   6. Install the Shesh MCP stack (shesh-core + memory/orchestrator/harness/…) +
-#      MCP client configs + systemd units via the ecosystem installer
-#   7. Verification + reboot note
-#
-# Flags:
-#   --skip-ai       skip Ollama/models/voice + the ecosystem MCP stack
-#   --skip-nvidia   skip NVIDIA/MUX setup
-#   --skip-power    skip power management (incl. zram)
-#   --skip-stack    skip the Shesh MCP stack entirely (it is optional)
-#   --dry-run       print every step, run nothing
-#   --device NAME   shesh | generic | auto (default auto-detect)
-#   --help
-#
-# Headless / no-DE installs (no TTY for sudo):
-#   BOOTSTRAP_SUDO_PASSWORD='yourpass' bash tools/bootstrap.sh
-#     -> uses an askpass helper so ./setup, makepkg and yay authenticate without a TTY.
-#   Or pre-set SUDO_ASKPASS to your own askpass program.
-#
-# Overriding the MCP-stack installer (default upstream path currently 404s):
-#   SHESH_STACK_URL=https://.../install-shesh-stack.sh SHESH_STACK_SHA256=... bash tools/bootstrap.sh
-#   If the download or SHA check fails, the stack step is SKIPPED (warning), not fatal.
+# The bootstrap is deliberately self-contained until the repository is cloned.
+# Hardware/NVIDIA tuning is opt-in because it mutates initramfs/bootloader state.
 set -euo pipefail
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 log_info(){ echo -e "${BLUE}[BOOT]${NC} $*"; }
-log_ok()  { echo -e "${GREEN}[OK]${NC}   $*"; }
+log_ok(){ echo -e "${GREEN}[OK]${NC}   $*"; }
 log_warn(){ echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_err() { echo -e "${RED}[FATAL]${NC} $*" >&2; }
+log_err(){ echo -e "${RED}[FATAL]${NC} $*" >&2; }
 
-SKIP_AI=0; SKIP_NVIDIA=0; SKIP_POWER=0; SKIP_STACK=0; DRY=0; DEVICE="auto"
+SKIP_AI=0; SKIP_NVIDIA=1; SKIP_POWER=0; SKIP_STACK=0; DRY=0; DEVICE='auto'
+ENABLE_HARDWARE=0
+INSTALL_DIR="${HOME}/Workspace/shesh-desktop"
+ECO_DIR="${HOME}/Workspace/shesh-ecosystem"
+ECO_SHA256="${SHESH_STACK_SHA256:-640f3b7e40347744dca9c9cf12c52b2dd85945fb96247e5e6a08414577c485da}"
+REPO_URL="${SHESH_DESKTOP_REPO_URL:-https://github.com/gaganjainse/shesh-desktop.git}"
 
-usage() {
+usage(){
   cat <<'EOF'
-shesh-desktop Bootstrap — one command installs the whole desktop + Shesh stack.
+shesh-desktop Bootstrap
 
-  --skip-ai       skip Ollama/models/voice + the ecosystem MCP stack
-  --skip-nvidia   skip NVIDIA/MUX setup
-  --skip-power    skip power management (incl. zram)
-  --skip-stack    skip the Shesh MCP stack entirely (it is optional)
-  --dry-run       print every step, run nothing
-  --device NAME   shesh | generic | auto (default auto-detect)
+  --enable-hardware   enable MSI/NVIDIA/initramfs/bootloader tuning (opt-in)
+  --skip-ai           skip CUDA/Ollama/Newelle/model work
+  --skip-power        skip power management/zram
+  --skip-stack        skip the Shesh MCP ecosystem stack
+  --dry-run           print actions without executing them
+  --device NAME       shesh | generic | auto (default: auto)
   --help
+
+Safe default: hardware/NVIDIA tuning is NOT applied during the first install.
+After the first plain-Hyprland boot is verified, rerun with --enable-hardware.
 EOF
 }
 
-# allow the `bash <(curl ...) -- <flags>` invocation form
-[[ "${1:-}" == "--" ]] && shift
-
+[[ "${1:-}" == '--' ]] && shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --enable-hardware) ENABLE_HARDWARE=1; SKIP_NVIDIA=0; shift;;
     --skip-ai) SKIP_AI=1; shift;;
-    --skip-nvidia) SKIP_NVIDIA=1; shift;;
     --skip-power) SKIP_POWER=1; shift;;
     --skip-stack) SKIP_STACK=1; shift;;
     --dry-run) DRY=1; shift;;
-    --device) DEVICE="$2"; shift 2;;
+    --device) [[ $# -ge 2 ]] || { log_err '--device requires a value'; exit 2; }; DEVICE="$2"; shift 2;;
     --help|-h) usage; exit 0;;
-    *) log_warn "unknown arg $1 — ignoring"; shift;;
+    *) log_err "unknown argument: $1"; exit 2;;
   esac
 done
 
-# Source profile detection library
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/profile-detect.sh"
+run(){
+  if (( DRY )); then log_info "[dry-run] $*"; else "$@"; fi
+}
 
-if [[ "$DEVICE" == "auto" ]]; then
-    DEVICE="$(detect_profile)"
-fi
-
-# Validate device profile exists (with fallback to generic)
-if ! profile_exists "$DEVICE"; then
-    log_warn "Profile '$DEVICE' not found, falling back to generic"
-    DEVICE="generic"
-    if ! profile_exists "$DEVICE"; then
-        log_err "No generic profile found either"
-        exit 1
-    fi
-fi
-
-INSTALL_DIR="${HOME}/Workspace/shesh-desktop"
-# Shesh MCP-stack installer. Overridable via SHESH_STACK_URL if the pinned path
-# changes. NOTE: the default upstream path currently 404s, so the stack step
-# degrades to a warning (skip) instead of aborting the whole bootstrap.
-ECO_URL="${SHESH_STACK_URL:-https://raw.githubusercontent.com/gaganjainse/shesh-ecosystem/main/tools/install-shesh-stack.sh}"
-# Pinned SHA256 of install-shesh-stack.sh. Override with SHESH_STACK_SHA256.
-# A mismatch (or a failed download) skips the stack rather than failing hard.
-ECO_SHA256="${SHESH_STACK_SHA256:-1ccefd55c22cc981990da46215008940118f41d219549c4045097b0f0f47af8a}"
-
-run() { if [[ $DRY -eq 1 ]]; then log_info "[dry-run] $*"; else "$@"; fi; }
-
-preflight() {
-  log_info "=== Preflight ==="
-  log_info "device=$DEVICE skip-ai=$SKIP_AI skip-nvidia=$SKIP_NVIDIA skip-power=$SKIP_POWER dry-run=$DRY"
-  [[ $EUID -eq 0 ]] && { log_err "do NOT run as root — run as your normal user (sudo will be used)"; exit 1; }
-  command -v sudo >/dev/null 2>&1 || { log_err "sudo is required"; exit 1; }
-  curl -s -o /dev/null -m 8 https://archlinux.org/ || { log_err "no network (https://archlinux.org unreachable)"; exit 1; }
-  if ! grep -qiE 'arch|cachyos' /etc/os-release; then
-    log_warn "not Arch/CachyOS detected — continuing, but some steps assume pacman"
-  fi
+preflight(){
+  log_info '=== Preflight ==='
+  [[ $EUID -ne 0 ]] || { log_err 'run as the normal user, not root'; exit 1; }
+  command -v sudo >/dev/null 2>&1 || { log_err 'sudo is required'; exit 1; }
+  command -v curl >/dev/null 2>&1 || { log_err 'curl is required'; exit 1; }
+  command -v git >/dev/null 2>&1 || { log_err 'git is required'; exit 1; }
+  curl -fsS --connect-timeout 8 --max-time 15 https://archlinux.org/ >/dev/null || { log_err 'network check failed'; exit 1; }
+  grep -qiE '(^ID=.?cachyos|^ID=arch|^ID_LIKE=.*arch)' /etc/os-release || { log_err 'CachyOS/Arch is required'; exit 1; }
   log_ok "preflight passed ($(whoami)@$(hostname))"
 }
 
-install_prerequisites() {
-  log_info "=== System update + base tooling ==="
+install_prereqs(){
+  log_info '=== System update + base tooling ==='
   run sudo pacman -Syu --noconfirm
-  run sudo pacman -S --noconfirm --needed git curl wget base-devel
-  log_ok "prerequisites ready"
+  run sudo pacman -S --needed --noconfirm git curl wget base-devel python
 }
 
-clone_desktop() {
-  log_info "=== Clone shesh-desktop ==="
+clone_desktop(){
+  log_info '=== Clone shesh-desktop ==='
   if [[ -d "$INSTALL_DIR/.git" ]]; then
-    run git -C "$INSTALL_DIR" pull --ff-only && run git -C "$INSTALL_DIR" submodule update --init --recursive
+    run git -C "$INSTALL_DIR" fetch --prune origin
+    run git -C "$INSTALL_DIR" checkout main
+    run git -C "$INSTALL_DIR" pull --ff-only
+    run git -C "$INSTALL_DIR" submodule update --init --recursive
   else
     run mkdir -p "$(dirname "$INSTALL_DIR")"
-    run git clone --recurse-submodules "https://github.com/gaganjainse/shesh-desktop.git" "$INSTALL_DIR"
+    run git clone --recurse-submodules "$REPO_URL" "$INSTALL_DIR"
   fi
-  log_ok "shesh-desktop ready at $INSTALL_DIR"
 }
 
-run_setup() {
-  log_info "=== end-4 dots + Hyprland + hardware setup (non-interactive) ==="
-  if [[ $DRY -eq 0 && ! -f "$INSTALL_DIR/setup" ]]; then
-    log_err "setup not found at $INSTALL_DIR/setup"; exit 1
-  fi
+resolve_device(){
+  local detector="$INSTALL_DIR/tools/lib/profile-detect.sh"
+  [[ -f "$detector" ]] || { log_err "profile detector missing: $detector"; exit 1; }
+  # shellcheck source=/dev/null
+  source "$detector"
+  if [[ "$DEVICE" == 'auto' ]]; then DEVICE="$(detect_profile)"; fi
+  profile_exists "$DEVICE" || { log_err "profile '$DEVICE' does not exist"; exit 1; }
+  log_ok "device profile: $DEVICE"
+}
+
+run_setup(){
+  log_info '=== end-4 dots + Hyprland base setup ==='
   local env_prefix=()
-  [[ $SKIP_NVIDIA -eq 1 ]] && env_prefix+=(SKIP_NVIDIA_SETUP=true)
-  [[ $SKIP_AI -eq 1 ]]     && env_prefix+=(SKIP_AI_STACK=true)
-  [[ $SKIP_POWER -eq 1 ]]  && env_prefix+=(SKIP_POWER_SETUP=true)
-  if [[ $DRY -eq 1 ]]; then
-    log_info "[dry-run] (cd $INSTALL_DIR && env ${env_prefix[*]} ./setup install --force)"
+  (( SKIP_NVIDIA )) && env_prefix+=(SKIP_NVIDIA_SETUP=true)
+  (( SKIP_AI )) && env_prefix+=(SKIP_AI_STACK=true)
+  (( SKIP_POWER )) && env_prefix+=(SKIP_POWER_SETUP=true)
+  (( ENABLE_HARDWARE )) && env_prefix+=(ENABLE_SHESH_HARDWARE_TUNING=true)
+  if (( DRY )); then
+    log_info "[dry-run] (cd $INSTALL_DIR && env ${env_prefix[*]:-} ./setup install --force)"
   else
     (cd "$INSTALL_DIR" && env "${env_prefix[@]}" ./setup install --force)
   fi
-  log_ok "desktop setup done"
 }
 
-apply_profile() {
-  log_info "=== Apply device profile (sysctl/udev/144Hz) ==="
-  if [[ $DRY -eq 1 ]]; then
+apply_profile(){
+  log_info '=== Apply device profile ==='
+  if (( DRY )); then
     log_info "[dry-run] bash $INSTALL_DIR/tools/apply-profile.sh --device $DEVICE"
   else
     bash "$INSTALL_DIR/tools/apply-profile.sh" --device "$DEVICE"
   fi
-  log_ok "device profile applied"
 }
 
-install_stack() {
-  log_info "=== Shesh MCP stack (shesh-core + services + MCP config + units) ==="
-  local flags=(--no-sysupgrade)
-  [[ $SKIP_AI -eq 1 ]] && flags+=(--skip-ai)
-  if [[ $DRY -eq 1 ]]; then
-    log_info "[dry-run] fetch $ECO_URL (sha256 pinned: ${ECO_SHA256:-(none)}) then: bash <installer> ${flags[*]}"
-    return 0
-  fi
-  if [[ $SKIP_STACK -eq 1 ]]; then
-    log_warn "skipping MCP stack (--skip-stack)"; return 0
-  fi
-  # SHA-pinned: fetch to a temp file, verify against the pinned digest, then run.
-  # A missing file (404) or digest mismatch must NOT abort the bootstrap — it only
-  # skips the OPTIONAL MCP stack, leaving the desktop itself fully installed.
-  local tmp; tmp="$(mktemp)"
-  if ! curl -fsSL "$ECO_URL" -o "$tmp" 2>/tmp/kilo/iss.err; then
-    log_warn "could not download Shesh stack installer: $ECO_URL"
-    log_warn "$(cat /tmp/kilo/iss.err 2>/dev/null | tr -d '\n')"
-    log_warn "SKIPPING MCP stack — desktop is fully installed. Re-run later with SHESH_STACK_URL set."
-    rm -f "$tmp" /tmp/kilo/iss.err
-    return 0
-  fi
-  if [[ -n "$ECO_SHA256" ]]; then
-    local got; got="$(sha256sum "$tmp" | cut -d' ' -f1)"
-    if [[ "$got" != "$ECO_SHA256" ]]; then
-      log_warn "install-shesh-stack.sh checksum mismatch"
-      log_warn "  expected $ECO_SHA256"
-      log_warn "  got      $got"
-      log_warn "SKIPPING MCP stack to avoid running unverified code. Update the pin or set SHESH_STACK_SHA256."
-      rm -f "$tmp" /tmp/kilo/iss.err
-      return 0
-    fi
-    log_ok "install-shesh-stack.sh checksum verified"
+install_stack(){
+  (( SKIP_STACK )) && { log_warn 'MCP stack skipped (--skip-stack)'; return 0; }
+  log_info '=== Shesh MCP stack ==='
+
+  if [[ -d "$ECO_DIR/.git" ]]; then
+    run git -C "$ECO_DIR" fetch --prune origin
+    run git -C "$ECO_DIR" checkout main
+    run git -C "$ECO_DIR" pull --ff-only
   else
-    log_warn "no SHA256 pin set (SHESH_STACK_SHA256) — running unverified installer from $ECO_URL"
+    run mkdir -p "$(dirname "$ECO_DIR")"
+    run git clone --depth 1 https://github.com/gaganjainse/shesh-ecosystem.git "$ECO_DIR"
   fi
-  bash "$tmp" "${flags[@]}"
-  local rc=$?
-  rm -f "$tmp" /tmp/kilo/iss.err
-  [[ $rc -eq 0 ]] && log_ok "Shesh stack installed" || log_warn "Shesh stack installer exited $rc"
+  [[ -f "$ECO_DIR/tools/install-shesh-stack.sh" ]] || { log_err 'ecosystem installer not found'; exit 1; }
+
+  run mkdir -p /tmp/kilo
+
+  local actual_sha
+  actual_sha="$(sha256sum "$ECO_DIR/tools/install-shesh-stack.sh" | awk '{print $1}')"
+  [[ "$actual_sha" == "$ECO_SHA256" ]] || {
+    log_err 'ecosystem installer checksum mismatch'
+    log_err "expected: $ECO_SHA256"
+    log_err "actual:   $actual_sha"
+    exit 1
+  }
+  log_ok 'ecosystem installer checksum verified'
+
+  local flags=(--no-sysupgrade --src-dir "$ECO_DIR")
+  (( SKIP_AI )) && flags+=(--skip-ai)
+  if (( DRY )); then
+    log_info "[dry-run] (cd $ECO_DIR && bash tools/install-shesh-stack.sh ${flags[*]})"
+  elif (cd "$ECO_DIR" && bash tools/install-shesh-stack.sh "${flags[@]}"); then
+    log_ok 'Shesh MCP stack installed'
+  else
+    log_err 'Shesh MCP stack installation failed; refusing to report a complete installation'
+    return 1
+  fi
 }
 
-verify() {
-  log_info "=== Verification ==="
-  if [[ $DRY -eq 1 ]]; then
-    log_info "[dry-run] verification skipped"; return 0
+verify(){
+  (( DRY )) && return 0
+  log_info '=== Verification ==='
+  local failed=0
+  command -v hyprctl >/dev/null 2>&1 || { log_warn 'hyprctl missing'; failed=1; }
+  if (( ! SKIP_AI )); then
+    command -v ollama >/dev/null 2>&1 || { log_warn 'ollama missing'; failed=1; }
   fi
-  local fails=0
-  command -v hyprctl >/dev/null 2>&1 && log_ok "hyprctl present" || { log_warn "hyprctl missing (expected until first Hyprland session)"; fails=$((fails+1)); }
-  command -v ollama >/dev/null 2>&1 && log_ok "ollama present" || { [[ $SKIP_AI -eq 1 ]] && log_ok "ollama skipped (--skip-ai)" || { log_warn "ollama missing"; fails=$((fails+1)); }; }
-  command -v shesh-audit-mcp >/dev/null 2>&1 && log_ok "shesh-audit-mcp present" || { [[ $SKIP_AI -eq 1 ]] && log_ok "MCP stack skipped (--skip-ai)" || { log_warn "shesh-audit-mcp missing (MCP stack may not have installed)"; fails=$((fails+1)); }; }
-  [[ $fails -gt 0 ]] && { log_warn "$fails verification warning(s) — see above"; } || log_ok "verification clean"
+  if (( ! SKIP_STACK )); then
+    command -v shesh-audit-mcp >/dev/null 2>&1 || { log_warn 'shesh-audit-mcp missing'; failed=1; }
+  fi
+  if (( failed )); then log_err 'verification failed'; return 1; fi
+  log_ok 'verification passed'
 }
 
-setup_sudo() {
-  # Optional non-interactive sudo for headless / no-DE installs (no TTY).
-  # Provide BOOTSTRAP_SUDO_PASSWORD, or pre-set SUDO_ASKPASS yourself.
-  # We drop a `sudo` wrapper + askpass helper on PATH so child processes
-  # (./setup, makepkg, yay) also authenticate without a TTY.
-  if [[ -n "${SUDO_ASKPASS:-}" ]]; then
-    sudo() { command sudo -A "$@"; }
-    export SUDO_ASKPASS
-    log_info "using provided SUDO_ASKPASS for non-interactive sudo"
-    return 0
-  fi
-  if [[ -n "${BOOTSTRAP_SUDO_PASSWORD:-}" ]]; then
-    local dir; dir="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/shesh-sudo.XXXXXX")"
-    local ap="$dir/askpass.sh"
-    printf '#!/usr/bin/env bash\necho "%s"\n' "$BOOTSTRAP_SUDO_PASSWORD" > "$ap"
-    chmod 700 "$ap"
-    local sw="$dir/sudo"
-    printf '#!/usr/bin/env bash\nexec /usr/bin/sudo -A "$@"\n' > "$sw"
-    chmod 700 "$sw"
-    SUDO_ASKPASS="$ap"
-    export SUDO_ASKPASS PATH="$dir:$PATH"
-    sudo() { command sudo -A "$@"; }
-    log_info "headless sudo enabled (BOOTSTRAP_SUDO_PASSWORD)"
-    return 0
-  fi
-  log_info "interactive sudo — run from a TTY, or set BOOTSTRAP_SUDO_PASSWORD for headless"
-}
-
-main() {
-  setup_sudo
+main(){
   preflight
-  install_prerequisites
+  install_prereqs
   clone_desktop
+  if (( DRY )); then
+    if [[ "$DEVICE" == 'auto' && -r /sys/class/dmi/id/product_name ]]; then
+      local product_name
+      product_name="$(cat /sys/class/dmi/id/product_name)"
+      if [[ "$product_name" =~ ^Sword[[:space:]]16[[:space:]]HX[[:space:]]B14VEKG ]]; then DEVICE='shesh'; else DEVICE='generic'; fi
+    fi
+    log_info "dry-run device profile: $DEVICE"
+  else
+    resolve_device
+  fi
   run_setup
   apply_profile
-  [[ $SKIP_STACK -eq 0 ]] && install_stack
+  install_stack
   verify
-  echo
-  log_ok "=== Bootstrap complete (device: $DEVICE) ==="
-  log_info "Reboot, pick Hyprland at the login screen, then:"
-  log_info "  - Settings → Shesh → flip toggles (they rewrite ~/.config/shesh/mcp/*.json)"
-  log_info "  - Verify: hyprctl monitors   (expect 1920x1200@144 on eDP-1)"
-  log_info "  - Voice:  'Hey Shesh' (Newelle, local models)"
-  echo
+  log_ok 'Bootstrap complete.'
+  log_info 'Reboot and select plain Hyprland at SDDM — DO NOT select UWSM on first boot.'
+  if (( ! ENABLE_HARDWARE )); then
+    log_info 'Hardware/NVIDIA tuning was intentionally deferred. Verify the first boot before rerunning with --enable-hardware.'
+  fi
 }
-
-# Allow the `bash <(curl ...) -- <flags>` invocation form
-[[ "${1:-}" == "--" ]] && shift
-
-# Parse flags
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --skip-ai) SKIP_AI=1; shift;;
-    --skip-nvidia) SKIP_NVIDIA=1; shift;;
-    --skip-power) SKIP_POWER=1; shift;;
-    --skip-stack) SKIP_STACK=1; shift;;
-    --dry-run) DRY=1; shift;;
-    --device) DEVICE="$2"; shift 2;;
-    --help|-h) usage; exit 0;;
-    *) log_warn "unknown arg $1 — ignoring"; shift;;
-  esac
-done
-
-# Source profile detection library
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/profile-detect.sh"
-
-if [[ "$DEVICE" == "auto" ]]; then
-    DEVICE="$(detect_profile)"
-fi
-
-# Validate device profile exists (with fallback to generic)
-if ! profile_exists "$DEVICE"; then
-    log_warn "Profile '$DEVICE' not found, falling back to generic"
-    DEVICE="generic"
-    if ! profile_exists "$DEVICE"; then
-        log_err "No generic profile found either"
-        exit 1
-    fi
-fi
-
-main "$@"
+main
