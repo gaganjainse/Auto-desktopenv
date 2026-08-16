@@ -7,9 +7,11 @@
 -- accepts). The old two-argument style, e.g. hl.config("monitor", "..."), errors
 -- with "argument must be a table".
 
--- Force the internal panel to its native 144 Hz mode. If 144 isn't advertised,
--- replace with hl.monitor({ output = "eDP-1", mode = "highrr,auto" }) for auto-high-refresh.
-hl.monitor({ output = "eDP-1", mode = "1920x1200@144", position = "0x0" })
+-- Force the internal panel to its native mode. The panel does not always
+-- advertise 144Hz over EDID on this muxed MSI, so let Hyprland pick the
+-- preferred mode rather than hardcoding a rate that may not exist — forcing
+-- 1920x1200@144 when the panel only reports 1920x1200 blanks the screen.
+hl.monitor({ output = "eDP-1", mode = "preferred", position = "auto" })
 
 -- Default to the iGPU driving the compositor (better battery); dGPU via prime-run.
 -- Do NOT set AQ_DRM_DEVICES unless needed — Hyprland picks the correct GPU by default.

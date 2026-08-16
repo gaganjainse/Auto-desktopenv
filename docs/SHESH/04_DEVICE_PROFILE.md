@@ -53,11 +53,11 @@ If anything differs, update `profile.conf` before running setup.
 
 In `dots/.config/hypr/custom/general.lua` (user override, update-friendly):
 ```lua
--- Force the internal panel to its native 144 Hz mode
-hl.monitor({ output = "eDP-1", mode = "1920x1200@144", position = "0x0" })
-
--- If Hyprland doesn't advertise 144, use highrr auto-detection:
--- hl.monitor({ output = "eDP-1", mode = "highrr,auto" })
+-- Force the internal panel to its native mode. The panel does not always
+-- advertise 144Hz over EDID on this muxed MSI, so let Hyprland pick the
+-- preferred mode rather than hardcoding a rate that may not exist — forcing
+-- 1920x1200@144 when the panel only reports 1920x1200 blanks the screen.
+hl.monitor({ output = "eDP-1", mode = "preferred", position = "auto" })
 
 -- VRR only if the panel supports it (most Sword 16 FHD+ panels do NOT have Adaptive-Sync;
 -- verify with `hyprctl monitors` / `wlr-randr`. Leave off if unsupported to avoid glitches.)
