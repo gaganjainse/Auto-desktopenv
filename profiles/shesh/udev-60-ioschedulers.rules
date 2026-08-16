@@ -1,4 +1,13 @@
 # /etc/udev/rules.d/60-ioschedulers.rules
-# CachyOS 260628 defaults NVMe to kyber; enforce it persistently.
+# I/O scheduler policy for the MSI Sword 16 HX (CachyOS 260628).
 # See docs/SHESH/04_DEVICE_PROFILE.md
-ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="kyber"
+#
+# NVMe devices have deep hardware queues and their own internal scheduler, so
+# the kernel's "none" elevator (FIFO to the controller) is the recommended
+# default (Red Hat, Dell, ArchWiki) and benchmarks measurably beat kyber/bfq on
+# NVMe. Forcing kyber here only adds software scheduling overhead.
+ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
+
+# SATA/SAS SSDs have shallower queues and benefit from read-prioritized
+# reordering; mq-deadline is the safe baseline for rotational and SATA SSD media.
+ACTION=="add|change", KERNEL=="sd[a-z]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
