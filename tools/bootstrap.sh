@@ -2,7 +2,7 @@
 # shesh-desktop Bootstrap — ONE command installs everything.
 #
 #   bash <(curl -s https://raw.githubusercontent.com/gaganjainse/shesh-desktop/main/tools/bootstrap.sh)
-#   bash <(curl -s .../bootstrap.sh) -- --skip-ai --device msi-sword-cachyos
+#   bash <(curl -s .../bootstrap.sh) -- --skip-ai --device shesh
 #
 # What it does (idempotent; safe to re-run):
 #   1. Preflight (not root, sudo present, network, Arch/CachyOS check)
@@ -21,7 +21,7 @@
 #   --skip-power    skip power management (incl. zram)
 #   --skip-stack    skip the Shesh MCP stack entirely (it is optional)
 #   --dry-run       print every step, run nothing
-#   --device NAME   msi-sword-cachyos | generic | auto (default auto-detect)
+#   --device NAME   shesh | generic | auto (default auto-detect)
 #   --help
 #
 # Headless / no-DE installs (no TTY for sudo):
@@ -51,7 +51,7 @@ shesh-desktop Bootstrap — one command installs the whole desktop + Shesh stack
   --skip-power    skip power management (incl. zram)
   --skip-stack    skip the Shesh MCP stack entirely (it is optional)
   --dry-run       print every step, run nothing
-  --device NAME   msi-sword-cachyos | generic | auto (default auto-detect)
+  --device NAME   shesh | generic | auto (default auto-detect)
   --help
 EOF
 }
@@ -72,12 +72,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Source profile detection library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/profile-detect.sh"
+
 if [[ "$DEVICE" == "auto" ]]; then
-  if grep -qiE "Sword 16 HX|B14VEKG" /sys/class/dmi/id/product_name 2>/dev/null; then
-    DEVICE="msi-sword-cachyos"
-  else
+    DEVICE="$(detect_profile)"
+fi
+
+# Validate device profile exists (with fallback to generic)
+if ! profile_exists "$DEVICE"; then
+    log_warn "Profile '$DEVICE' not found, falling back to generic"
     DEVICE="generic"
-  fi
+    if ! profile_exists "$DEVICE"; then
+        log_err "No generic profile found either"
+        exit 1
+    fi
 fi
 
 INSTALL_DIR="${HOME}/Workspace/shesh-desktop"
@@ -139,14 +149,12 @@ run_setup() {
 }
 
 apply_profile() {
-  log_info "=== Device profile ($DEVICE) ==="
-  local prof="$INSTALL_DIR/tools/apply-profile.sh"
+  log_info "=== Apply device profile (sysctl/udev/144Hz) ==="
   if [[ $DRY -eq 1 ]]; then
-    log_info "[dry-run] bash $prof --device $DEVICE"
-    return 0
+    log_info "[dry-run] bash $INSTALL_DIR/tools/apply-profile.sh --device $DEVICE"
+  else
+    bash "$INSTALL_DIR/tools/apply-profile.sh" --device "$DEVICE"
   fi
-  [[ -f "$prof" ]] || { log_warn "apply-profile.sh missing — skipping (profile is optional tuning)"; return 0; }
-  bash "$prof" --device "$DEVICE"
   log_ok "device profile applied"
 }
 
@@ -239,7 +247,7 @@ main() {
   clone_desktop
   run_setup
   apply_profile
-  install_stack
+  [[ $SKIP_STACK -eq 0 ]] && install_stack
   verify
   echo
   log_ok "=== Bootstrap complete (device: $DEVICE) ==="
@@ -249,5 +257,40 @@ main() {
   log_info "  - Voice:  'Hey Shesh' (Newelle, local models)"
   echo
 }
+
+# Allow the `bash <(curl ...) -- <flags>` invocation form
+[[ "${1:-}" == "--" ]] && shift
+
+# Parse flags
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-ai) SKIP_AI=1; shift;;
+    --skip-nvidia) SKIP_NVIDIA=1; shift;;
+    --skip-power) SKIP_POWER=1; shift;;
+    --skip-stack) SKIP_STACK=1; shift;;
+    --dry-run) DRY=1; shift;;
+    --device) DEVICE="$2"; shift 2;;
+    --help|-h) usage; exit 0;;
+    *) log_warn "unknown arg $1 — ignoring"; shift;;
+  esac
+done
+
+# Source profile detection library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/profile-detect.sh"
+
+if [[ "$DEVICE" == "auto" ]]; then
+    DEVICE="$(detect_profile)"
+fi
+
+# Validate device profile exists (with fallback to generic)
+if ! profile_exists "$DEVICE"; then
+    log_warn "Profile '$DEVICE' not found, falling back to generic"
+    DEVICE="generic"
+    if ! profile_exists "$DEVICE"; then
+        log_err "No generic profile found either"
+        exit 1
+    fi
+fi
 
 main "$@"

@@ -30,7 +30,7 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 | 0.13 | Dedupe `*credentials*`/`*backup*` in `safety.sh` | MED-07 | ☐ |
 | 0.14 | Delete `ci-test-trigger.txt`; use `workflow_dispatch`; remove stale `exp-update-tester` comment | LOW-04/05 | ☐ |
 | 0.15 | `bootstrap.sh`: generic title, `--skip-ai/--skip-nvidia/--skip-zram/--dry-run/--device`, idempotent | HIGH-08 | ☐ |
-| 0.16 | Create `profiles/msi-sword-cachyos/` with correct 1920×1200@144 / RTX 4050 6GB / 16GB DDR5 values | NEW-A | ☐ |
+| 0.16 | Create `profiles/shesh/` with correct 1920×1200@144 / RTX 4050 6GB / 16GB DDR5 values | NEW-A | ☐ |
 
 **Exit criteria:** `bash -n` clean; `shellcheck` (new scope) clean at `severity=warning`; README license correct.
 
@@ -76,7 +76,7 @@ Legend: 🛑 blocker · ⚙️ mechanical · 🧠 design · 🧪 needs testing o
 - 2.5 Consolidate `.updateignore` to one XDG path with a one-time migration; remove the TODO.
 - 2.6 Add `CONTRIBUTING.md` at root pointing to `docs/SHESH/` + checklist.
 - 2.7 Prune (behind a flag, don't delete upstream sync ability): keep `dist-arch`; for your personal
-  install set `--device msi-sword-cachyos` which skips fedora/gentoo/nix branches. **Do not** delete
+  install set `--device shesh` which skips fedora/gentoo/nix branches. **Do not** delete
   them from the repo (they aid upstream merges) — just don't execute them.
 
 **Exit criteria:** setup is a straight-line read; one source of truth per unit; uninstall actually cleans up.

@@ -9,5 +9,26 @@ Type=oneshot
 ExecStart=/bin/bash -c '[ "$(cat /sys/class/power_supply/AC/online 2>/dev/null || echo 1)" = "1" ] && powerprofilesctl set performance || powerprofilesctl set power-saver'
 RemainAfterExit=no
 
+# Sandboxing: only flips the power profile over the system D-Bus; no FS writes,
+# no privs, no network beyond the local AF_UNIX bus.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+RestrictAddressFamilies=AF_UNIX
+
 [Install]
 WantedBy=default.target

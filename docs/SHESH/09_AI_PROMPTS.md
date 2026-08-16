@@ -33,7 +33,7 @@ RULES:
 4. One logical change per turn. Update docs/SHESH/checklist.md.
 5. If a task is hardware-dependent, write the code AND a verification command; don't claim success
    without it.
-6. Never hardcode the wrong resolution/VRAM. Source them from profiles/msi-sword-cachyos/.
+6. Never hardcode the wrong resolution/VRAM. Source them from profiles/shesh/.
 7. Destructive operations must be guarded, dry-run capable, and logged.
 ```
 
@@ -135,7 +135,7 @@ warnings that bootloader cmdline needs manual editing. Mirror the structure of 2
 ## 4. Phase 3 — device tuning prompts
 
 ```
-Create profiles/msi-sword-cachyos/ containing profile.conf (the canonical hardware values from
+Create profiles/shesh/ containing profile.conf (the canonical hardware values from
 04_DEVICE_PROFILE.md), mkinitcpio.fragment, kernel-cmdline.txt, sysctl/99-shesh.conf,
 udev/60-ioschedulers.rules, and a hypr/custom snippet that sets monitor eDP-1,1920x1200@144 and
 battery/AC visual presets. Then wire setup to apply this profile when product_name matches "Sword 16

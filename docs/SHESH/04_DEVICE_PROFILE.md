@@ -10,7 +10,7 @@
 ## 1. Hardware facts (canonical)
 
 ```ini
-# profiles/msi-sword-cachyos/profile.conf
+# profiles/shesh/profile.conf
 DEVICE_VENDOR="Micro-Star International Co., Ltd."
 DEVICE_PRODUCT_NAME="Sword 16 HX B14VEKG"   # /sys/class/dmi/id/product_name
 DEVICE_MATCH_REGEX="Sword 16 HX"
@@ -53,15 +53,15 @@ If anything differs, update `profile.conf` before running setup.
 
 In `dots/.config/hypr/custom/general.lua` (user override, update-friendly):
 ```lua
--- Force the internal panel to its native 144 Hz mode
-hl.config("monitor", [=[eDP-1,1920x1200@144,0x0,1]=])
-
--- If Hyprland doesn't advertise 144, use highrr auto-detection:
--- hl.config("monitor", [[eDP-1,highrr,auto,1]])
+-- Force the internal panel to its native mode. The panel does not always
+-- advertise 144Hz over EDID on this muxed MSI, so let Hyprland pick the
+-- preferred mode rather than hardcoding a rate that may not exist — forcing
+-- 1920x1200@144 when the panel only reports 1920x1200 blanks the screen.
+hl.monitor({ output = "eDP-1", mode = "preferred", position = "auto" })
 
 -- VRR only if the panel supports it (most Sword 16 FHD+ panels do NOT have Adaptive-Sync;
 -- verify with `hyprctl monitors` / `wlr-randr`. Leave off if unsupported to avoid glitches.)
-hl.config("misc:vrr", "0")
+hl.config({ misc = { vrr = 0 } })
 ```
 
 For external HDMI 2.1 displays, add per-monitor lines; the RTX 4050 can drive 4K120 over HDMI 2.1.
@@ -70,10 +70,12 @@ For external HDMI 2.1 displays, add per-monitor lines; the RTX 4050 can drive 4K
 In `custom/general.lua`, prefer short, ease-out curves (Caelestia/end-4 style). At 144 Hz a 120–180 ms
 animation is 17–26 frames — silky without feeling sluggish:
 ```lua
-hl.config("decoration:blur:enabled", true)
-hl.config("decoration:blur:size", 8)
-hl.config("decoration:blur:passes", 3)
-hl.config("decoration:shadow:enabled", true)
+hl.config({
+    decoration = {
+        blur = { enabled = true, size = 8, passes = 3 },
+        shadow = { enabled = true }
+    }
+})
 -- on battery, Shesh flips blur size/passes down via a power profile rule
 ```
 **On battery**, reduce blur passes and disable window shadows (the iGPU draws them); this is a real
@@ -92,7 +94,7 @@ Your `msi-mux-switcher.py` is the right tool; do **not** use `supergfxctl` (ASUS
 for non-ASUS). For runtime (no-reboot) PRIME offload, use `prime-run`/`nvidia-run`; for full MUX
 switching the tool writes ACPI/UEFI variables and prompts for reboot.
 
-### Required kernel/module config (`profiles/msi-sword-cachyos/mkinitcpio.fragment`)
+### Required kernel/module config (`profiles/shesh/mkinitcpio.fragment`)
 ```
 MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)
 ```

@@ -102,6 +102,8 @@ for i in "${metapkgs[@]}"; do
   v install-local-pkgbuild "$i" "$metainstallflags"
 done
 
+# Install display manager (SDDM)
+v sudo pacman -S --needed --noconfirm sddm
 ## Optional dependencies
 if pacman -Qs ^plasma-browser-integration$ ;then SKIP_PLASMAINTG=true;fi
 case $SKIP_PLASMAINTG in

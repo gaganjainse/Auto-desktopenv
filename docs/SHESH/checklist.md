@@ -19,7 +19,7 @@ Tick these as you go. IDs match `01_AUDIT.md` and `02_ROADMAP.md`.
 - [ ] MED-10/18 quote vars + subshell font `cd`
 - [ ] MED-19 replace `ls` arrays with mapfile
 - [ ] HIGH-08 bootstrap `--skip-*` flags + generic framing
-- [ ] NEW-A `profiles/msi-sword-cachyos/` with correct 1920×1200/6GB values (✅ added)
+- [ ] NEW-A `profiles/shesh/` with correct 1920×1200/6GB values (✅ added)
 
 ## Phase 1 — CI gates
 - [ ] ShellCheck lints ALL scripts (not just tools/)

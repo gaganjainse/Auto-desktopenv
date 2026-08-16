@@ -36,7 +36,7 @@ specific order so you can paste them into an AI one at a time, check the result,
 A parallel set of **machine-actionable files** lives in this repo:
 
 - `docs/SHESH/checklist.md` — one-line-per-task checklist you tick off.
-- `tools/lib/common.sh`, `profiles/msi-sword-cachyos/`, etc. — actual code referenced by the docs.
+- `tools/lib/common.sh`, `profiles/shesh/`, etc. — actual code referenced by the docs.
 
 ---
 

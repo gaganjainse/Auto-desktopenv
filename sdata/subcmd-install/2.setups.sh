@@ -628,6 +628,7 @@ function setup_power_management(){
 
   v sudo pacman -S --noconfirm --needed power-profiles-daemon
   v sudo systemctl enable --now power-profiles-daemon.service
+    v sudo systemctl enable --now sddm
   v powerprofilesctl set balanced || true
 
   # ZRAM: size = half of RAM, zstd, capped at 16G. Idempotent.
